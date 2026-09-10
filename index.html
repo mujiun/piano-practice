@@ -344,7 +344,8 @@
   .spotify-embed, .focus-pdf-link { flex-shrink: 0; }
 
   /* focus tab — floating action toolbar overlaid on the score */
-  .spotify-embed { margin-top: 14px; }
+  .spotify-embed { margin-top: 14px; line-height: 0; }
+  .spotify-embed iframe { display: block; width: 100%; height: 80px; border-radius: 12px; }
   .focus-view { position: relative; margin-top: 14px; }
   .focus-actions { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 20;
     display: flex; align-items: center; gap: 2px; padding: 5px; border-radius: var(--mu-radius-full);
