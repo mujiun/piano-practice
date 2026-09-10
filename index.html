@@ -537,9 +537,8 @@
     /* sheet controls wrap comfortably */
     .sheet-meta { font-size: 12px; }
     .sheet-title { font-size: 23px; }
-    /* floating toolbar: full-width, single scrollable row */
-    .focus-actions { left: 8px; right: 8px; transform: none; max-width: none; flex-wrap: nowrap;
-      overflow-x: auto; justify-content: flex-start; }
+    /* floating toolbar: hug items, centered (metronome hidden on mobile) */
+    .focus-actions { max-width: calc(100vw - 24px); overflow-x: auto; }
     .focus-actions button { flex-shrink: 0; }
     /* declutter toolbar on mobile: hide zoom % and the whole metronome group */
     .focus-actions #zoomVal { display: none; }
