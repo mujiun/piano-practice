@@ -534,8 +534,8 @@
     .home-grid > .home-col:first-child .home-card { height: auto; max-height: 60vh; overflow-y: auto; }
     .home-grid > .home-col:last-child .home-card { flex: none; }
     .home-grid > .home-col:last-child .practice-card { min-height: 440px; }
-    /* composer cards: same layout, tighter vertical (row) gap */
-    .cgrid { column-gap: 14px; row-gap: 8px; }
+    /* composer cards: single column, tighter row gap */
+    .cgrid { grid-template-columns: 1fr; row-gap: 8px; }
     .toolgrid { grid-template-columns: 1fr; }
     /* sheet controls wrap comfortably */
     .sheet-meta { font-size: 12px; }
