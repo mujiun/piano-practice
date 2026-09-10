@@ -1,0 +1,53 @@
+/* mu-system · dropdown menu
+   Toggle .is-open on .dropdown and sync aria-expanded on the trigger.
+   Trigger: aria-haspopup="menu" aria-expanded="false"
+   Menu: role="menu", items role="menuitem" */
+
+.dropdown { position: relative; display: inline-block; }
+
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 210px;
+  padding: 6px;
+  background: var(--mu-white);
+  border: 1px solid var(--mu-border);
+  border-radius: var(--mu-radius-md);
+  box-shadow: var(--mu-shadow-md);
+  z-index: 50;
+  display: none;
+}
+.dropdown.is-open .menu { display: block; }
+.menu-right { left: auto; right: 0; }
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  background: transparent;
+  border-radius: var(--mu-radius-sm);
+  font-family: var(--mu-font);
+  font-size: 14px;
+  color: var(--mu-ink);
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--mu-fast) var(--mu-ease);
+}
+.menu-item:hover { background: var(--mu-gray-100); }
+.menu-item.is-selected { font-weight: 500; }
+
+.menu-divider { height: 1px; margin: 6px 4px; background: var(--mu-gray-100); }
+.menu-label {
+  padding: 8px 10px 4px;
+  font-family: var(--mu-font);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mu-ink-3);
+}
