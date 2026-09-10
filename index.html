@@ -375,6 +375,7 @@
   .focus-view.fake-fs { position: fixed; inset: 0; z-index: 300; margin: 0; box-sizing: border-box; background: var(--mu-bg);
     padding: max(14px, env(safe-area-inset-top)) 12px calc(env(safe-area-inset-bottom) + 12px); }
   .focus-view.fake-fs .focus-scroll { max-height: none; height: 100%; }
+  body.fs-active #view-sheet .appbar, body.fs-active #view-sheet .sheet-hero, body.fs-active #view-sheet .sheet-tabs { display: none; }
   .focus-pdf-link { text-align: center; margin-top: 12px; }
   .focus-pdf-link a { font-size: 13px; font-weight: 550; color: var(--mu-ink-3); text-decoration: none; }
   .focus-pdf-link a:hover { color: var(--mu-ink); }
@@ -533,8 +534,9 @@
     .home-grid > .home-col:first-child .home-card { height: auto; max-height: 60vh; overflow-y: auto; }
     .home-grid > .home-col:last-child .home-card { flex: none; }
     .home-grid > .home-col:last-child .practice-card { min-height: 440px; }
-    /* composer + tool grids to a single column */
-    .cgrid { grid-template-columns: 1fr; }
+    /* composer cards: keep 2 columns but tighter horizontal gap (same vertical) */
+    .cgrid { column-gap: 8px; row-gap: 14px; }
+    .ccard { padding: 12px; gap: 10px; }
     .toolgrid { grid-template-columns: 1fr; }
     /* sheet controls wrap comfortably */
     .sheet-meta { font-size: 12px; }
@@ -1266,6 +1268,7 @@ function show(view, root, hash) {
   el.classList.add("is-active", "fade");
   setTimeout(() => el.classList.remove("fade"), 300);
   document.getElementById("screen").scrollTop = 0;
+  document.body.classList.remove("fs-active");   // clear enlarge overlay on navigate
   const tb = document.getElementById("tabbar");
   if (tb) tb.style.display = (view === "sheet") ? "none" : "";   // focused reading view
   if (root) {
@@ -1807,14 +1810,8 @@ function renderSheetPane(p, toggleMark){
     pane.querySelector("#zoomIn").addEventListener("click", ()=>{ sheetCtx.zoom=Math.min(3, sheetCtx.zoom+0.25); applyZoom(pane); });
     pane.querySelector("#zoomOut").addEventListener("click", ()=>{ sheetCtx.zoom=Math.max(0.5, sheetCtx.zoom-0.25); applyZoom(pane); });
     pane.querySelector("#fullBtn").addEventListener("click", ()=>{
-      const iOS = /iP(hone|ad|od)/.test(navigator.userAgent);
-      const nativeFS = (fv.requestFullscreen || fv.webkitRequestFullscreen) && !iOS;
-      if (nativeFS) {
-        if (document.fullscreenElement || document.webkitFullscreenElement) (document.exitFullscreen||document.webkitExitFullscreen).call(document);
-        else (fv.requestFullscreen||fv.webkitRequestFullscreen).call(fv);
-      } else {
-        fv.classList.toggle("fake-fs");   // CSS overlay fallback (mobile / iOS)
-      }
+      const on = fv.classList.toggle("fake-fs");            // consistent CSS overlay everywhere
+      document.body.classList.toggle("fs-active", on);      // hide header while enlarged
       const sc = pane.querySelector("#focusScroll"); if (sc) sc.scrollTop = 0;   // show the top of the sheet
     });
     // metronome (moved here from Practice) — BPM shown in the hero tag
