@@ -357,6 +357,7 @@
   .focus-actions #metroToggle svg, .focus-actions #fMark svg { width: 17px; height: 17px; }
   .focus-actions #zoomVal, .focus-actions #bpmPanel { font-family: var(--mu-mono); font-size: 11.5px; color: var(--mu-ink-2); min-width: 34px; text-align: center; }
   .fa-sep { width: 1px; height: 20px; background: var(--mu-border); margin: 0 3px; }
+  .metro-group { display: contents; }
   .focus-scroll { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg);
     background: var(--mu-white); overflow-x: hidden; overflow-y: auto; max-height: 72vh; min-height: 320px; padding-bottom: 76px; }
   .osmd-host { overflow-x: hidden; }
@@ -540,8 +541,9 @@
     .focus-actions { left: 8px; right: 8px; transform: none; max-width: none; flex-wrap: nowrap;
       overflow-x: auto; justify-content: flex-start; }
     .focus-actions button { flex-shrink: 0; }
-    /* declutter toolbar on mobile: hide zoom % and BPM readouts */
-    .focus-actions #zoomVal, .focus-actions #bpmPanel { display: none; }
+    /* declutter toolbar on mobile: hide zoom % and the whole metronome group */
+    .focus-actions #zoomVal { display: none; }
+    .metro-group { display: none; }
     /* artist controls: search bar → sort chips → count (stacked) */
     .sortchips { gap: 6px; }
     .sortchips .grow { display: none; }
@@ -1235,7 +1237,9 @@ async function renderNotation(host, xml){
       autoResize:true, drawTitle:false, drawSubtitle:false, drawPartNames:false,
       drawingParameters:"compacttight", drawMeasureNumbers:false
     });
-    await osmd.load(xml); osmd.render();
+    await osmd.load(xml);
+    osmd.zoom = window.innerWidth <= 640 ? 0.62 : 1;  // smaller, reflowed notation on mobile (fills width, no gap)
+    osmd.render();
   } catch(e){ host.innerHTML = `<div class="score-note">Couldn't render notation</div>`; }
 }
 
@@ -1637,8 +1641,7 @@ function openSheet(id) {
   pushRecent(id);
   stopAllPractice();
   const realBpm = window.SCORE_NOTES && window.SCORE_NOTES[id] && window.SCORE_NOTES[id].bpm;
-  const mobile = window.innerWidth <= 640;
-  sheetCtx = { id, playing:false, playT:0, timerOn:false, metroOn:false, bpm: realBpm || defaultBpm(id), tab:"focus", zoom: mobile ? 0.5 : 1 };
+  sheetCtx = { id, playing:false, playT:0, timerOn:false, metroOn:false, bpm: realBpm || defaultBpm(id), tab:"focus", zoom: 1 };
   renderSheet(); show("sheet", rootTab === "home" ? "home" : rootTab, "piece/"+id);
 }
 function defaultBpm(id){ const p=pieceById(id); return p.level>=8?72:(p.level>=5?88:100); }
@@ -1776,11 +1779,13 @@ function renderSheetPane(p, toggleMark){
           <button id="zoomOut" title="Zoom out">−</button>
           <span id="zoomVal">${Math.round(sheetCtx.zoom*100)}%</span>
           <button id="zoomIn" title="Zoom in">+</button>
-          <span class="fa-sep"></span>
-          <button id="metroDown" title="Slower">−</button>
-          <button id="metroToggle" class="${sheetCtx.metroOn?'is-on':''}" title="Metronome">${IC.metro}</button>
-          <span id="bpmPanel">${sheetCtx.bpm}</span>
-          <button id="metroUp" title="Faster">+</button>
+          <span class="metro-group">
+            <span class="fa-sep"></span>
+            <button id="metroDown" title="Slower">−</button>
+            <button id="metroToggle" class="${sheetCtx.metroOn?'is-on':''}" title="Metronome">${IC.metro}</button>
+            <span id="bpmPanel">${sheetCtx.bpm}</span>
+            <button id="metroUp" title="Faster">+</button>
+          </span>
           <span class="fa-sep"></span>
           <button id="fullBtn" title="Full screen">${full}</button>
         </div>
