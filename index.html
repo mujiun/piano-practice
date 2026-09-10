@@ -540,6 +540,8 @@
     .focus-actions { left: 8px; right: 8px; transform: none; max-width: none; flex-wrap: nowrap;
       overflow-x: auto; justify-content: flex-start; }
     .focus-actions button { flex-shrink: 0; }
+    /* declutter toolbar on mobile: hide zoom % and BPM readouts */
+    .focus-actions #zoomVal, .focus-actions #bpmPanel { display: none; }
     /* artist controls: search bar → sort chips → count (stacked) */
     .sortchips { gap: 6px; }
     .sortchips .grow { display: none; }
@@ -1635,7 +1637,8 @@ function openSheet(id) {
   pushRecent(id);
   stopAllPractice();
   const realBpm = window.SCORE_NOTES && window.SCORE_NOTES[id] && window.SCORE_NOTES[id].bpm;
-  sheetCtx = { id, playing:false, playT:0, timerOn:false, metroOn:false, bpm: realBpm || defaultBpm(id), tab:"focus", zoom:1 };
+  const mobile = window.innerWidth <= 640;
+  sheetCtx = { id, playing:false, playT:0, timerOn:false, metroOn:false, bpm: realBpm || defaultBpm(id), tab:"focus", zoom: mobile ? 0.7 : 1 };
   renderSheet(); show("sheet", rootTab === "home" ? "home" : rootTab, "piece/"+id);
 }
 function defaultBpm(id){ const p=pieceById(id); return p.level>=8?72:(p.level>=5?88:100); }
