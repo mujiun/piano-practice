@@ -529,7 +529,7 @@
     .home-grid { grid-template-columns: 1fr; gap: 18px; }
     .home-grid > .home-col:first-child .home-card { height: auto; max-height: 60vh; overflow-y: auto; }
     .home-grid > .home-col:last-child .home-card { flex: none; }
-    .practice-card { min-height: 280px; }
+    .practice-card { min-height: 360px; }
     /* composer + tool grids to a single column */
     .cgrid { grid-template-columns: 1fr; }
     .toolgrid { grid-template-columns: 1fr; }
@@ -540,9 +540,14 @@
     .focus-actions { left: 8px; right: 8px; transform: none; max-width: none; flex-wrap: nowrap;
       overflow-x: auto; justify-content: flex-start; }
     .focus-actions button { flex-shrink: 0; }
-    .psearch { min-width: 130px; flex: 1; }
-    .sortchips { gap: 5px; }
-    .sortchips button { padding: 0 11px; font-size: 12px; }
+    /* artist controls: search bar → sort chips → count (stacked) */
+    .sortchips { gap: 6px; }
+    .sortchips .grow { display: none; }
+    .sortchips .psearch { order: -1; flex: 1 0 100%; }
+    .sortchips button { order: 1; padding: 0 12px; font-size: 12px; }
+    .sortchips .filter-count { order: 2; flex: 1 0 100%; margin-top: 2px; }
+    /* pianist hero: avatar above name */
+    .phero { flex-direction: column; }
   }
 </style>
 </head>
