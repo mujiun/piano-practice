@@ -336,9 +336,9 @@
   .ex-score svg, .osmd-host svg { max-width: none; }
 
   /* sheet page fills the frame; Music score flexes so score + Spotify both fit */
-  #view-sheet.is-active { display: flex; flex-direction: column; height: 100%; }
+  #view-sheet.is-active { display: flex; flex-direction: column; height: 100%; padding-bottom: 0; }
   #view-sheet .appbar, #view-sheet .sheet-hero, #view-sheet .sheet-tabs { flex-shrink: 0; }
-  #sheetPane { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
+  #sheetPane { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; padding-bottom: 96px; }
   #sheetPane > .focus-view { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   #sheetPane > .focus-view > .focus-scroll { flex: 1; min-height: 0; max-height: none; }
   .spotify-embed, .focus-pdf-link { flex-shrink: 0; }
