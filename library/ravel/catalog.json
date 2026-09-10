@@ -1,0 +1,295 @@
+{
+  "composer": {
+    "id": "ravel",
+    "name": "Maurice Ravel",
+    "era": "Impressionist · 1875–1937",
+    "init": "MR",
+    "bio": "French master of orchestral colour and pianistic precision. His solo piano works range from limpid early miniatures to the terrifying virtuosity of Gaspard de la nuit — every note exactly weighted, nothing wasted.",
+    "source": "IMSLP / Petrucci Music Library",
+    "license": "Public domain (Ravel died 1937; works PD in most countries). Individual engravings/editions may carry separate typesetting rights — check each IMSLP page.",
+    "catalogNote": "Complete solo-piano works (plus Ma mère l'Oye, piano four-hands, flagged). Orchestral works, ballets, songs and chamber music from the full 84-work IMSLP category are excluded."
+  },
+  "pieces": [
+    {
+      "id": "rav-serenade",
+      "c": "ravel",
+      "title": "Sérénade grotesque",
+      "sub": "M.5",
+      "key": "A minor",
+      "level": 7,
+      "year": 1893,
+      "dur": 4,
+      "imslp": "https://imslp.org/wiki/Sérénade_grotesque,_M.5_(Ravel,_Maurice)",
+      "story": "Ravel's earliest surviving piano piece, written around eighteen. Guitar-like strummed chords and Spanish snap already point to the mature composer of Alborada.",
+      "files": {
+        "pdf": null,
+        "midi": null,
+        "xml": null
+      }
+    },
+    {
+      "id": "rav-menuet-antique",
+      "c": "ravel",
+      "title": "Menuet antique",
+      "sub": "M.7",
+      "key": "F♯ minor",
+      "level": 6,
+      "year": 1895,
+      "dur": 6,
+      "imslp": "https://imslp.org/wiki/Menuet_antique,_M.7_(Ravel,_Maurice)",
+      "story": "Ravel's first published work. An 'antique' minuet seen through modern, slightly acid harmony — later orchestrated by the composer.",
+      "files": {
+        "pdf": null,
+        "midi": null,
+        "xml": null
+      }
+    },
+    {
+      "id": "rav-pavane",
+      "c": "ravel",
+      "title": "Pavane pour une infante défunte",
+      "sub": "M.19",
+      "key": "G major",
+      "level": 5,
+      "year": 1899,
+      "dur": 6,
+      "imslp": "https://imslp.org/wiki/Pavane_pour_une_infante_défunte_(Ravel,_Maurice)",
+      "story": "A 'pavane for a dead princess' — not a lament for anyone real, but for a stately Spanish court dance imagined from the past. Ravel warned pianists not to drag it: 'It is a pavane, not a dead princess.'",
+      "files": {
+        "pdf": "scores/rav-pavane.pdf",
+        "midi": null,
+        "xml": null
+      }
+    },
+    {
+      "id": "rav-jeux-deau",
+      "c": "ravel",
+      "title": "Jeux d'eau",
+      "sub": "M.30",
+      "key": "E major",
+      "level": 8,
+      "year": 1901,
+      "dur": 5.5,
+      "imslp": "https://imslp.org/wiki/Jeux_d'eau,_M.30_(Ravel,_Maurice)",
+      "story": "'Play of water' — fountains, cascades and rivulets rendered in glittering figuration. It reinvented piano texture and opened the door to musical Impressionism at the keyboard.",
+      "files": {
+        "pdf": "scores/rav-jeux-deau.pdf",
+        "midi": null,
+        "xml": null
+      }
+    },
+    {
+      "id": "rav-sonatine",
+      "c": "ravel",
+      "title": "Sonatine",
+      "sub": "M.40",
+      "key": "F♯ minor",
+      "level": 7,
+      "year": 1905,
+      "dur": 12,
+      "imslp": "https://imslp.org/wiki/Sonatine,_M.40_(Ravel,_Maurice)",
+      "movements": [
+        "Modéré",
+        "Mouvement de menuet",
+        "Animé"
+      ],
+      "story": "A jewel of classical proportion and restraint. Begun for a competition that was cancelled, it distils sonata form into three tightly linked movements built from one falling-fourth motif.",
+      "files": {
+        "pdf": "scores/rav-sonatine.pdf",
+        "midi": null,
+        "xml": null
+      }
+    },
+    {
+      "id": "rav-miroirs",
+      "c": "ravel",
+      "title": "Miroirs",
+      "sub": "M.43",
+      "key": "various",
+      "level": 9,
+      "year": 1905,
+      "dur": 30,
+      "imslp": "https://imslp.org/wiki/Miroirs,_M.43_(Ravel,_Maurice)",
+      "movements": [
+        "Noctuelles",
+        "Oiseaux tristes",
+        "Une barque sur l'océan",
+        "Alborada del gracioso",
+        "La vallée des cloches"
+      ],
+      "story": "Five 'mirrors' — moths, sad birds, a boat on the ocean, a jester's dawn serenade, a valley of bells. Each dedicated to a member of Ravel's artistic circle, the 'Apaches'.",
+      "files": {
+        "pdf": null,
+        "midi": null,
+        "xml": null
+      }
+    },
+    {
+      "id": "rav-gaspard",
+      "c": "ravel",
+      "title": "Gaspard de la nuit",
+      "sub": "M.55",
+      "key": "various",
+      "level": 10,
+      "year": 1908,
+      "dur": 22,
+      "imslp": "https://imslp.org/wiki/Gaspard_de_la_nuit,_M.55_(Ravel,_Maurice)",
+      "movements": [
+        "Ondine",
+        "Le Gibet",
+        "Scarbo"
+      ],
+      "story": "Three poems of the night by Aloysius Bertrand made into piano music of legendary difficulty. Ravel set out to write something 'more difficult than Balakirev's Islamey' — and Scarbo delivers.",
+      "files": {
+        "pdf": "scores/rav-gaspard.pdf",
+        "midi": null,
+        "xml": null
+      }
+    },
+    {
+      "id": "rav-menuet-haydn",
+      "c": "ravel",
+      "title": "Menuet sur le nom d'Haydn",
+      "sub": "M.58",
+      "key": "G major",
+      "level": 5,
+      "year": 1909,
+      "dur": 2,
+      "imslp": "https://imslp.org/wiki/Menuet_sur_le_nom_d'Haydn,_M.58_(Ravel,_Maurice)",
+      "story": "A miniature tribute built from the notes spelling H-A-Y-D-N, written for the centenary of Haydn's death alongside pieces by Debussy and others.",
+      "files": {
+        "pdf": null,
+        "midi": null,
+        "xml": null
+      }
+    },
+    {
+      "id": "rav-mamere",
+      "c": "ravel",
+      "title": "Ma mère l'Oye (suite)",
+      "sub": "M.60 · piano four hands",
+      "key": "various",
+      "level": 6,
+      "year": 1910,
+      "dur": 15,
+      "imslp": "https://imslp.org/wiki/Ma_mère_l'Oye_(suite),_M.60_(Ravel,_Maurice)",
+      "movements": [
+        "Pavane de la Belle au bois dormant",
+        "Petit Poucet",
+        "Laideronnette, impératrice des pagodes",
+        "Les entretiens de la Belle et de la Bête",
+        "Le jardin féerique"
+      ],
+      "hands": 4,
+      "story": "'Mother Goose' — fairy-tale scenes written for two children to play as a duet. Deceptively simple on the page, exquisitely coloured in sound.",
+      "files": {
+        "pdf": "scores/rav-mamere.pdf",
+        "midi": null,
+        "xml": null
+      }
+    },
+    {
+      "id": "rav-valses",
+      "c": "ravel",
+      "title": "Valses nobles et sentimentales",
+      "sub": "M.61",
+      "key": "G major",
+      "level": 8,
+      "year": 1911,
+      "dur": 16,
+      "imslp": "https://imslp.org/wiki/Valses_nobles_et_sentimentales,_M.61_(Ravel,_Maurice)",
+      "movements": [
+        "I",
+        "II",
+        "III",
+        "IV",
+        "V",
+        "VI",
+        "VII",
+        "VIII — Épilogue"
+      ],
+      "story": "Eight waltzes 'noble and sentimental', after Schubert. First performed anonymously at a concert where the audience was invited to guess the composer — most guessed wrong.",
+      "files": {
+        "pdf": "scores/rav-valses.pdf",
+        "midi": null,
+        "xml": null
+      }
+    },
+    {
+      "id": "rav-borodine",
+      "c": "ravel",
+      "title": "À la manière de Borodine",
+      "sub": "M.63/1",
+      "key": "D♭ major",
+      "level": 5,
+      "year": 1913,
+      "dur": 2,
+      "imslp": "https://imslp.org/wiki/À_la_manière_de_Borodine,_M.63/1_(Ravel,_Maurice)",
+      "story": "An affectionate pastiche 'in the manner of Borodin' — a lilting waltz that gently imitates the Russian master's style.",
+      "files": {
+        "pdf": null,
+        "midi": null,
+        "xml": null
+      }
+    },
+    {
+      "id": "rav-chabrier",
+      "c": "ravel",
+      "title": "À la manière de Chabrier",
+      "sub": "M.63/2",
+      "key": "various",
+      "level": 6,
+      "year": 1913,
+      "dur": 2,
+      "imslp": "https://imslp.org/wiki/À_la_manière_de_Chabrier,_M.63/2_(Ravel,_Maurice)",
+      "story": "A paraphrase of a tune from Gounod's Faust rewritten as Chabrier might have — a witty, loving impersonation of a fellow Frenchman.",
+      "files": {
+        "pdf": null,
+        "midi": null,
+        "xml": null
+      }
+    },
+    {
+      "id": "rav-prelude",
+      "c": "ravel",
+      "title": "Prélude",
+      "sub": "M.65",
+      "key": "A minor",
+      "level": 3,
+      "year": 1913,
+      "dur": 1.5,
+      "imslp": "https://imslp.org/wiki/Prélude,_M.65_(Ravel,_Maurice)",
+      "story": "A tiny sight-reading test written for the Paris Conservatoire. Under a minute long, it is the gentlest possible entry into Ravel's piano writing.",
+      "files": {
+        "pdf": null,
+        "midi": null,
+        "xml": null
+      }
+    },
+    {
+      "id": "rav-tombeau",
+      "c": "ravel",
+      "title": "Le tombeau de Couperin",
+      "sub": "M.68",
+      "key": "E minor",
+      "level": 9,
+      "year": 1917,
+      "dur": 25,
+      "imslp": "https://imslp.org/wiki/Le_tombeau_de_Couperin,_M.68_(Ravel,_Maurice)",
+      "movements": [
+        "Prélude",
+        "Fugue",
+        "Forlane",
+        "Rigaudon",
+        "Menuet",
+        "Toccata"
+      ],
+      "story": "A Baroque-style suite that is also a war memorial — each movement dedicated to a friend killed in the First World War. Elegant on the surface, grief underneath.",
+      "files": {
+        "pdf": "scores/rav-tombeau.pdf",
+        "midi": null,
+        "xml": null
+      }
+    }
+  ]
+}

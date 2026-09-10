@@ -1,0 +1,59 @@
+<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+  <g fill="none" stroke="#2b2b30" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <!-- ground shadow -->
+    <ellipse cx="160" cy="176" rx="115" ry="9" fill="#ecedf0" stroke="none"/>
+
+    <!-- ===== grand piano (3/4 top-side view) ===== -->
+    <!-- top lid (flat surface, perspective wing) -->
+    <path d="M70,120 L78,74 Q80,66 90,66 L185,60 Q245,58 250,98 Q252,128 200,132 L96,138 Q72,140 70,120 Z" fill="#e6e7ea"/>
+    <!-- front thickness band -->
+    <path d="M70,120 Q72,140 96,138 L200,132 Q210,150 198,152 L96,158 Q72,160 66,138 Z" fill="#d3d4d8"/>
+    <!-- keyboard strip (front-left) -->
+    <path d="M74,128 L150,124 L152,140 L76,145 Z" fill="#ffffff"/>
+    <line x1="90" y1="127" x2="92" y2="142"/>
+    <line x1="106" y1="126" x2="108" y2="141"/>
+    <line x1="122" y1="125" x2="124" y2="140"/>
+    <line x1="138" y1="125" x2="140" y2="139"/>
+    <!-- black keys -->
+    <g stroke="none" fill="#2b2b30">
+      <path d="M84,127 l7,-0.4 l0.6,7 l-7,0.4 Z"/>
+      <path d="M100,126 l7,-0.4 l0.6,7 l-7,0.4 Z"/>
+      <path d="M130,125 l7,-0.4 l0.6,7 l-7,0.4 Z"/>
+    </g>
+    <!-- legs -->
+    <path d="M92,158 L90,182" stroke-width="5"/>
+    <path d="M196,152 L200,176" stroke-width="5"/>
+    <path d="M246,110 L252,150" stroke-width="5"/>
+
+    <!-- ===== cat napping on the lid ===== -->
+    <!-- body (loaf) -->
+    <path d="M150,92 Q158,72 186,74 Q214,76 214,96 Q214,110 188,110 Q160,110 150,100 Z" fill="#fbfbfc"/>
+    <!-- tail curling -->
+    <path d="M214,100 Q236,102 234,86 Q233,78 226,80" fill="none"/>
+    <!-- head -->
+    <circle cx="150" cy="90" r="18" fill="#fbfbfc"/>
+    <!-- ears -->
+    <path d="M138,79 l-4,-12 l12,5 Z" fill="#fbfbfc"/>
+    <path d="M158,76 l3,-12 l9,9 Z" fill="#fbfbfc"/>
+    <!-- closed eyes (sleeping) -->
+    <path d="M142,90 q4,4 8,0" stroke-width="3"/>
+    <path d="M154,89 q3,3.5 7,0.5" stroke-width="3"/>
+    <!-- nose + mouth -->
+    <path d="M149,95 l3,0 l-1.5,2 Z" fill="#2b2b30" stroke="none"/>
+    <path d="M150.5,97 q0,3 -4,3 M150.5,97 q0,3 4,2.5" stroke-width="2.5"/>
+    <!-- whiskers -->
+    <path d="M138,95 l-12,-2 M138,99 l-12,3" stroke-width="2"/>
+    <path d="M162,95 l11,-3 M162,98 l11,2" stroke-width="2"/>
+    <!-- little sleep 'z' -->
+    <path d="M126,58 h9 l-9,10 h9" stroke-width="3"/>
+
+    <!-- ===== sheet music beside the piano ===== -->
+    <!-- open book -->
+    <path d="M20,150 Q46,140 50,150 Q54,140 80,150 L78,172 Q54,163 50,171 Q46,163 22,172 Z" fill="#ffffff"/>
+    <line x1="50" y1="150" x2="50" y2="171"/>
+    <line x1="28" y1="154" x2="44" y2="150.5" stroke-width="2.5"/>
+    <line x1="28" y1="159" x2="44" y2="155.5" stroke-width="2.5"/>
+    <line x1="56" y1="150.5" x2="72" y2="154" stroke-width="2.5"/>
+    <line x1="56" y1="155.5" x2="72" y2="159" stroke-width="2.5"/>
+  </g>
+</svg>

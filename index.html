@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Piano Practice</title>
+<link rel="stylesheet" href="../mu-system/mu.css">
+<script src="vendor/opensheetmusicdisplay.min.js"></script>
+<script src="library/scores-xml.js"></script>
+<script src="library/piano-samples.js"></script>
+<script src="library/calendar-data.js"></script>
+<style>
+  /* ===============================================================
+     Piano Practice · iPad app · mu-system greyscale
+     =============================================================== */
+  html, body { height: 100%; }
+  body { background: #e6e6e9; overflow: hidden; }
+
+  /* ---- iPad device frame (portrait 834 × 1194) ---- */
+  .stage {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .device {
+    width: min(834px, 100vw);
+    height: min(1194px, calc(100vh - 40px));
+    background: var(--mu-bg);
+    border-radius: 40px;
+    box-shadow: var(--mu-shadow-lg);
+    overflow: hidden;
+    position: relative;
+    display: flex; flex-direction: column;
+  }
+  @media (max-width: 900px) {
+    .stage { padding: 0; }
+    .device { width: 100vw; height: 100vh; border-radius: 0; }
+  }
+
+  /* ---- screen scroll area ---- */
+  .screen { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .screen::-webkit-scrollbar { width: 0; }
+  .view { display: none; padding: 0 28px 120px; }
+  .view.is-active { display: block; }
+  .view-pad-top { padding-top: 8px; }
+
+  /* ---- app top bar ---- */
+  .appbar {
+    position: sticky; top: 0; z-index: 40;
+    background: rgba(255,255,255,.86);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    padding: 20px 28px 14px;
+    margin: 0 -28px 4px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .appbar-title { font-size: 30px; font-weight: 700; letter-spacing: -0.028em; line-height: 1.25em; }
+  .appbar-sub { font-size: 13px; color: var(--mu-ink-3); margin-top: 0; }
+  .appbar-back {
+    width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%;
+    border: 1px solid var(--mu-border); background: var(--mu-white);
+    display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+    transition: background var(--mu-fast) var(--mu-ease);
+  }
+  .appbar-back:hover { background: var(--mu-gray-50); }
+  .appbar-spacer { flex: 1; }
+
+  /* ---- search ---- */
+  .search {
+    position: relative; margin: 2px 0 8px;
+  }
+  .search svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--mu-gray-500); pointer-events: none; }
+  .search input {
+    width: 100%; height: 50px; padding: 0 16px 0 46px;
+    background: var(--mu-gray-100); border: 1px solid transparent; border-radius: var(--mu-radius-md);
+    font-size: 16px; color: var(--mu-ink); outline: none;
+    transition: background var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease);
+  }
+  .search input::placeholder { color: var(--mu-gray-500); }
+  .search input:focus { background: var(--mu-white); border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
+
+  /* ---- section header ---- */
+  .sec { margin-top: 26px; }
+  .sec-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+  .sec-title { font-size: 19px; font-weight: 650; letter-spacing: -0.015em; }
+  .sec-title span { font-weight: 600; }
+  .sec-link { font-size: 13px; font-weight: 500; color: var(--mu-ink-3); cursor: pointer; }
+  .sec-link:hover { color: var(--mu-ink); }
+
+  /* ---- horizontal scroller ---- */
+  .hscroll { display: flex; gap: 14px; overflow-x: auto; margin: 0 -28px; padding: 2px 28px 8px; -webkit-overflow-scrolling: touch; }
+  .hscroll::-webkit-scrollbar { height: 0; }
+  .hscroll > * { flex-shrink: 0; }
+  .hscroll::after { content: ""; flex: 0 0 14px; }
+
+  /* ---- home 2-column (1:1): each section = title + card ---- */
+  .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: stretch; }
+  .home-col { display: flex; flex-direction: column; }
+  .home-block-title { font-size: 19px; font-weight: 650; letter-spacing: -0.015em; margin-bottom: 12px; flex-shrink: 0; }
+  .home-card { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg); background: var(--mu-white); padding: 6px 16px; }
+  /* left: recent play — fixed height (~8 rows), scrolls if more */
+  .home-grid > .home-col:first-child .home-card { height: 531px; overflow: hidden; }
+  /* right: practice + calendar split 3:2 */
+  .home-grid > .home-col:last-child .home-card { min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+  .home-grid > .home-col:last-child .practice-card { flex: 3; }
+  .home-grid > .home-col:last-child .home-cal { flex: 2; }
+  /* Your practice — cat illustration background + top scrim for readable stats */
+  .practice-card { position: relative; overflow: hidden; justify-content: flex-start !important;
+    background: url("images/illustration/cat.jpg") center 18% / cover no-repeat; }
+  .practice-card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 96px;
+    background: linear-gradient(rgba(255,255,255,.92), rgba(255,255,255,0)); z-index: 0; }
+  .practice-card .side-stats { position: relative; z-index: 1; }
+  .home-card .rlist { display: flex; flex-direction: column; }
+  .rrow { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--mu-gray-100); cursor: pointer; }
+  .rrow:last-child { border-bottom: none; }
+  .rrow:hover { background: var(--mu-gray-50); border-radius: var(--mu-radius-md); }
+  .rthumb { width: 44px; height: 44px; border-radius: 8px; background: var(--mu-gray-100); flex-shrink: 0; }
+  .rrow-body { flex: 1; min-width: 0; }
+  .rrow-title { font-size: 14.5px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rrow-sub { font-size: 12.5px; color: var(--mu-ink-3); margin-top: 1px; }
+  .rrow-pct { font-family: var(--mu-mono); font-size: 12px; color: var(--mu-ink-3); flex-shrink: 0; }
+  .side-stats { display: flex; gap: 36px; padding: 14px 0; }
+  .side-num { font-size: 38px; font-weight: 700; letter-spacing: -0.025em; line-height: 1; }
+  .side-lbl { font-size: 13px; color: var(--mu-ink-3); margin-top: 6px; }
+  .home-cal { justify-content: flex-start !important; }
+  .home-cal .cal-date-big { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; padding: 10px 0 20px; }
+  .cal-events { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+  .cal-event { display: flex; align-items: center; gap: 14px; }
+  .cal-avatar { width: 48px; height: 48px; border-radius: 15%; object-fit: cover; filter: grayscale(1); flex-shrink: 0;
+    background: var(--mu-white); padding: 2px; box-shadow: 0 2px 5px rgba(0,0,0,.10); transform: rotate(-10deg); }
+  .cal-avatar-ph { display: inline-flex; align-items: center; justify-content: center; background: var(--mu-gray-100); color: var(--mu-gray-400); }
+  .cal-avatar-ph svg { width: 20px; height: 20px; }
+  .cal-event-text { min-width: 0; }
+  .cal-eyebrow { font-size: 12px; font-weight: 600; color: var(--mu-ink-3); }
+  .cal-title { font-size: 14.5px; font-weight: 650; letter-spacing: -0.01em; margin-top: 2px; }
+  .cal-sub { font-size: 12.5px; color: var(--mu-ink-3); line-height: 1.45; margin-top: 4px; }
+  .cal-link { font-weight: 600; color: var(--mu-ink); text-decoration: none; cursor: pointer; white-space: nowrap; }
+
+  /* ---- recent tile (legacy carousel, unused) ---- */
+  .recent-tile { width: 190px; cursor: pointer; }
+  .recent-art {
+    height: 116px; border-radius: var(--mu-radius-md); overflow: hidden; position: relative;
+    background: var(--mu-gray-100);
+    display: flex; align-items: flex-end; padding: 12px;
+  }
+  .recent-art .ring {
+    position: relative; z-index: 2; font-size: 11px; font-weight: 600; color: var(--mu-ink-2);
+    background: var(--mu-white); border: 1px solid var(--mu-border); border-radius: var(--mu-radius-full); padding: 4px 10px;
+  }
+  .recent-tile .rt-title { font-size: 14px; font-weight: 600; margin-top: 9px; letter-spacing: -0.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .recent-tile .rt-sub { font-size: 12px; color: var(--mu-ink-3); margin-top: 1px; }
+
+  /* ---- calendar card ---- */
+  .cal-card {
+    width: 260px; padding: 16px; border-radius: var(--mu-radius-lg);
+    background: var(--mu-white); border: 1px solid var(--mu-border); cursor: default;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .cal-card.is-next { background: var(--mu-gray-900); border-color: var(--mu-gray-900); color: #fff; }
+  .cal-date { font-family: var(--mu-mono); font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--mu-ink-3); }
+  .cal-card.is-next .cal-date { color: rgba(255,255,255,.6); }
+  .cal-kind {
+    display: inline-flex; align-self: flex-start; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: var(--mu-radius-full);
+    background: var(--mu-gray-100); color: var(--mu-ink-2);
+  }
+  .cal-card.is-next .cal-kind { background: rgba(255,255,255,.16); color: #fff; }
+  .cal-body { font-size: 14.5px; line-height: 1.4; font-weight: 500; }
+  .cal-card.is-next .cal-body { color: #fff; }
+  .cal-today { width: auto; }
+
+  /* ---- piece row ---- */
+  .rowlist { display: flex; flex-direction: column; }
+  .prow {
+    display: flex; align-items: center; gap: 14px; padding: 12px 0;
+    border-bottom: 1px solid var(--mu-gray-100); cursor: pointer;
+  }
+  .prow:hover { background: var(--mu-gray-50); border-radius: var(--mu-radius-md); }
+  .prow-num { width: 26px; text-align: center; font-family: var(--mu-mono); font-size: 13px; color: var(--mu-gray-400); flex-shrink: 0; }
+  .prow-body { flex: 1; min-width: 0; }
+  .prow-title { font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .prow-meta { font-size: 12.5px; color: var(--mu-ink-3); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .prow-meta .dot-sep::before { content: "·"; margin-right: 8px; }
+  .prow-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .lvpill { font-family: var(--mu-mono); font-size: 11px; font-weight: 600; color: var(--mu-ink-2);
+    background: var(--mu-gray-100); border-radius: var(--mu-radius-full); padding: 3px 8px; }
+  .prow-pct { font-family: var(--mu-mono); font-size: 12px; color: var(--mu-ink-3); width: 34px; text-align: right; }
+
+  /* ---- composer grid ---- */
+  .cgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .ccard {
+    border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg); padding: 14px 16px;
+    cursor: pointer; display: flex; flex-direction: row; align-items: center; gap: 14px;
+    transition: box-shadow var(--mu-slow) var(--mu-ease), transform var(--mu-slow) var(--mu-ease);
+    background: var(--mu-white);
+  }
+  .ccard:hover { box-shadow: var(--mu-shadow-md); transform: translateY(-2px); }
+  .cav {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -0.02em;
+    background: linear-gradient(150deg, #34343a, #6a6a73);
+  }
+  /* photo avatar (rounded square, white frame, light shadow) */
+  .cav-photo {
+    background: var(--mu-white); padding: 2px; overflow: hidden;
+    border-radius: 15%; box-shadow: 0 2px 5px rgba(0,0,0,.10);
+    transform: rotate(-5deg);
+  }
+  .cav-photo img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 12%; filter: grayscale(1); }
+  .ccard .cav { width: 48px; height: 48px; flex-shrink: 0; }
+  .ccard-text { flex: 1; min-width: 0; }
+  .ccard-name { font-size: 16px; font-weight: 650; letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ccard-era { font-size: 12.5px; color: var(--mu-ink-3); margin-top: 2px; }
+  .ccard-count { flex-shrink: 0; text-align: center; font-family: var(--mu-mono); font-size: 19px; font-weight: 400;
+    color: var(--mu-ink-2); line-height: 1; }
+  .ccard-count span { display: block; font-family: inherit; font-size: 9px; font-weight: 600; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--mu-gray-400); margin-top: 4px; }
+
+  /* ---- pianist detail hero ---- */
+  .phero { display: flex; gap: 16px; align-items: flex-start; padding: 6px 0 4px; }
+  .phero .cav { width: 72px; height: 72px; font-size: 30px; margin: 0; flex-shrink: 0; }
+  .phero-txt { flex: 1; min-width: 0; }
+  .phero-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .phero-name { font-size: 21px; font-weight: 700; letter-spacing: -0.022em; line-height: 1.15; }
+  .phero-era { font-size: 12.5px; color: var(--mu-ink-3); white-space: nowrap; }
+  .phero-bio { font-size: 13px; color: var(--mu-ink-2); line-height: 1.5; margin-top: 6px; }
+
+  /* ---- filter/sort bar ---- */
+  .filterbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 18px 0 6px; }
+  .filterbar .grow { flex: 1; }
+  .seg { display: inline-flex; gap: 2px; padding: 3px; background: var(--mu-gray-100); border-radius: var(--mu-radius-full); }
+  .seg button {
+    height: 32px; padding: 0 14px; border: none; background: transparent; border-radius: var(--mu-radius-full);
+    font-size: 13px; font-weight: 500; color: var(--mu-ink-2); cursor: pointer;
+    transition: color var(--mu-fast) var(--mu-ease);
+  }
+  .seg button.is-active { background: var(--mu-white); color: var(--mu-ink); box-shadow: var(--mu-shadow-sm); }
+  .filter-count { font-family: var(--mu-mono); font-size: 12px; font-weight: 600; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--mu-gray-400); }
+  /* upfront sort chips */
+  .sortchips { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 16px 0 6px; }
+  .sortchips .grow { flex: 1; }
+  .psearch { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; min-width: 160px;
+    border: 1px solid var(--mu-border); border-radius: var(--mu-radius-full); background: var(--mu-white); }
+  .psearch:focus-within { background: var(--mu-white); border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
+  .psearch-ic { display: inline-flex; color: var(--mu-gray-500); }
+  .psearch-ic svg { width: 16px; height: 16px; }
+  .psearch input { border: none; background: transparent; outline: none; font-size: 13px; color: var(--mu-ink); width: 130px; }
+  .sortchips .filter-count { align-self: center; }
+  .sortchips button { height: 32px; padding: 0 14px; border: 1px solid var(--mu-border); background: var(--mu-white);
+    border-radius: var(--mu-radius-full); font-size: 13px; font-weight: 500; color: var(--mu-ink-2); cursor: pointer;
+    transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease); }
+  .sortchips button:hover { border-color: var(--mu-gray-400); }
+  .sortchips button.is-active { background: var(--mu-gray-900); color: #fff; border-color: var(--mu-gray-900); }
+  /* custom sort dropdown (native select panels can't be styled) */
+  .sortdd { position: relative; }
+  .sortdd-btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px;
+    border: 1px solid var(--mu-border); border-radius: var(--mu-radius-full); background: var(--mu-white);
+    font-size: 13px; color: var(--mu-ink); cursor: pointer; transition: border-color var(--mu-fast) var(--mu-ease); }
+  .sortdd-btn:hover { border-color: var(--mu-gray-400); }
+  .sortdd-lab { color: var(--mu-ink-3); font-weight: 500; }
+  .sortdd-btn b { font-weight: 600; }
+  .sortdd-btn svg { color: var(--mu-gray-500); transition: transform var(--mu-fast) var(--mu-ease); }
+  .sortdd.open .sortdd-btn { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
+  .sortdd.open .sortdd-btn svg { transform: rotate(180deg); }
+  .sortdd-panel { position: absolute; top: calc(100% + 6px); right: 0; min-width: 170px; z-index: 50;
+    background: var(--mu-white); border: 1px solid var(--mu-border); border-radius: var(--mu-radius-md);
+    box-shadow: var(--mu-shadow-md); padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+  .sortdd-panel[hidden] { display: none; }
+  .sortdd-panel button { display: flex; align-items: center; justify-content: space-between; text-align: left;
+    height: 38px; padding: 0 12px; border: none; background: transparent; border-radius: var(--mu-radius-sm);
+    font-size: 14px; color: var(--mu-ink); cursor: pointer; }
+  .sortdd-panel button:hover { background: var(--mu-gray-100); }
+  .sortdd-panel button.is-sel { font-weight: 650; }
+  .sortdd-panel button.is-sel::after { content: "✓"; color: var(--mu-ink-2); font-size: 13px; }
+  .grouphead { font-family: var(--mu-mono); font-size: 11.5px; font-weight: 600; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--mu-gray-400); margin: 22px 0 4px; padding-left: 0; }
+
+  /* ===============================================================
+     Sheet detail
+     =============================================================== */
+  .sheet-hero { margin-top: 6px; }
+  .sheet-eyebrow { font-size: 14px; font-weight: 600; color: var(--mu-ink-2); letter-spacing: -0.01em; }
+  .sheet-title { font-size: 27px; font-weight: 700; letter-spacing: -0.028em; line-height: 1.1; margin-top: 4px; }
+  .sheet-sub { font-size: 17px; font-weight: 500; color: var(--mu-ink-3); letter-spacing: 0; }
+  .sheet-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .sheet-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px;
+    font-size: 13px; color: var(--mu-ink-3); }
+  .sheet-meta b { font-weight: 650; color: var(--mu-ink-2); }
+  .sheet-meta span:not(:first-child)::before { content: "·"; margin-right: 8px; color: var(--mu-gray-300); }
+
+  /* sheet sub-tabs (Overview / Practice / Focus) */
+  .sheet-tabs { margin: 16px 0 4px; }
+  .sheet-tabs .seg { width: 100%; }
+  .sheet-tabs .seg button { flex: 1; }
+
+  /* overview preview */
+  .sheet-preview { position: relative; margin-top: 14px; border: 1px solid var(--mu-border);
+    border-radius: var(--mu-radius-lg); background: var(--mu-white); overflow: hidden; cursor: pointer; }
+  .sheet-preview iframe, .sheet-preview .score-svg-wrap { display: block; }
+  .sheet-preview .score-svg-wrap { padding: 16px; }
+  .preview-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 64px;
+    background: linear-gradient(to bottom, transparent, var(--mu-white)); pointer-events: none; }
+  .tap-hint { position: absolute; right: 12px; bottom: 12px; font-size: 12px; font-weight: 600;
+    color: #fff; background: rgba(0,0,0,.62); border-radius: var(--mu-radius-full); padding: 6px 12px;
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+
+  /* explore tab — story sections */
+  .about-block { margin-top: 22px; }
+  .about-label { font-family: var(--mu-mono); font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--mu-gray-400); margin-bottom: 4px; }
+  .about-block p { font-size: 14px; color: var(--mu-ink); line-height: 1.55; }
+
+  /* explore tab links */
+  .explore-links { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .explore-link { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--mu-border);
+    border-radius: var(--mu-radius-md); background: var(--mu-white); color: var(--mu-ink); text-decoration: none;
+    font-size: 14.5px; font-weight: 550; transition: background var(--mu-fast) var(--mu-ease); }
+  .explore-link:hover { background: var(--mu-gray-50); }
+  .explore-link svg { color: var(--mu-ink-2); flex-shrink: 0; }
+  .explore-link span:first-of-type { flex: 1; }
+  .explore-arrow { color: var(--mu-gray-400); font-size: 15px; }
+
+  /* practice tab */
+  .prac-intro { font-size: 13.5px; line-height: 1.5; color: var(--mu-ink-2); background: var(--mu-gray-50);
+    border: 1px solid var(--mu-border); border-radius: var(--mu-radius-md); padding: 12px 14px; margin: 12px 0; }
+  .prac-intro b { color: var(--mu-ink); font-weight: 650; }
+  .exercise { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg); padding: 14px; margin-top: 12px; background: var(--mu-white); }
+  .ex-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .ex-title { font-size: 15px; font-weight: 650; letter-spacing: -0.01em; }
+  .ex-hint { font-size: 12px; color: var(--mu-ink-3); text-align: right; }
+  .ex-score { background: var(--mu-white); border-radius: 6px; overflow-x: auto; min-height: 90px; }
+  .ex-placeholder { background: var(--mu-gray-100); border-radius: 6px; color: var(--mu-gray-400);
+    font-size: 13px; display: flex; align-items: center; justify-content: center; height: 64px; }
+  .ex-score svg, .osmd-host svg { max-width: none; }
+
+  /* sheet page fills the frame; Music score flexes so score + Spotify both fit */
+  #view-sheet.is-active { display: flex; flex-direction: column; height: 100%; }
+  #view-sheet .appbar, #view-sheet .sheet-hero, #view-sheet .sheet-tabs { flex-shrink: 0; }
+  #sheetPane { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
+  #sheetPane > .focus-view { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  #sheetPane > .focus-view > .focus-scroll { flex: 1; min-height: 0; max-height: none; }
+  .spotify-embed, .focus-pdf-link { flex-shrink: 0; }
+
+  /* focus tab — floating action toolbar overlaid on the score */
+  .spotify-embed { margin-top: 14px; }
+  .focus-view { position: relative; margin-top: 14px; }
+  .focus-actions { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 20;
+    display: flex; align-items: center; gap: 2px; padding: 5px; border-radius: var(--mu-radius-full);
+    background: rgba(255,255,255,0.8); border: 1px solid var(--mu-border); box-shadow: var(--mu-shadow-md);
+    -webkit-backdrop-filter: saturate(180%) blur(12px); backdrop-filter: saturate(180%) blur(12px); }
+  .focus-actions button { width: 36px; height: 36px; border: none; background: transparent; border-radius: 50%;
+    cursor: pointer; color: var(--mu-ink-2); display: inline-flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
+  .focus-actions button:hover { background: var(--mu-gray-100); }
+  .focus-actions button.is-on, .focus-actions button.is-marked { background: var(--mu-gray-900); color: #fff; }
+  .focus-actions #metroToggle svg, .focus-actions #fMark svg { width: 17px; height: 17px; }
+  .focus-actions #zoomVal, .focus-actions #bpmPanel { font-family: var(--mu-mono); font-size: 11.5px; color: var(--mu-ink-2); min-width: 34px; text-align: center; }
+  .fa-sep { width: 1px; height: 20px; background: var(--mu-border); margin: 0 3px; }
+  .focus-scroll { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg);
+    background: var(--mu-white); overflow-x: hidden; overflow-y: auto; max-height: 72vh; min-height: 320px; padding-bottom: 76px; }
+  .osmd-host { overflow-x: hidden; }
+  .osmd-host svg { max-width: 100%; }
+  .score-svg-page { width: 100%; display: block; background: #fff; }
+  .score-svg-page + .score-svg-page { margin-top: 8px; }
+  .focus-zoom { transform-origin: top left; transition: transform .12s var(--mu-ease); width: 100%; min-height: 100%; }
+  .focus-zoom iframe { width: 100%; min-height: 60vh; border: 0; display: block; background: #fff; }
+  .focus-view:fullscreen { background: var(--mu-bg); padding: 16px; box-sizing: border-box; }
+  .focus-view:fullscreen .focus-scroll { max-height: none; height: calc(100vh - 32px); }
+  .focus-view:-webkit-full-screen { background: var(--mu-bg); padding: 16px; box-sizing: border-box; }
+  .focus-view:-webkit-full-screen .focus-scroll { max-height: none; height: calc(100vh - 32px); }
+  .focus-pdf-link { text-align: center; margin-top: 12px; }
+  .focus-pdf-link a { font-size: 13px; font-weight: 550; color: var(--mu-ink-3); text-decoration: none; }
+  .focus-pdf-link a:hover { color: var(--mu-ink); }
+  .zoomctrl { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--mu-border); border-radius: var(--mu-radius-full); padding: 3px; }
+  .zoomctrl button { width: 34px; height: 34px; border: 0; background: transparent; font-size: 20px; cursor: pointer; border-radius: 50%; color: var(--mu-ink-2); }
+  .zoomctrl button:hover { background: var(--mu-gray-100); }
+  .zoomctrl span { font-family: var(--mu-mono); font-size: 12px; min-width: 46px; text-align: center; color: var(--mu-ink-2); }
+  .fbtn-link { display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: var(--mu-radius-full);
+    border: 1px solid var(--mu-border); background: var(--mu-white); font-size: 13px; font-weight: 600; color: var(--mu-ink-2); text-decoration: none; }
+  .fbtn-link:hover { background: var(--mu-gray-50); }
+
+  /* honest empty state when a piece has no score file yet */
+  .score-empty { border-radius: var(--mu-radius-lg); background: var(--mu-gray-100);
+    padding: 40px 24px; text-align: center; color: var(--mu-ink-3);
+    min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .score-empty-ic { color: var(--mu-gray-400); margin-bottom: 10px; }
+  .score-empty-ic svg { width: 28px; height: 28px; }
+  .score-empty-t { font-size: 15px; font-weight: 650; color: var(--mu-ink-2); }
+  .score-empty-s { font-size: 13px; margin-top: 4px; line-height: 1.5; max-width: 340px; margin-left: auto; margin-right: auto; }
+
+  /* score preview */
+  .score {
+    margin-top: 18px; border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg);
+    background: var(--mu-gray-50); padding: 18px 16px; overflow: hidden;
+  }
+  .score svg { width: 100%; height: auto; display: block; }
+  .score-note { font-size: 11.5px; color: var(--mu-gray-400); text-align: center; margin-top: 8px; }
+
+  /* player transport */
+  .player {
+    margin-top: 16px; border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg);
+    padding: 16px; background: var(--mu-white);
+  }
+  .player-row { display: flex; align-items: center; gap: 14px; }
+  .play-btn {
+    width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0; border: none; cursor: pointer;
+    background: var(--mu-gray-900); color: #fff; display: inline-flex; align-items: center; justify-content: center;
+    transition: transform .1s var(--mu-ease), background var(--mu-fast) var(--mu-ease);
+  }
+  .play-btn:hover { background: var(--mu-gray-800); }
+  .play-btn:active { transform: scale(.96); }
+  .track { flex: 1; }
+  .track-bar { height: 6px; border-radius: 3px; background: var(--mu-gray-200); overflow: hidden; }
+  .track-fill { height: 100%; background: var(--mu-gray-900); width: 0%; transition: width .2s linear; }
+  .track-time { display: flex; justify-content: space-between; font-family: var(--mu-mono); font-size: 11.5px; color: var(--mu-ink-3); margin-top: 7px; }
+
+  /* metronome + tools */
+  .toolgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .tool {
+    border: 1px solid var(--mu-border); border-radius: var(--mu-radius-md); padding: 14px; background: var(--mu-white);
+  }
+  .tool-label { font-size: 12px; font-weight: 600; color: var(--mu-ink-3); text-transform: uppercase; letter-spacing: .05em; }
+  .metro-bpm { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .metro-bpm small { font-size: 13px; font-weight: 500; color: var(--mu-ink-3); letter-spacing: 0; }
+  .metro-ctrl { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .metro-ctrl button {
+    width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--mu-border); background: var(--mu-white);
+    font-size: 18px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--mu-ink);
+  }
+  .metro-ctrl button:hover { background: var(--mu-gray-50); }
+  .metro-ctrl button.metro-go { flex: 1; width: auto; border-radius: var(--mu-radius-full);
+    background: var(--mu-gray-900); color: #fff; border-color: var(--mu-gray-900); font-size: 13px; font-weight: 600; }
+  .metro-ctrl button.metro-go.is-on { background: var(--mu-white); color: var(--mu-ink); border-color: var(--mu-border); }
+  .metro-dots { display: flex; gap: 6px; margin-top: 12px; }
+  .metro-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--mu-gray-200); transition: background .06s; }
+  .metro-dots i.beat { background: var(--mu-gray-900); }
+
+  /* timer / ring */
+  .timer-time { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .ring-wrap { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
+  .ring { width: 62px; height: 62px; flex-shrink: 0; }
+  .ring text { font-family: var(--mu-font); font-weight: 700; font-size: 15px; fill: var(--mu-ink); }
+  .prog-range { width: 100%; margin-top: 10px; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px; background: var(--mu-gray-200); outline: none; }
+  .prog-range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--mu-gray-900); cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+
+  /* story / warmup */
+  .story-p { font-size: 15px; line-height: 1.62; color: var(--mu-ink); }
+  .warmup-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .warmup-item { display: flex; align-items: flex-start; gap: 12px; padding: 13px 14px; border: 1px solid var(--mu-border);
+    border-radius: var(--mu-radius-md); background: var(--mu-white); }
+  .warmup-num { width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%; background: var(--mu-gray-100);
+    font-family: var(--mu-mono); font-size: 12px; font-weight: 600; color: var(--mu-ink-2);
+    display: inline-flex; align-items: center; justify-content: center; }
+  .warmup-txt { font-size: 14px; line-height: 1.45; }
+  .warmup-txt b { font-weight: 650; color: var(--mu-ink); }
+
+  .actionbtn-row { display: flex; gap: 10px; margin-top: 16px; }
+  .actionbtn-row .btn { flex: 1; }
+  .mark-btn.is-marked { background: var(--mu-gray-900); color: #fff; border-color: var(--mu-gray-900); }
+
+  /* empty state */
+  .empty { text-align: center; padding: 64px 20px; color: var(--mu-ink-3); }
+  .empty svg { color: var(--mu-gray-300); margin-bottom: 14px; }
+  .empty-title { font-size: 17px; font-weight: 600; color: var(--mu-ink-2); }
+  .empty-sub { font-size: 14px; margin-top: 4px; }
+
+  /* profile */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 6px; }
+  .stat { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-md); padding: 16px 14px; text-align: center; }
+  .stat-num { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .stat-lbl { font-size: 12px; color: var(--mu-ink-3); margin-top: 3px; }
+  .settrow { display: flex; align-items: center; gap: 12px; padding: 15px 4px; border-bottom: 1px solid var(--mu-gray-100); }
+  .settrow-ic { width: 34px; height: 34px; border-radius: 9px; background: var(--mu-gray-100); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .settrow-txt { flex: 1; font-size: 15px; font-weight: 500; }
+  .settrow-val { font-size: 14px; color: var(--mu-ink-3); }
+
+  /* ---- bottom tab bar ---- */
+  .tabbar {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 60;
+    height: 84px; padding: 8px 12px calc(env(safe-area-inset-bottom) + 8px);
+    background: rgba(255,255,255,.9);
+    -webkit-backdrop-filter: saturate(180%) blur(24px); backdrop-filter: saturate(180%) blur(24px);
+    border-top: 1px solid var(--mu-border);
+    display: flex; align-items: stretch;
+  }
+  .tabbtn {
+    flex: 1; border: none; background: transparent; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    color: var(--mu-gray-500); font-size: 11px; font-weight: 500;
+    transition: color var(--mu-fast) var(--mu-ease);
+  }
+  .tabbtn svg { width: 24px; height: 24px; }
+  .tabbtn.is-active { color: var(--mu-ink); }
+  .tabbtn.is-active svg { stroke-width: 2.2; }
+
+  .fade { animation: fade .28s var(--mu-ease); }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* ---- dark mode (score sheet stays white) ---- */
+  html[data-theme="dark"] {
+    --mu-bg:#17171b; --mu-white:#232329; --mu-ink:#f2f2f5; --mu-ink-2:#c9c9d0; --mu-ink-3:#9a9aa2;
+    --mu-gray-50:#2a2a31; --mu-gray-100:#31313a; --mu-gray-300:#44444d; --mu-gray-400:#6a6a74; --mu-gray-500:#8a8a94;
+    --mu-gray-900:#ececf2; --mu-border:#3a3a44;
+  }
+  html[data-theme="dark"] body { background:#0e0e11; }
+  html[data-theme="dark"] .appbar { background: rgba(30,30,36,.86); }
+  html[data-theme="dark"] .tabbar { background: rgba(24,24,28,.92); }
+  html[data-theme="dark"] .focus-actions { background: rgba(42,42,50,.85); }
+  html[data-theme="dark"] .sortchips button.is-active { color:#17171b; }
+  html[data-theme="dark"] .focus-actions button.is-on,
+  html[data-theme="dark"] .focus-actions button.is-marked,
+  html[data-theme="dark"] .mark-btn.is-marked { color:#17171b; }
+  /* keep the notation/score white in dark mode */
+  html[data-theme="dark"] .focus-scroll,
+  html[data-theme="dark"] .score-svg-page,
+  html[data-theme="dark"] .osmd-host,
+  html[data-theme="dark"] .focus-zoom iframe { background:#fff; }
+
+  /* ---- mobile / narrow screens ---- */
+  @media (max-width: 640px) {
+    .view { padding: 0 18px 110px; }
+    .appbar { padding: 16px 18px 12px; margin: 0 -18px 4px; }
+    .appbar-title { font-size: 24px; }
+    /* home: stack the 2 columns */
+    .home-grid { grid-template-columns: 1fr; gap: 18px; }
+    .home-grid > .home-col:first-child .home-card { height: auto; max-height: 60vh; overflow-y: auto; }
+    .home-grid > .home-col:last-child .home-card { flex: none; }
+    .practice-card { min-height: 200px; }
+    /* composer + tool grids to a single column */
+    .cgrid { grid-template-columns: 1fr; }
+    .toolgrid { grid-template-columns: 1fr; }
+    /* sheet controls wrap comfortably */
+    .sheet-meta { font-size: 12px; }
+    .sheet-title { font-size: 23px; }
+    .focus-actions { flex-wrap: wrap; max-width: 92%; justify-content: center; }
+    .psearch { min-width: 130px; flex: 1; }
+    .sortchips { gap: 5px; }
+    .sortchips button { padding: 0 11px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="device">
+    <div class="screen" id="screen">
+
+      <!-- HOME -->
+      <section class="view view-pad-top is-active" id="view-home"></section>
+      <!-- LIBRARY -->
+      <section class="view" id="view-library"></section>
+      <!-- PIANIST -->
+      <section class="view" id="view-pianist"></section>
+      <!-- SHEET -->
+      <section class="view" id="view-sheet"></section>
+      <!-- SAVED -->
+      <section class="view" id="view-saved"></section>
+      <!-- PROFILE -->
+      <section class="view" id="view-profile"></section>
+
+    </div>
+
+    <!-- bottom nav -->
+    <nav class="tabbar" id="tabbar">
+      <button class="tabbtn is-active" data-tab="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+        Home
+      </button>
+      <button class="tabbtn" data-tab="library">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="6" height="18" rx="1"/><rect x="14" y="3" width="6" height="18" rx="1"/><path d="M4 8h6M14 8h6"/></svg>
+        Library
+      </button>
+      <button class="tabbtn" data-tab="saved">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg>
+        Save
+      </button>
+      <button class="tabbtn" data-tab="profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg>
+        Profile
+      </button>
+    </nav>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   Data
+   ================================================================ */
+const COMPOSERS = {
+  ravel:       { name: "Maurice Ravel",       era: "Impressionist · 1875–1937", init: "MR",
+    bio: "French master of orchestral colour and pianistic precision. His solo piano works range from limpid early miniatures to the terrifying virtuosity of Gaspard de la nuit — every note exactly weighted, nothing wasted." },
+  chopin:      { name: "Frédéric Chopin",     era: "Romantic · 1810–1849",  init: "FC",
+    bio: "Polish virtuoso and poet of the piano. Nearly all of his output is for solo piano — nocturnes, ballades, études and mazurkas that redefined Romantic pianism." },
+  debussy:     { name: "Claude Debussy",      era: "Impressionist · 1862–1918", init: "CD",
+    bio: "French innovator whose shimmering harmonies and blurred colours founded musical Impressionism. His writing asks for extraordinary control of touch and pedalling." },
+  liszt:       { name: "Franz Liszt",         era: "Romantic · 1811–1886",  init: "FL",
+    bio: "Hungarian showman and the first modern piano superstar. His transcendental études and rhapsodies pushed technique to its limits." },
+  beethoven:   { name: "Ludwig van Beethoven", era: "Classical · 1770–1827", init: "LB",
+    bio: "The bridge from Classical to Romantic. His 32 sonatas are the pianist's 'New Testament' — dramatic, structural, endlessly demanding." },
+  rachmaninoff:{ name: "Sergei Rachmaninoff", era: "Late Romantic · 1873–1943", init: "SR",
+    bio: "Russian pianist-composer famed for vast hands and sweeping melodies. His preludes and concertos are pillars of the virtuoso repertoire." },
+  satie:       { name: "Erik Satie",          era: "Modern · 1866–1925",    init: "ES",
+    bio: "French eccentric whose spare, hypnotic miniatures anticipated ambient music. Deceptively simple on the page, subtle in the hands." },
+  bach:        { name: "J. S. Bach",          era: "Baroque · 1685–1750",   init: "JB",
+    bio: "The foundation of keyboard technique. Every serious pianist returns to his preludes, inventions and fugues to build independence of the hands." },
+  mozart: { name:"Wolfgang Amadeus Mozart", era:"Classical · 1756–1791", init:"WM", bio:"Classical genius whose piano sonatas and concertos are models of clarity, grace and perfect proportion." },
+  schubert: { name:"Franz Schubert", era:"Romantic · 1797–1828", init:"FS", bio:"Master of melody who poured song into the piano — impromptus and late sonatas of heartbreaking lyricism." },
+  schumann: { name:"Robert Schumann", era:"Romantic · 1810–1856", init:"RS", bio:"Poet of the Romantic character piece; his cycles turn childhood, carnival and dreams into miniature dramas." },
+  brahms: { name:"Johannes Brahms", era:"Romantic · 1833–1897", init:"Br", bio:"Heir to Beethoven, later turning inward — the late intermezzi are among the most intimate music for piano." },
+  mendelssohn: { name:"Felix Mendelssohn", era:"Romantic · 1809–1847", init:"FM", bio:"Elegant early-Romantic craftsman; his Songs Without Words made the lyric piano piece a household art." },
+  grieg: { name:"Edvard Grieg", era:"Romantic · 1843–1907", init:"EG", bio:"Norway's voice — the Lyric Pieces are a musical diary of folk colour, nature and Nordic light." },
+  tchaikovsky: { name:"Pyotr Ilyich Tchaikovsky", era:"Romantic · 1840–1893", init:"PT", bio:"Russia's great melodist; his piano miniatures glow with the same warmth as his ballets and symphonies." },
+  scriabin: { name:"Alexander Scriabin", era:"Late Romantic · 1872–1915", init:"AS", bio:"Visionary who pushed harmony toward ecstasy and mysticism, from Chopinesque preludes to blazing sonatas." },
+  prokofiev: { name:"Sergei Prokofiev", era:"20th century · 1891–1953", init:"SP", bio:"Steel-fingered modernist — motoric rhythm, biting wit and sudden lyricism drive his sonatas and toccatas." },
+  scarlatti: { name:"Domenico Scarlatti", era:"Baroque · 1685–1757", init:"DS", bio:"Composer of 555 keyboard sonatas — dazzling, guitar-flecked one-movement gems written in Spain." },
+  faure: { name:"Gabriel Fauré", era:"Late Romantic · 1845–1924", init:"GF", bio:"French master of subtle harmony and long line — nocturnes and barcarolles of quiet, refined beauty." },
+  granados: { name:"Enrique Granados", era:"Romantic · 1867–1916", init:"Gr", bio:"Spanish Romantic whose Goyescas and Spanish Dances evoke Goya's Madrid in shimmering piano colour." },
+
+};
+
+/* level: 1–10 difficulty. dur: minutes. mode derived from key text. */
+const PIECES = [
+  // Ravel
+  { id:"rav-serenade", c:"ravel", title:"Sérénade grotesque", sub:"M.5", key:"A minor", level:7, year:1893, dur:4,
+    story:"Ravel's earliest surviving piano piece, written around eighteen. Guitar-like strummed chords and Spanish snap already point to the mature composer of Alborada." },
+  { id:"rav-menuet-antique", c:"ravel", title:"Menuet antique", sub:"M.7", key:"F♯ minor", level:6, year:1895, dur:6,
+    story:"Ravel's first published work. An 'antique' minuet seen through modern, slightly acid harmony — later orchestrated by the composer." },
+  { id:"rav-pavane", c:"ravel", title:"Pavane pour une infante défunte", sub:"M.19", key:"G major", level:5, year:1899, dur:6,
+    story:"A 'pavane for a dead princess' — not a lament for anyone real, but for a stately Spanish court dance imagined from the past. Ravel warned pianists not to drag it: 'It is a pavane, not a dead princess.'" },
+  { id:"rav-jeux-deau", c:"ravel", title:"Jeux d'eau", sub:"M.30", key:"E major", level:8, year:1901, dur:5.5,
+    story:"'Play of water' — fountains, cascades and rivulets rendered in glittering figuration. It reinvented piano texture and opened the door to musical Impressionism at the keyboard." },
+  { id:"rav-sonatine-1", c:"ravel", coll:"Sonatine, M.40", title:"Modéré", sub:"Sonatine · No. 1", key:"F♯ minor", level:7, year:1905, dur:4.5,
+    story:"The opening movement, spun almost entirely from a single falling-fourth motif — graceful, transparent, classically poised." },
+  { id:"rav-sonatine-2", c:"ravel", coll:"Sonatine, M.40", title:"Mouvement de menuet", sub:"Sonatine · No. 2", key:"D♭ major", level:6, year:1905, dur:3.5,
+    story:"A tender minuet at the heart of the Sonatine, its melody floating over gently rocking harmony." },
+  { id:"rav-sonatine-3", c:"ravel", coll:"Sonatine, M.40", title:"Animé", sub:"Sonatine · No. 3", key:"F♯ minor", level:8, year:1905, dur:4,
+    story:"A glittering, toccata-like finale that whirls the first movement's motif through cascading figuration." },
+  { id:"rav-miroirs-1", c:"ravel", coll:"Miroirs, M.43", title:"Noctuelles", sub:"Miroirs · No. 1", key:"D♭ major", level:9, year:1905, dur:4.5,
+    story:"'Night moths' — fluttering, irregular figures darting through the dark. Dedicated to the poet Léon-Paul Fargue." },
+  { id:"rav-miroirs-2", c:"ravel", coll:"Miroirs, M.43", title:"Oiseaux tristes", sub:"Miroirs · No. 2", key:"E♭ minor", level:7, year:1905, dur:4,
+    story:"'Sad birds' — lone calls in a torpid summer forest; Ravel's own favourite of the set." },
+  { id:"rav-miroirs-3", c:"ravel", coll:"Miroirs, M.43", title:"Une barque sur l'océan", sub:"Miroirs · No. 3", key:"F♯ minor", level:9, year:1905, dur:7,
+    story:"'A boat on the ocean' — sweeping arpeggios paint rolling swells and shifting light on the water." },
+  { id:"rav-miroirs-4", c:"ravel", coll:"Miroirs, M.43", title:"Alborada del gracioso", sub:"Miroirs · No. 4", key:"D minor", level:10, year:1905, dur:6.5,
+    story:"'The jester's dawn song' — a dazzling Spanish showpiece of repeated notes and guitar-like snaps." },
+  { id:"rav-miroirs-5", c:"ravel", coll:"Miroirs, M.43", title:"La vallée des cloches", sub:"Miroirs · No. 5", key:"B major", level:8, year:1905, dur:5.5,
+    story:"'The valley of bells' — bells tolling across a still landscape, evoked in layered resonances." },
+  { id:"rav-gaspard-1", c:"ravel", coll:"Gaspard de la nuit, M.55", title:"Ondine", sub:"Gaspard · No. 1", key:"C♯ major", level:10, year:1908, dur:6.5,
+    story:"The water-nymph sings to lure a mortal beneath the lake — a shimmering wash of rapid tremolando." },
+  { id:"rav-gaspard-2", c:"ravel", coll:"Gaspard de la nuit, M.55", title:"Le Gibet", sub:"Gaspard · No. 2", key:"E♭ minor", level:8, year:1908, dur:6,
+    story:"'The gallows' — a corpse sways against a blood-red sunset while a bell tolls an obsessive B♭ throughout." },
+  { id:"rav-gaspard-3", c:"ravel", coll:"Gaspard de la nuit, M.55", title:"Scarbo", sub:"Gaspard · No. 3", key:"G♯ minor", level:10, year:1908, dur:9,
+    story:"A malicious goblin flickers and vanishes in the night — one of the most fiendish pieces ever written." },
+  { id:"rav-menuet-haydn", c:"ravel", title:"Menuet sur le nom d'Haydn", sub:"M.58", key:"G major", level:5, year:1909, dur:2,
+    story:"Written in 1909 for a special issue of the Revue musicale S.I.M. marking the centenary of Haydn's death.",
+    about:{
+      series:"Part of the 1909 Haydn-centenary set commissioned by the Revue musicale S.I.M. — six French composers each wrote a short tribute on the same theme: Ravel, Debussy, Dukas, Reynaldo Hahn, Vincent d'Indy and Charles-Marie Widor.",
+      background:"The five-note motif B–A–D–D–G spells H-A-Y-D-N through a German note-name cipher. Ravel threads it through the melody forwards, inverted and in retrograde, cast as a poised, slightly wistful minuet in G major.",
+      influence:"Its cool, classicising bow to the 18th-century dance looks straight ahead to Ravel's wartime suite Le tombeau de Couperin (1917), and sits in the long 'name-cipher' tradition running from Bach's B-A-C-H to Schumann and Brahms."
+    } },
+  { id:"rav-valses-1", c:"ravel", coll:"Valses nobles et sentimentales, M.61", title:"Valse I", sub:"Valses · No. 1", key:"G major", level:7, year:1911, dur:1.5,
+    story:"Brash and brilliant — the set bursts open with crunching appoggiaturas." },
+  { id:"rav-valses-2", c:"ravel", coll:"Valses nobles et sentimentales, M.61", title:"Valse II", sub:"Valses · No. 2", key:"G minor", level:7, year:1911, dur:2,
+    story:"Wistful and tender, a sentimental waltz in the old Viennese vein." },
+  { id:"rav-valses-3", c:"ravel", coll:"Valses nobles et sentimentales, M.61", title:"Valse III", sub:"Valses · No. 3", key:"E minor", level:7, year:1911, dur:1.5,
+    story:"Light and capricious, spinning on a lilting refrain." },
+  { id:"rav-valses-4", c:"ravel", coll:"Valses nobles et sentimentales, M.61", title:"Valse IV", sub:"Valses · No. 4", key:"A♭ major", level:7, year:1911, dur:1.5,
+    story:"Graceful and flowing, with a warm singing line." },
+  { id:"rav-valses-5", c:"ravel", coll:"Valses nobles et sentimentales, M.61", title:"Valse V", sub:"Valses · No. 5", key:"E major", level:7, year:1911, dur:1.5,
+    story:"Delicate and playful, feather-light." },
+  { id:"rav-valses-6", c:"ravel", coll:"Valses nobles et sentimentales, M.61", title:"Valse VI", sub:"Valses · No. 6", key:"C major", level:7, year:1911, dur:1,
+    story:"Quick and bright, a fleeting scherzo of a waltz." },
+  { id:"rav-valses-7", c:"ravel", coll:"Valses nobles et sentimentales, M.61", title:"Valse VII", sub:"Valses · No. 7", key:"A minor", level:8, year:1911, dur:3,
+    story:"The grandest of the set — sweeping and impassioned." },
+  { id:"rav-valses-8", c:"ravel", coll:"Valses nobles et sentimentales, M.61", title:"Épilogue", sub:"Valses · No. 8", key:"G major", level:7, year:1911, dur:4,
+    story:"A dreamlike coda where fragments of the earlier waltzes drift back as memories." },
+  { id:"rav-borodine", c:"ravel", coll:"À la manière de…, M.63", title:"À la manière de Borodine", sub:"M.63/1", key:"D♭ major", level:5, year:1913, dur:2,
+    story:"An affectionate pastiche 'in the manner of Borodin' — a lilting waltz that gently imitates the Russian master's style." },
+  { id:"rav-chabrier", c:"ravel", coll:"À la manière de…, M.63", title:"À la manière de Chabrier", sub:"M.63/2", key:"A♭ major", level:6, year:1913, dur:2,
+    story:"A paraphrase of a tune from Gounod's Faust rewritten as Chabrier might have — a witty, loving impersonation of a fellow Frenchman." },
+  { id:"rav-prelude", c:"ravel", title:"Prélude", sub:"M.65", key:"A minor", level:3, year:1913, dur:1.5,
+    story:"A tiny sight-reading test written for the Paris Conservatoire. Under a minute long, it is the gentlest possible entry into Ravel's piano writing." },
+  { id:"rav-tombeau-1", c:"ravel", coll:"Le tombeau de Couperin, M.68", title:"Prélude", sub:"Tombeau · No. 1", key:"E minor", level:8, year:1917, dur:3,
+    story:"Perpetual-motion triplets in Baroque prelude style; dedicated to a friend killed in the war." },
+  { id:"rav-tombeau-2", c:"ravel", coll:"Le tombeau de Couperin, M.68", title:"Fugue", sub:"Tombeau · No. 2", key:"E minor", level:7, year:1917, dur:3,
+    story:"A gentle three-voice fugue, spare and searching." },
+  { id:"rav-tombeau-3", c:"ravel", coll:"Le tombeau de Couperin, M.68", title:"Forlane", sub:"Tombeau · No. 3", key:"E minor", level:8, year:1917, dur:6,
+    story:"A stylised Italian dance with piquant, bittersweet harmonies." },
+  { id:"rav-tombeau-4", c:"ravel", coll:"Le tombeau de Couperin, M.68", title:"Rigaudon", sub:"Tombeau · No. 4", key:"C major", level:8, year:1917, dur:3,
+    story:"A bright, robust Baroque dance framing a pastoral middle section." },
+  { id:"rav-tombeau-5", c:"ravel", coll:"Le tombeau de Couperin, M.68", title:"Menuet", sub:"Tombeau · No. 5", key:"G major", level:8, year:1917, dur:5,
+    story:"An elegant minuet with a solemn musette at its centre." },
+  { id:"rav-tombeau-6", c:"ravel", coll:"Le tombeau de Couperin, M.68", title:"Toccata", sub:"Tombeau · No. 6", key:"E minor", level:10, year:1917, dur:4,
+    story:"A relentless, brilliant finale — repeated notes building to a blazing close." },
+  { id:"rav-mamere-1", c:"ravel", coll:"Ma mère l'Oye, M.60", title:"Pavane de la Belle au bois dormant", sub:"Ma mère l'Oye · No. 1", key:"A minor", level:4, year:1910, dur:1.5,
+    story:"'Pavane of Sleeping Beauty' — a hushed dance of just twenty bars." },
+  { id:"rav-mamere-2", c:"ravel", coll:"Ma mère l'Oye, M.60", title:"Petit Poucet", sub:"Ma mère l'Oye · No. 2", key:"C major", level:5, year:1910, dur:3,
+    story:"'Tom Thumb' wanders lost as birds eat his trail of crumbs — wandering thirds and birdcalls." },
+  { id:"rav-mamere-3", c:"ravel", coll:"Ma mère l'Oye, M.60", title:"Laideronnette, impératrice des pagodes", sub:"Ma mère l'Oye · No. 3", key:"F♯ major", level:6, year:1910, dur:3.5,
+    story:"The little empress bathes to tiny porcelain musicians — pentatonic, gamelan-like sparkle." },
+  { id:"rav-mamere-4", c:"ravel", coll:"Ma mère l'Oye, M.60", title:"Les entretiens de la Belle et de la Bête", sub:"Ma mère l'Oye · No. 4", key:"F major", level:5, year:1910, dur:4,
+    story:"A waltz dialogue between a sweet melody and a growling beast in the bass." },
+  { id:"rav-mamere-5", c:"ravel", coll:"Ma mère l'Oye, M.60", title:"Le jardin féerique", sub:"Ma mère l'Oye · No. 5", key:"C major", level:5, year:1910, dur:3,
+    story:"'The fairy garden' — a radiant, glowing apotheosis to close the suite." },
+  { id:"rav-lavalse", c:"ravel", title:"La valse", sub:"M.72 · solo piano", key:"D major", level:10, year:1920, dur:12,
+    story:"A 'poème chorégraphique' — a Viennese waltz that swells, whirls and finally shatters into violence, often heard as an elegy for the vanished world of 19th-century Vienna. Ravel made this solo-piano transcription of the orchestral score himself." },
+  // Chopin
+  { id:"cho-noc92", c:"chopin", coll:"Nocturnes", title:"Nocturne in E♭ major", sub:"Op. 9 No. 2", key:"E♭ major", level:5, year:1832, dur:4.5,
+    story:"Chopin's most beloved nocturne, written when he was barely twenty. Its singing right-hand line is meant to imitate the bel canto opera he adored — every return of the theme is decorated a little differently, as a great singer would ornament a repeat." },
+  { id:"cho-fantimp", c:"chopin", coll:"Impromptus", title:"Fantaisie-Impromptu", sub:"Op. 66", key:"C♯ minor", level:8, year:1834, dur:5,
+    story:"Chopin never published this piece and asked for it to be destroyed after his death; his friend Julian Fontana printed it anyway. The famous cross-rhythm — four notes against three — is its central technical puzzle." },
+  { id:"cho-bal1", c:"chopin", coll:"Ballades", title:"Ballade No. 1", sub:"Op. 23", key:"G minor", level:9, year:1836, dur:9,
+    story:"The first of Chopin's four ballades and possibly the single most iconic Romantic piano work. Schumann admired it deeply, and its coda is one of the most terrifying páginas in the repertoire." },
+  { id:"cho-minute", c:"chopin", coll:"Waltzes", title:"Waltz 'Minute'", sub:"Op. 64 No. 1", key:"D♭ major", level:7, year:1847, dur:2,
+    story:"Nicknamed the 'Minute Waltz' — though it was never meant to be played in sixty seconds. Chopin's own title, 'Valse du petit chien', refers to a little dog chasing its tail, which the whirling figures depict." },
+  { id:"cho-et103", c:"chopin", coll:"Études, Op. 10", title:"Étude 'Tristesse'", sub:"Op. 10 No. 3", key:"E major", level:7, year:1832, dur:4,
+    story:"Chopin reportedly said he had 'never written such a beautiful melody' as this one. The tender outer sections frame a stormy middle built from painful stretched intervals." },
+  { id:"cho-pre284", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prelude in E minor", sub:"Op. 28 No. 4", key:"E minor", level:3, year:1839, dur:2,
+    story:"One of the 24 Préludes, Op. 28 — Chopin's homage to Bach's Well-Tempered Clavier, with one prélude in every key. He drafted much of the set during a bleak, illness-plagued winter on Majorca with George Sand in 1838–39. Over a slowly sinking chromatic left hand, the right hand grieves in tiny sighs — a study in harmony doing the most with the least. It was played on the organ at Chopin's own funeral, and its chromatic voice-leading pointed the way toward Wagner and the late Romantics." },
+  { id:"cho-rev", c:"chopin", coll:"Études, Op. 10", title:"Revolutionary Étude", sub:"Op. 10 No. 12", key:"C minor", level:9, year:1831, dur:3,
+    story:"Legend links it to the fall of Warsaw to Russia while Chopin was abroad. The tempest of left-hand semiquavers under a defiant right-hand anthem makes it a benchmark of the left hand." },
+  { id:"cho-noc272", c:"chopin", coll:"Nocturnes", title:"Nocturne in D♭ major", sub:"Op. 27 No. 2", key:"D♭ major", level:7, year:1835, dur:6,
+    story:"A duet without words: two intertwining voices in the right hand float over rolling left-hand harmony. The challenge is colour and rubato rather than raw speed." },
+  { id:"cho-pre287", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prelude in A major", sub:"Op. 28 No. 7", key:"A major", level:3, year:1839, dur:0.8,
+    story:"At just sixteen bars, the shortest breath in the Op. 28 set — a single mazurka phrase lifted from Chopin's Polish roots and distilled to an aphorism. Its gentle lilt hides one aching chromatic chord that many students meet as their first taste of real Chopin harmony. So beloved that Federico Mompou built an entire set of 'Variations on a Theme of Chopin' upon it." },
+  { id:"cho-pre2815", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prelude 'Raindrop'", sub:"Op. 28 No. 15", key:"D♭ major", level:6, year:1839, dur:3.4,
+    story:"The longest and most famous of the Op. 28 préludes, nicknamed the 'Raindrop' after George Sand described rain dripping from the roof of their Majorca monastery as Chopin composed. A single repeated note tolls without pause through a serene opening and a dark, storm-heavy middle in C♯ minor. That hypnotic pedal-tone became a model for evoking atmosphere at the keyboard — an idea Debussy and the Impressionists would take much further." },
+  { id:"cho-pre2820", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prelude in C minor", sub:"Op. 28 No. 20", key:"C minor", level:4, year:1839, dur:1,
+    story:"Barely thirteen bars of solemn block chords — a funeral march compressed to its essence. Its stark, noble harmony proved irresistible to later composers: Rachmaninoff built his Variations on a Theme of Chopin, Op. 22 on it, and Busoni wrote a set of variations too. Proof of how much weight Chopin could pack into a handful of chords." },
+  { id:"cho-pre286", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prelude in B minor", sub:"Op. 28 No. 6", key:"B minor", level:4, year:1839, dur:1.3,
+    story:"A song for the left hand — the melody sings low in the piano's cello register while the right hand murmurs quiet repeated chords above, inverting the usual roles. Written in the same Majorca winter, its mood of resigned lament is so close to the E-minor prélude that the two were paired on the organ at Chopin's funeral." },
+  { id:"cho-001-001", c:"chopin", coll:"Rondos", title:"Rondo in C minor", sub:"Op. 1", key:"C minor", level:6, year:1825, dur:8 },
+  { id:"cho-003-001", c:"chopin", coll:"Polonaises", title:"Polonaise in C major", sub:"Op. 3", key:"C major", level:7, year:1829, dur:6 },
+  { id:"cho-006-001", c:"chopin", coll:"Mazurkas", title:"Mazurka in F♯ minor", sub:"Op. 6 No. 1", key:"F♯ minor", level:4, year:1830, dur:3 },
+  { id:"cho-006-002", c:"chopin", coll:"Mazurkas", title:"Mazurka in C♯ minor", sub:"Op. 6 No. 2", key:"C♯ minor", level:4, year:1830, dur:3 },
+  { id:"cho-006-003", c:"chopin", coll:"Mazurkas", title:"Mazurka in E major", sub:"Op. 6 No. 3", key:"E major", level:4, year:1830, dur:3 },
+  { id:"cho-006-004", c:"chopin", coll:"Mazurkas", title:"Mazurka in E♭ minor", sub:"Op. 6 No. 4", key:"E♭ minor", level:4, year:1830, dur:3 },
+  { id:"cho-006-005", c:"chopin", coll:"Mazurkas", title:"Mazurka in C major", sub:"Op. 6 No. 5", key:"C major", level:4, year:1830, dur:3 },
+  { id:"cho-007-001", c:"chopin", coll:"Mazurkas", title:"Mazurka in B♭ major", sub:"Op. 7 No. 1", key:"B♭ major", level:4, year:1831, dur:3 },
+  { id:"cho-007-002", c:"chopin", coll:"Mazurkas", title:"Mazurka in A minor", sub:"Op. 7 No. 2", key:"A minor", level:4, year:1831, dur:3 },
+  { id:"cho-007-003", c:"chopin", coll:"Mazurkas", title:"Mazurka in F minor", sub:"Op. 7 No. 3", key:"F minor", level:4, year:1831, dur:3 },
+  { id:"cho-007-004", c:"chopin", coll:"Mazurkas", title:"Mazurka in A♭ major", sub:"Op. 7 No. 4", key:"A♭ major", level:4, year:1831, dur:3 },
+  { id:"cho-007-005", c:"chopin", coll:"Mazurkas", title:"Mazurka in C major", sub:"Op. 7 No. 5", key:"C major", level:4, year:1831, dur:3 },
+  { id:"cho-009-001", c:"chopin", coll:"Nocturnes", title:"Nocturne in B♭ minor", sub:"Op. 9 No. 1", key:"B♭ minor", level:6, year:1832, dur:5 },
+  { id:"cho-009-003", c:"chopin", coll:"Nocturnes", title:"Nocturne in B major", sub:"Op. 9 No. 3", key:"B major", level:6, year:1832, dur:5 },
+  { id:"cho-010-001", c:"chopin", coll:"Études, Op. 10", title:"Étude in C major", sub:"Op. 10 No. 1", key:"C major", level:9, year:1833, dur:2.5 },
+  { id:"cho-010-002", c:"chopin", coll:"Études, Op. 10", title:"Étude in A minor", sub:"Op. 10 No. 2", key:"A minor", level:9, year:1833, dur:2.5 },
+  { id:"cho-010-004", c:"chopin", coll:"Études, Op. 10", title:"Étude in C♯ minor", sub:"Op. 10 No. 4", key:"C♯ minor", level:9, year:1833, dur:2.5 },
+  { id:"cho-010-005", c:"chopin", coll:"Études, Op. 10", title:"Étude in G♭ major", sub:"Op. 10 No. 5", key:"G♭ major", level:9, year:1833, dur:2.5 },
+  { id:"cho-010-006", c:"chopin", coll:"Études, Op. 10", title:"Étude in E♭ minor", sub:"Op. 10 No. 6", key:"E♭ minor", level:9, year:1833, dur:2.5 },
+  { id:"cho-010-007", c:"chopin", coll:"Études, Op. 10", title:"Étude in C major", sub:"Op. 10 No. 7", key:"C major", level:9, year:1833, dur:2.5 },
+  { id:"cho-010-008", c:"chopin", coll:"Études, Op. 10", title:"Étude in F major", sub:"Op. 10 No. 8", key:"F major", level:9, year:1833, dur:2.5 },
+  { id:"cho-010-009", c:"chopin", coll:"Études, Op. 10", title:"Étude in F minor", sub:"Op. 10 No. 9", key:"F minor", level:9, year:1833, dur:2.5 },
+  { id:"cho-010-010", c:"chopin", coll:"Études, Op. 10", title:"Étude in A♭ major", sub:"Op. 10 No. 10", key:"A♭ major", level:9, year:1833, dur:2.5 },
+  { id:"cho-012-001", c:"chopin", coll:"Variations", title:"Variation in B♭ major", sub:"Op. 12", key:"B♭ major", level:7, year:1835, dur:14 },
+  { id:"cho-013-001", c:"chopin", coll:"Fantasies", title:"Fantasie in A major", sub:"Op. 13", key:"A major", level:9, year:1835, dur:13 },
+  { id:"cho-014-001", c:"chopin", coll:"Rondos", title:"Rondo in F major", sub:"Op. 14", key:"F major", level:6, year:1835, dur:8 },
+  { id:"cho-015-001", c:"chopin", coll:"Nocturnes", title:"Nocturne in F major", sub:"Op. 15 No. 1", key:"F major", level:6, year:1833, dur:5 },
+  { id:"cho-015-002", c:"chopin", coll:"Nocturnes", title:"Nocturne in F♯ major", sub:"Op. 15 No. 2", key:"F♯ major", level:6, year:1833, dur:5 },
+  { id:"cho-015-003", c:"chopin", coll:"Nocturnes", title:"Nocturne in G minor", sub:"Op. 15 No. 3", key:"G minor", level:6, year:1833, dur:5 },
+  { id:"cho-016-001", c:"chopin", coll:"Rondos", title:"Rondo in E♭ major", sub:"Op. 16", key:"E♭ major", level:6, year:1835, dur:8 },
+  { id:"cho-017-001", c:"chopin", coll:"Mazurkas", title:"Mazurka in B♭ major", sub:"Op. 17 No. 1", key:"B♭ major", level:4, year:1833, dur:3 },
+  { id:"cho-017-002", c:"chopin", coll:"Mazurkas", title:"Mazurka in E minor", sub:"Op. 17 No. 2", key:"E minor", level:4, year:1833, dur:3 },
+  { id:"cho-017-003", c:"chopin", coll:"Mazurkas", title:"Mazurka in A♭ major", sub:"Op. 17 No. 3", key:"A♭ major", level:4, year:1833, dur:3 },
+  { id:"cho-017-004", c:"chopin", coll:"Mazurkas", title:"Mazurka in A minor", sub:"Op. 17 No. 4", key:"A minor", level:4, year:1833, dur:3 },
+  { id:"cho-018-001", c:"chopin", coll:"Waltzes", title:"Waltz in E♭ major", sub:"Op. 18", key:"E♭ major", level:5, year:1833, dur:3 },
+  { id:"cho-019-001", c:"chopin", coll:"Boleros", title:"Bolero in A minor", sub:"Op. 19", key:"A minor", level:6, year:1835, dur:8 },
+  { id:"cho-022-001", c:"chopin", coll:"Polonaises", title:"Polonaise in E♭ major", sub:"Op. 22", key:"E♭ major", level:7, year:1834, dur:6 },
+  { id:"cho-024-001", c:"chopin", coll:"Mazurkas", title:"Mazurka in G minor", sub:"Op. 24 No. 1", key:"G minor", level:4, year:1835, dur:3 },
+  { id:"cho-024-002", c:"chopin", coll:"Mazurkas", title:"Mazurka in C major", sub:"Op. 24 No. 2", key:"C major", level:4, year:1835, dur:3 },
+  { id:"cho-024-003", c:"chopin", coll:"Mazurkas", title:"Mazurka in A♭ major", sub:"Op. 24 No. 3", key:"A♭ major", level:4, year:1835, dur:3 },
+  { id:"cho-024-004", c:"chopin", coll:"Mazurkas", title:"Mazurka in B♭ minor", sub:"Op. 24 No. 4", key:"B♭ minor", level:4, year:1835, dur:3 },
+  { id:"cho-025-001", c:"chopin", coll:"Études, Op. 25", title:"Étude in A♭ major", sub:"Op. 25 No. 1", key:"A♭ major", level:9, year:1837, dur:2.5 },
+  { id:"cho-025-002", c:"chopin", coll:"Études, Op. 25", title:"Étude in F minor", sub:"Op. 25 No. 2", key:"F minor", level:9, year:1837, dur:2.5 },
+  { id:"cho-025-003", c:"chopin", coll:"Études, Op. 25", title:"Étude in F major", sub:"Op. 25 No. 3", key:"F major", level:9, year:1837, dur:2.5 },
+  { id:"cho-025-004", c:"chopin", coll:"Études, Op. 25", title:"Étude in A minor", sub:"Op. 25 No. 4", key:"A minor", level:9, year:1837, dur:2.5 },
+  { id:"cho-025-005", c:"chopin", coll:"Études, Op. 25", title:"Étude in E minor", sub:"Op. 25 No. 5", key:"E minor", level:9, year:1837, dur:2.5 },
+  { id:"cho-025-006", c:"chopin", coll:"Études, Op. 25", title:"Étude in G♯ minor", sub:"Op. 25 No. 6", key:"G♯ minor", level:9, year:1837, dur:2.5 },
+  { id:"cho-025-007", c:"chopin", coll:"Études, Op. 25", title:"Étude in C♯ minor", sub:"Op. 25 No. 7", key:"C♯ minor", level:9, year:1837, dur:2.5 },
+  { id:"cho-025-008", c:"chopin", coll:"Études, Op. 25", title:"Étude in D♭ major", sub:"Op. 25 No. 8", key:"D♭ major", level:9, year:1837, dur:2.5 },
+  { id:"cho-025-009", c:"chopin", coll:"Études, Op. 25", title:"Étude in G♭ major", sub:"Op. 25 No. 9", key:"G♭ major", level:9, year:1837, dur:2.5 },
+  { id:"cho-025-010", c:"chopin", coll:"Études, Op. 25", title:"Étude in B minor", sub:"Op. 25 No. 10", key:"B minor", level:9, year:1837, dur:2.5 },
+  { id:"cho-025-011", c:"chopin", coll:"Études, Op. 25", title:"Étude in A minor", sub:"Op. 25 No. 11", key:"A minor", level:9, year:1837, dur:2.5 },
+  { id:"cho-025-012", c:"chopin", coll:"Études, Op. 25", title:"Étude in C minor", sub:"Op. 25 No. 12", key:"C minor", level:9, year:1837, dur:2.5 },
+  { id:"cho-026-001", c:"chopin", coll:"Polonaises", title:"Polonaise in C♯ minor", sub:"Op. 26 No. 1", key:"C♯ minor", level:7, year:1835, dur:6 },
+  { id:"cho-026-002", c:"chopin", coll:"Polonaises", title:"Polonaise in E♭ minor", sub:"Op. 26 No. 2", key:"E♭ minor", level:7, year:1835, dur:6 },
+  { id:"cho-027-001", c:"chopin", coll:"Nocturnes", title:"Nocturne in C♯ minor", sub:"Op. 27 No. 1", key:"C♯ minor", level:6, year:1836, dur:5 },
+  { id:"cho-028-002", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in A minor", sub:"Op. 28 No. 2", key:"A minor", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-003", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in G major", sub:"Op. 28 No. 3", key:"G major", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-005", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in D major", sub:"Op. 28 No. 5", key:"D major", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-008", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in F♯ minor", sub:"Op. 28 No. 8", key:"F♯ minor", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-009", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in E major", sub:"Op. 28 No. 9", key:"E major", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-010", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in C♯ minor", sub:"Op. 28 No. 10", key:"C♯ minor", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-011", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in B major", sub:"Op. 28 No. 11", key:"B major", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-012", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in G♯ minor", sub:"Op. 28 No. 12", key:"G♯ minor", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-013", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in F♯ major", sub:"Op. 28 No. 13", key:"F♯ major", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-014", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in E♭ minor", sub:"Op. 28 No. 14", key:"E♭ minor", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-016", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in B♭ minor", sub:"Op. 28 No. 16", key:"B♭ minor", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-017", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in A♭ major", sub:"Op. 28 No. 17", key:"A♭ major", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-018", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in F minor", sub:"Op. 28 No. 18", key:"F minor", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-019", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in E♭ major", sub:"Op. 28 No. 19", key:"E♭ major", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-021", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in B♭ major", sub:"Op. 28 No. 21", key:"B♭ major", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-022", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in G minor", sub:"Op. 28 No. 22", key:"G minor", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-023", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in F major", sub:"Op. 28 No. 23", key:"F major", level:4, year:1839, dur:1.5 },
+  { id:"cho-028-024", c:"chopin", coll:"24 Préludes, Op. 28", title:"Prélude in D minor", sub:"Op. 28 No. 24", key:"D minor", level:4, year:1839, dur:1.5 },
+  { id:"cho-029-001", c:"chopin", coll:"Impromptus", title:"Impromptu in A♭ major", sub:"Op. 29", key:"A♭ major", level:7, year:1837, dur:4.5 },
+  { id:"cho-030-001", c:"chopin", coll:"Mazurkas", title:"Mazurka in C minor", sub:"Op. 30 No. 1", key:"C minor", level:4, year:1837, dur:3 },
+  { id:"cho-030-002", c:"chopin", coll:"Mazurkas", title:"Mazurka in B minor", sub:"Op. 30 No. 2", key:"B minor", level:4, year:1837, dur:3 },
+  { id:"cho-030-003", c:"chopin", coll:"Mazurkas", title:"Mazurka in D♭ major", sub:"Op. 30 No. 3", key:"D♭ major", level:4, year:1837, dur:3 },
+  { id:"cho-030-004", c:"chopin", coll:"Mazurkas", title:"Mazurka in C♯ minor", sub:"Op. 30 No. 4", key:"C♯ minor", level:4, year:1837, dur:3 },
+  { id:"cho-031-001", c:"chopin", coll:"Scherzos", title:"Scherzo in B♭ minor", sub:"Op. 31", key:"B♭ minor", level:10, year:1837, dur:9 },
+  { id:"cho-032-001", c:"chopin", coll:"Nocturnes", title:"Nocturne in B major", sub:"Op. 32 No. 1", key:"B major", level:6, year:1837, dur:5 },
+  { id:"cho-032-002", c:"chopin", coll:"Nocturnes", title:"Nocturne in A♭ major", sub:"Op. 32 No. 2", key:"A♭ major", level:6, year:1837, dur:5 },
+  { id:"cho-033-001", c:"chopin", coll:"Mazurkas", title:"Mazurka in G♯ minor", sub:"Op. 33 No. 1", key:"G♯ minor", level:4, year:1838, dur:3 },
+  { id:"cho-033-002", c:"chopin", coll:"Mazurkas", title:"Mazurka in D major", sub:"Op. 33 No. 3", key:"D major", level:4, year:1838, dur:3 },
+  { id:"cho-033-003", c:"chopin", coll:"Mazurkas", title:"Mazurka in C major", sub:"Op. 33 No. 3", key:"C major", level:4, year:1838, dur:3 },
+  { id:"cho-033-004", c:"chopin", coll:"Mazurkas", title:"Mazurka in B minor", sub:"Op. 33 No. 4", key:"B minor", level:4, year:1838, dur:3 },
+  { id:"cho-034-001", c:"chopin", coll:"Waltzes", title:"Waltz in A♭ major", sub:"Op. 34 No. 1", key:"A♭ major", level:5, year:1838, dur:3 },
+  { id:"cho-034-002", c:"chopin", coll:"Waltzes", title:"Waltz in A minor", sub:"Op. 34 No. 2", key:"A minor", level:5, year:1838, dur:3 },
+  { id:"cho-034-003", c:"chopin", coll:"Waltzes", title:"Waltz in F major", sub:"Op. 34 No. 3", key:"F major", level:5, year:1838, dur:3 },
+  { id:"cho-036-001", c:"chopin", coll:"Impromptus", title:"Impromptu in F♯ major", sub:"Op. 36", key:"F♯ major", level:7, year:1835, dur:4.5 },
+  { id:"cho-037-001", c:"chopin", coll:"Nocturnes", title:"Nocturne in G minor", sub:"Op. 37 No. 1", key:"G minor", level:6, year:1839, dur:5 },
+  { id:"cho-037-002", c:"chopin", coll:"Nocturnes", title:"Nocturne in G major", sub:"Op. 37 No. 2", key:"G major", level:6, year:1839, dur:5 },
+  { id:"cho-038-001", c:"chopin", coll:"Ballades", title:"Ballade in F major", sub:"Op. 38", key:"F major", level:9, year:1839, dur:9 },
+  { id:"cho-039-001", c:"chopin", coll:"Scherzos", title:"Scherzo in C♯ minor", sub:"Op. 39", key:"C♯ minor", level:10, year:1839, dur:9 },
+  { id:"cho-040-001", c:"chopin", coll:"Polonaises", title:"Polonaise in A major", sub:"Op. 40 No. 1", key:"A major", level:7, year:1838, dur:6 },
+  { id:"cho-040-002", c:"chopin", coll:"Polonaises", title:"Polonaise in C minor", sub:"Op. 40 No. 2", key:"C minor", level:7, year:1838, dur:6 },
+  { id:"cho-041-001", c:"chopin", coll:"Mazurkas", title:"Mazurka in C♯ minor", sub:"Op. 41 No. 4", key:"C♯ minor", level:4, year:1838, dur:3 },
+  { id:"cho-041-002", c:"chopin", coll:"Mazurkas", title:"Mazurka in E minor", sub:"Op. 41 No. 1", key:"E minor", level:4, year:1838, dur:3 },
+  { id:"cho-041-003", c:"chopin", coll:"Mazurkas", title:"Mazurka in B major", sub:"Op. 41 No. 2", key:"B major", level:4, year:1838, dur:3 },
+  { id:"cho-041-004", c:"chopin", coll:"Mazurkas", title:"Mazurka in A♭ major", sub:"Op. 41 No. 3", key:"A♭ major", level:4, year:1838, dur:3 },
+  { id:"cho-042-001", c:"chopin", coll:"Waltzes", title:"Waltz in A♭ major", sub:"Op. 42", key:"A♭ major", level:5, year:1840, dur:3 },
+  { id:"cho-043-001", c:"chopin", coll:"Tarantellas", title:"Tarantella in A♭ major", sub:"Op. 43", key:"A♭ major", level:8, year:1835, dur:4 },
+  { id:"cho-044-001", c:"chopin", coll:"Polonaises", title:"Polonaise in F♯ minor", sub:"Op. 44", key:"F♯ minor", level:7, year:1841, dur:6 },
+  { id:"cho-045-001", c:"chopin", coll:"Preludes", title:"Prélude in C♯ minor", sub:"Op. 45", key:"C♯ minor", level:4, year:1841, dur:1.5 },
+  { id:"cho-047-001", c:"chopin", coll:"Ballades", title:"Ballade in A♭ major", sub:"Op. 47", key:"A♭ major", level:9, year:1841, dur:9 },
+  { id:"cho-048-001", c:"chopin", coll:"Nocturnes", title:"Nocturne in C minor", sub:"Op. 48 No. 1", key:"C minor", level:6, year:1841, dur:5 },
+  { id:"cho-048-002", c:"chopin", coll:"Nocturnes", title:"Nocturne in F♯ minor", sub:"Op. 48 No. 2", key:"F♯ minor", level:6, year:1841, dur:5 },
+  { id:"cho-050-001", c:"chopin", coll:"Mazurkas", title:"Mazurka in G major", sub:"Op. 50 No. 1", key:"G major", level:4, year:1842, dur:3 },
+  { id:"cho-050-002", c:"chopin", coll:"Mazurkas", title:"Mazurka in A♭ major", sub:"Op. 50 No. 2", key:"A♭ major", level:4, year:1842, dur:3 },
+  { id:"cho-050-003", c:"chopin", coll:"Mazurkas", title:"Mazurka in C♯ minor", sub:"Op. 50 No. 3", key:"C♯ minor", level:4, year:1842, dur:3 },
+  { id:"cho-051-001", c:"chopin", coll:"Impromptus", title:"Impromptu in G♭ major", sub:"Op. 51", key:"G♭ major", level:7, year:1842, dur:4.5 },
+  { id:"cho-052-001", c:"chopin", coll:"Ballades", title:"Ballade in F minor", sub:"Op. 52", key:"F minor", level:9, year:1842, dur:9 },
+  { id:"cho-053-001", c:"chopin", coll:"Polonaises", title:"Polonaise in A♭ major", sub:"Op. 53", key:"A♭ major", level:7, year:1842, dur:6 },
+  { id:"cho-054-001", c:"chopin", coll:"Scherzos", title:"Scherzo in E major", sub:"Op. 54", key:"E major", level:10, year:1842, dur:9 },
+  { id:"cho-055-001", c:"chopin", coll:"Nocturnes", title:"Nocturne in F minor", sub:"Op. 55 No. 1", key:"F minor", level:6, year:1843, dur:5 },
+  { id:"cho-055-002", c:"chopin", coll:"Nocturnes", title:"Nocturne in E♭ major", sub:"Op. 55 No. 2", key:"E♭ major", level:6, year:1843, dur:5 },
+  { id:"cho-056-001", c:"chopin", coll:"Mazurkas", title:"Mazurka in B major", sub:"Op. 56 No. 1", key:"B major", level:4, year:1843, dur:3 },
+  { id:"cho-056-002", c:"chopin", coll:"Mazurkas", title:"Mazurka in C major", sub:"Op. 56 No. 2", key:"C major", level:4, year:1843, dur:3 },
+  { id:"cho-056-003", c:"chopin", coll:"Mazurkas", title:"Mazurka in C minor", sub:"Op. 56 No. 3", key:"C minor", level:4, year:1843, dur:3 },
+  { id:"cho-057-001", c:"chopin", coll:"Berceuses", title:"Berceuse in D♭ major", sub:"Op. 57", key:"D♭ major", level:5, year:1844, dur:4 },
+  { id:"cho-059-001", c:"chopin", coll:"Mazurkas", title:"Mazurka in A minor", sub:"Op. 59 No. 1", key:"A minor", level:4, year:1845, dur:3 },
+  { id:"cho-059-002", c:"chopin", coll:"Mazurkas", title:"Mazurka in A♭ major", sub:"Op. 59 No. 2", key:"A♭ major", level:4, year:1845, dur:3 },
+  { id:"cho-059-003", c:"chopin", coll:"Mazurkas", title:"Mazurka in C minor", sub:"Op. 59 No. 3", key:"C minor", level:4, year:1845, dur:3 },
+  { id:"cho-060-001", c:"chopin", coll:"Barcarolles", title:"Barcarolle in F♯ major", sub:"Op. 60", key:"F♯ major", level:8, year:1846, dur:8 },
+  { id:"cho-061-001", c:"chopin", coll:"Polonaises", title:"Polonaise in A♭ major", sub:"Op. 61", key:"A♭ major", level:7, year:1846, dur:6 },
+  { id:"cho-062-001", c:"chopin", coll:"Nocturnes", title:"Nocturne in B major", sub:"Op. 62 No. 1", key:"B major", level:6, year:1846, dur:5 },
+  { id:"cho-062-002", c:"chopin", coll:"Nocturnes", title:"Nocturne in E major", sub:"Op. 62 No. 2", key:"E major", level:6, year:1846, dur:5 },
+  { id:"cho-063-001", c:"chopin", coll:"Mazurkas", title:"Mazurka in B major", sub:"Op. 63 No. 1", key:"B major", level:4, year:1846, dur:3 },
+  { id:"cho-063-002", c:"chopin", coll:"Mazurkas", title:"Mazurka in F minor", sub:"Op. 63 No. 2", key:"F minor", level:4, year:1846, dur:3 },
+  { id:"cho-063-003", c:"chopin", coll:"Mazurkas", title:"Mazurka in C♯ minor", sub:"Op. 63 No. 3", key:"C♯ minor", level:4, year:1846, dur:3 },
+  { id:"cho-064-002", c:"chopin", coll:"Waltzes", title:"Waltz in C♯ minor", sub:"Op. 64 No. 2", key:"C♯ minor", level:5, year:1847, dur:3 },
+  { id:"cho-064-003", c:"chopin", coll:"Waltzes", title:"Waltz in A♭ major", sub:"Op. 64 No. 3", key:"A♭ major", level:5, year:1847, dur:3 },
+  // Debussy
+  { id:"deb-clair", c:"debussy", title:"Clair de Lune", sub:"Suite bergamasque", key:"D♭ major", level:7, year:1905, dur:5,
+    story:"'Moonlight', the third movement of the Suite bergamasque, named after a Verlaine poem. Its washes of sound demand the subtlest half-pedalling in the repertoire." },
+  { id:"deb-arab1", c:"debussy", title:"Arabesque No. 1", sub:"L. 66", key:"E major", level:5, year:1891, dur:4,
+    story:"An early work already full of Debussy's fingerprints — flowing triplets, gently oscillating harmony, and cross-rhythms that must sound effortless." },
+  { id:"deb-reverie", c:"debussy", title:"Rêverie", sub:"L. 68", key:"F major", level:5, year:1890, dur:4.5,
+    story:"Debussy later dismissed this dreamy miniature as a youthful work of 'no consequence', but the public disagreed — it remains one of his most-played pieces." },
+  { id:"deb-flaxen", c:"debussy", title:"The Girl with the Flaxen Hair", sub:"Préludes I", key:"G♭ major", level:4, year:1910, dur:2.5,
+    story:"A prelude of pure serenity built on pentatonic melody. Its quietness is deceptive: balancing the chords so the tune floats on top is the whole art of it." },
+  { id:"deb-gradus", c:"debussy", title:"Doctor Gradus ad Parnassum", sub:"Children's Corner", key:"C major", level:6, year:1908, dur:2,
+    story:"A gentle parody of dry Czerny exercises, written for his daughter 'Chouchou'. Behind the joke is a genuine study in even, glassy finger-work." },
+  // Liszt
+  { id:"lis-liebe3", c:"liszt", title:"Liebestraum No. 3", sub:"S. 541", key:"A♭ major", level:8, year:1850, dur:4.5,
+    story:"'Dream of Love' — originally a song about love that endures beyond death. The melody is passed between the hands and crowned by two famous cadenzas." },
+  { id:"lis-campanella", c:"liszt", title:"La Campanella", sub:"S. 141 No. 3", key:"G♯ minor", level:10, year:1851, dur:5,
+    story:"'The Little Bell', after a Paganini theme. Its enormous right-hand leaps and repeated notes make it one of the most fearsome showpieces ever written." },
+  { id:"lis-consol3", c:"liszt", title:"Consolation No. 3", sub:"S. 172", key:"D♭ major", level:5, year:1850, dur:4,
+    story:"The gentlest of Liszt's six Consolations, clearly modelled on a Chopin nocturne. A rare moment of pure repose from the great virtuoso." },
+  // Beethoven
+  { id:"bee-moon1", c:"beethoven", title:"Moonlight Sonata (I)", sub:"Op. 27 No. 2", key:"C♯ minor", level:5, year:1801, dur:6,
+    story:"Beethoven called it 'quasi una fantasia'; the 'Moonlight' nickname came from a critic after his death. The whole movement is one long, hushed triplet meditation." },
+  { id:"bee-elise", c:"beethoven", title:"Für Elise", sub:"WoO 59", key:"A minor", level:4, year:1810, dur:3,
+    story:"The most recognised piano tune on earth, yet 'Elise' has never been firmly identified — the manuscript may actually read 'Therese'. Discovered only forty years after Beethoven died." },
+  { id:"bee-pathetique2", c:"beethoven", title:"Pathétique (II)", sub:"Op. 13", key:"A♭ major", level:5, year:1798, dur:5,
+    story:"The serene Adagio cantabile from the 'Grande Sonate Pathétique'. Its hymn-like melody is a masterclass in sustaining a legato line with the fingers alone." },
+  // Rachmaninoff
+  { id:"rac-preludecsm", c:"rachmaninoff", title:"Prelude in C♯ minor", sub:"Op. 3 No. 2", key:"C♯ minor", level:8, year:1892, dur:4,
+    story:"Written at nineteen, it made Rachmaninoff famous overnight — and haunted him, as audiences demanded it at every recital for the rest of his life. Its tolling bells need a huge, controlled sound." },
+  { id:"rac-preludegm", c:"rachmaninoff", title:"Prelude in G minor", sub:"Op. 23 No. 5", key:"G minor", level:9, year:1901, dur:4,
+    story:"A march of iron rhythm framing a soaring, nostalgic middle section. The contrast between the two worlds is the interpretive heart of the piece." },
+  // Satie
+  { id:"sat-gym1", c:"satie", title:"Gymnopédie No. 1", sub:"", key:"D major", level:3, year:1888, dur:3.5,
+    story:"Three slow, spare dances that were decades ahead of their time. The floating dissonances and steady pulse make it a study in patience and evenness of touch." },
+  { id:"sat-gnoss1", c:"satie", title:"Gnossienne No. 1", sub:"", key:"F minor", level:4, year:1890, dur:4,
+    story:"Written without bar-lines and sprinkled with cryptic instructions like 'wonder about yourself'. Its modal, vaguely Eastern melody drifts free of any regular metre." },
+  // Bach
+  { id:"bac-prelc", c:"bach", title:"Prelude in C major", sub:"BWV 846", key:"C major", level:3, year:1722, dur:2.5,
+    story:"The opening of the Well-Tempered Clavier — nothing but broken chords, yet a perfect study in evenness, pedalling and hearing harmony move. Gounod later laid an 'Ave Maria' over it." },
+  { id:"bac-inv1", c:"bach", title:"Invention No. 1", sub:"BWV 772", key:"C major", level:4, year:1723, dur:1.5,
+    story:"Bach wrote the two-part inventions to teach his son a 'singing style of playing' and true independence of the hands. Small in size, essential in every pianist's training." },
+  { id:"mozart-g1", c:"mozart", coll:"Piano Sonatas", title:"Sonata No. 11 'Alla turca'", sub:"K. 331", key:"A major", level:6, year:1783, dur:20 },
+  { id:"mozart-g2", c:"mozart", coll:"Piano Sonatas", title:"Sonata No. 16 'Facile'", sub:"K. 545", key:"C major", level:4, year:1788, dur:11 },
+  { id:"mozart-g3", c:"mozart", coll:"Piano Sonatas", title:"Sonata No. 8", sub:"K. 310", key:"A minor", level:7, year:1778, dur:18 },
+  { id:"mozart-g4", c:"mozart", coll:"Piano Sonatas", title:"Sonata No. 14", sub:"K. 457", key:"C minor", level:8, year:1784, dur:18 },
+  { id:"mozart-g5", c:"mozart", title:"Rondo alla Turca", sub:"from K. 331", key:"A minor", level:6, year:1783, dur:3.5 },
+  { id:"mozart-g6", c:"mozart", title:"Fantasia in D minor", sub:"K. 397", key:"D minor", level:6, year:1782, dur:6 },
+  { id:"mozart-g7", c:"mozart", title:"Rondo in A minor", sub:"K. 511", key:"A minor", level:7, year:1787, dur:9 },
+  { id:"mozart-g8", c:"mozart", title:"Variations 'Ah vous dirai-je, Maman'", sub:"K. 265", key:"C major", level:5, year:1782, dur:12 },
+  { id:"mozart-g9", c:"mozart", title:"Adagio in B minor", sub:"K. 540", key:"B minor", level:7, year:1788, dur:9 },
+  { id:"schubert-g10", c:"schubert", coll:"Impromptus", title:"Impromptu in G♭ major", sub:"Op. 90 No. 3", key:"G♭ major", level:7, year:1827, dur:6 },
+  { id:"schubert-g11", c:"schubert", coll:"Impromptus", title:"Impromptu in A♭ major", sub:"Op. 90 No. 4", key:"A♭ major", level:7, year:1827, dur:7 },
+  { id:"schubert-g12", c:"schubert", coll:"Impromptus", title:"Impromptu in B♭ major", sub:"Op. 142 No. 3", key:"B♭ major", level:6, year:1827, dur:11 },
+  { id:"schubert-g13", c:"schubert", coll:"Moments musicaux", title:"Moment musical No. 3", sub:"Op. 94", key:"F minor", level:4, year:1828, dur:2 },
+  { id:"schubert-g14", c:"schubert", coll:"Piano Sonatas", title:"Piano Sonata in B♭ major", sub:"D. 960", key:"B♭ major", level:9, year:1828, dur:40 },
+  { id:"schubert-g15", c:"schubert", title:"Wanderer Fantasy", sub:"D. 760", key:"C major", level:10, year:1822, dur:20 },
+  { id:"schumann-g16", c:"schumann", coll:"Kinderszenen, Op. 15", title:"Träumerei", sub:"Kinderszenen Op. 15", key:"F major", level:4, year:1838, dur:3 },
+  { id:"schumann-g17", c:"schumann", title:"Arabeske", sub:"Op. 18", key:"C major", level:6, year:1839, dur:7 },
+  { id:"schumann-g18", c:"schumann", title:"Carnaval", sub:"Op. 9", key:"A♭ major", level:9, year:1835, dur:30 },
+  { id:"schumann-g19", c:"schumann", title:"Fantasie in C", sub:"Op. 17", key:"C major", level:10, year:1836, dur:32 },
+  { id:"schumann-g20", c:"schumann", title:"Toccata", sub:"Op. 7", key:"C major", level:10, year:1832, dur:6 },
+  { id:"schumann-g21", c:"schumann", title:"Papillons", sub:"Op. 2", key:"D major", level:7, year:1831, dur:15 },
+  { id:"brahms-g22", c:"brahms", coll:"Intermezzi", title:"Intermezzo in E♭ major", sub:"Op. 117 No. 1", key:"E♭ major", level:6, year:1892, dur:5 },
+  { id:"brahms-g23", c:"brahms", coll:"Intermezzi", title:"Intermezzo in A major", sub:"Op. 118 No. 2", key:"A major", level:6, year:1893, dur:6 },
+  { id:"brahms-g24", c:"brahms", title:"Rhapsody in G minor", sub:"Op. 79 No. 2", key:"G minor", level:8, year:1879, dur:6 },
+  { id:"brahms-g25", c:"brahms", title:"Hungarian Dance No. 5", sub:"WoO 1", key:"F♯ minor", level:6, year:1869, dur:3 },
+  { id:"brahms-g26", c:"brahms", title:"Waltz in A♭ major", sub:"Op. 39 No. 15", key:"A♭ major", level:4, year:1865, dur:2 },
+  { id:"brahms-g27", c:"brahms", title:"Ballade 'Edward'", sub:"Op. 10 No. 1", key:"D minor", level:7, year:1854, dur:4 },
+  { id:"brahms-g28", c:"brahms", title:"Variations on a Theme by Paganini", sub:"Op. 35", key:"A minor", level:10, year:1863, dur:25 },
+  { id:"mendelssohn-g29", c:"mendelssohn", coll:"Songs Without Words", title:"Spring Song", sub:"Songs Without Words Op. 62 No. 6", key:"A major", level:6, year:1844, dur:3 },
+  { id:"mendelssohn-g30", c:"mendelssohn", coll:"Songs Without Words", title:"Venetian Gondola Song", sub:"Op. 19 No. 6", key:"G minor", level:5, year:1830, dur:3 },
+  { id:"mendelssohn-g31", c:"mendelssohn", coll:"Songs Without Words", title:"Spinning Song", sub:"Op. 67 No. 4", key:"C major", level:7, year:1845, dur:2 },
+  { id:"mendelssohn-g32", c:"mendelssohn", title:"Rondo Capriccioso", sub:"Op. 14", key:"E major", level:8, year:1830, dur:6 },
+  { id:"mendelssohn-g33", c:"mendelssohn", title:"Variations sérieuses", sub:"Op. 54", key:"D minor", level:9, year:1841, dur:11 },
+  { id:"grieg-g34", c:"grieg", coll:"Lyric Pieces", title:"Wedding Day at Troldhaugen", sub:"Lyric Pieces Op. 65 No. 6", key:"D major", level:7, year:1897, dur:6 },
+  { id:"grieg-g35", c:"grieg", coll:"Lyric Pieces", title:"To Spring", sub:"Op. 43 No. 6", key:"A♭ major", level:6, year:1886, dur:3 },
+  { id:"grieg-g36", c:"grieg", coll:"Lyric Pieces", title:"Butterfly", sub:"Op. 43 No. 1", key:"A major", level:6, year:1886, dur:2 },
+  { id:"grieg-g37", c:"grieg", coll:"Lyric Pieces", title:"Notturno", sub:"Op. 54 No. 4", key:"C major", level:6, year:1891, dur:4 },
+  { id:"grieg-g38", c:"grieg", coll:"Lyric Pieces", title:"March of the Trolls", sub:"Op. 54 No. 3", key:"D minor", level:7, year:1891, dur:3 },
+  { id:"grieg-g39", c:"grieg", coll:"Lyric Pieces", title:"Arietta", sub:"Op. 12 No. 1", key:"E♭ major", level:3, year:1867, dur:1.5 },
+  { id:"grieg-g40", c:"grieg", title:"Holberg Suite", sub:"Op. 40", key:"G major", level:7, year:1884, dur:18 },
+  { id:"tchaikovsky-g41", c:"tchaikovsky", coll:"The Seasons", title:"June: Barcarolle", sub:"The Seasons Op. 37b", key:"G minor", level:5, year:1876, dur:5 },
+  { id:"tchaikovsky-g42", c:"tchaikovsky", coll:"The Seasons", title:"November: Troika", sub:"Op. 37b", key:"E major", level:6, year:1876, dur:3 },
+  { id:"tchaikovsky-g43", c:"tchaikovsky", coll:"The Seasons", title:"October: Autumn Song", sub:"Op. 37b", key:"D minor", level:5, year:1876, dur:4 },
+  { id:"tchaikovsky-g44", c:"tchaikovsky", title:"Nocturne in C♯ minor", sub:"Op. 19 No. 4", key:"C♯ minor", level:5, year:1873, dur:4 },
+  { id:"tchaikovsky-g45", c:"tchaikovsky", title:"Dumka", sub:"Op. 59", key:"C minor", level:8, year:1886, dur:9 },
+  { id:"scriabin-g46", c:"scriabin", title:"Étude in C♯ minor", sub:"Op. 2 No. 1", key:"C♯ minor", level:6, year:1887, dur:3 },
+  { id:"scriabin-g47", c:"scriabin", coll:"Études, Op. 8", title:"Étude in D♯ minor", sub:"Op. 8 No. 12", key:"D♯ minor", level:9, year:1894, dur:3 },
+  { id:"scriabin-g48", c:"scriabin", coll:"24 Preludes, Op. 11", title:"Prelude in E minor", sub:"Op. 11 No. 4", key:"E minor", level:4, year:1895, dur:2 },
+  { id:"scriabin-g49", c:"scriabin", coll:"Piano Sonatas", title:"Sonata No. 2 'Sonata-Fantasy'", sub:"Op. 19", key:"G♯ minor", level:9, year:1897, dur:12 },
+  { id:"scriabin-g50", c:"scriabin", title:"Poème in F♯ major", sub:"Op. 32 No. 1", key:"F♯ major", level:7, year:1903, dur:3 },
+  { id:"scriabin-g51", c:"scriabin", coll:"Piano Sonatas", title:"Sonata No. 5", sub:"Op. 53", key:"F♯ major", level:10, year:1907, dur:12 },
+  { id:"prokofiev-g52", c:"prokofiev", coll:"Piano Sonatas", title:"Sonata No. 7 'Precipitato'", sub:"Op. 83", key:"B♭ major", level:10, year:1942, dur:18 },
+  { id:"prokofiev-g53", c:"prokofiev", title:"Toccata", sub:"Op. 11", key:"D minor", level:10, year:1912, dur:5 },
+  { id:"prokofiev-g54", c:"prokofiev", title:"Suggestion diabolique", sub:"Op. 4 No. 4", key:"C minor", level:9, year:1912, dur:3 },
+  { id:"prokofiev-g55", c:"prokofiev", coll:"Piano Sonatas", title:"Sonata No. 2", sub:"Op. 14", key:"D minor", level:9, year:1912, dur:22 },
+  { id:"prokofiev-g56", c:"prokofiev", title:"March from 'The Love for Three Oranges'", sub:"Op. 33", key:"B♭ major", level:6, year:1921, dur:2 },
+  { id:"prokofiev-g57", c:"prokofiev", title:"Visions fugitives (selection)", sub:"Op. 22", key:"various", level:7, year:1917, dur:8 },
+  { id:"scarlatti-g58", c:"scarlatti", coll:"Keyboard Sonatas", title:"Sonata in D minor 'Pastorale'", sub:"K. 9", key:"D minor", level:6, year:1738, dur:4 },
+  { id:"scarlatti-g59", c:"scarlatti", coll:"Keyboard Sonatas", title:"Sonata in E major", sub:"K. 380", key:"E major", level:6, year:1754, dur:4 },
+  { id:"scarlatti-g60", c:"scarlatti", coll:"Keyboard Sonatas", title:"Sonata in C major", sub:"K. 159", key:"C major", level:5, year:1750, dur:2 },
+  { id:"scarlatti-g61", c:"scarlatti", coll:"Keyboard Sonatas", title:"Sonata in D minor", sub:"K. 141", key:"D minor", level:9, year:1750, dur:4 },
+  { id:"scarlatti-g62", c:"scarlatti", coll:"Keyboard Sonatas", title:"Sonata in G major", sub:"K. 455", key:"G major", level:7, year:1750, dur:3 },
+  { id:"scarlatti-g63", c:"scarlatti", coll:"Keyboard Sonatas", title:"Sonata in F minor", sub:"K. 466", key:"F minor", level:6, year:1750, dur:5 },
+  { id:"scarlatti-g64", c:"scarlatti", coll:"Keyboard Sonatas", title:"Sonata in A major", sub:"K. 113", key:"A major", level:7, year:1750, dur:4 },
+  { id:"faure-g65", c:"faure", coll:"Nocturnes", title:"Nocturne No. 1", sub:"Op. 33 No. 1", key:"E♭ minor", level:7, year:1875, dur:8 },
+  { id:"faure-g66", c:"faure", coll:"Barcarolles", title:"Barcarolle No. 1", sub:"Op. 26", key:"A minor", level:7, year:1881, dur:6 },
+  { id:"faure-g67", c:"faure", title:"Pavane", sub:"Op. 50", key:"F♯ minor", level:4, year:1887, dur:6 },
+  { id:"faure-g68", c:"faure", coll:"Impromptus", title:"Impromptu No. 2", sub:"Op. 31", key:"F minor", level:7, year:1883, dur:5 },
+  { id:"faure-g69", c:"faure", title:"Sicilienne", sub:"Op. 78", key:"G minor", level:5, year:1893, dur:4 },
+  { id:"granados-g70", c:"granados", coll:"Goyescas", title:"Quejas, o la maja y el ruiseñor", sub:"Goyescas", key:"E♭ major", level:8, year:1911, dur:7 },
+  { id:"granados-g71", c:"granados", coll:"Goyescas", title:"Los requiebros", sub:"Goyescas", key:"—", level:6, year:1911, dur:8 },
+  { id:"granados-g72", c:"granados", coll:"Danzas españolas", title:"Andaluza (Playera)", sub:"Danzas españolas No. 5", key:"E minor", level:6, year:1890, dur:4 },
+  { id:"granados-g73", c:"granados", coll:"Danzas españolas", title:"Oriental", sub:"Danzas españolas No. 2", key:"C minor", level:5, year:1890, dur:4 },
+  { id:"debussy-g74", c:"debussy", coll:"Suite bergamasque", title:"Prélude", sub:"Suite bergamasque", key:"F major", level:6, year:1905, dur:4 },
+  { id:"debussy-g75", c:"debussy", coll:"Suite bergamasque", title:"Menuet", sub:"Suite bergamasque", key:"A minor", level:5, year:1905, dur:4 },
+  { id:"debussy-g76", c:"debussy", coll:"Suite bergamasque", title:"Passepied", sub:"Suite bergamasque", key:"F♯ minor", level:6, year:1905, dur:3 },
+  { id:"debussy-g77", c:"debussy", coll:"Deux Arabesques", title:"Arabesque No. 2", sub:"L. 66", key:"G major", level:6, year:1891, dur:3 },
+  { id:"debussy-g78", c:"debussy", coll:"Estampes", title:"Pagodes", sub:"Estampes", key:"B major", level:8, year:1903, dur:5 },
+  { id:"debussy-g79", c:"debussy", coll:"Estampes", title:"La soirée dans Grenade", sub:"Estampes", key:"A minor", level:8, year:1903, dur:5 },
+  { id:"debussy-g80", c:"debussy", coll:"Estampes", title:"Jardins sous la pluie", sub:"Estampes", key:"E major", level:9, year:1903, dur:4 },
+  { id:"debussy-g81", c:"debussy", coll:"Children's Corner", title:"Golliwogg's Cakewalk", sub:"Children's Corner", key:"E♭ major", level:6, year:1908, dur:3 },
+  { id:"debussy-g82", c:"debussy", coll:"Children's Corner", title:"The Snow Is Dancing", sub:"Children's Corner", key:"various", level:7, year:1908, dur:2.5 },
+  { id:"debussy-g83", c:"debussy", coll:"Préludes, Book I", title:"La cathédrale engloutie", sub:"Préludes, Book I", key:"C major", level:7, year:1910, dur:6 },
+  { id:"debussy-g84", c:"debussy", coll:"Préludes, Book I", title:"Minstrels", sub:"Préludes, Book I", key:"G major", level:6, year:1910, dur:2 },
+  { id:"debussy-g85", c:"debussy", coll:"Préludes, Book I", title:"Des pas sur la neige", sub:"Préludes, Book I", key:"D minor", level:6, year:1910, dur:4 },
+  { id:"debussy-g86", c:"debussy", coll:"Préludes, Book I", title:"Voiles", sub:"Préludes, Book I", key:"various", level:6, year:1910, dur:4 },
+  { id:"debussy-g87", c:"debussy", coll:"Pour le piano", title:"Toccata", sub:"Pour le piano", key:"C♯ minor", level:9, year:1901, dur:4 },
+  { id:"debussy-g88", c:"debussy", coll:"Pour le piano", title:"Sarabande", sub:"Pour le piano", key:"C♯ minor", level:6, year:1901, dur:5 },
+  { id:"debussy-g89", c:"debussy", title:"L'isle joyeuse", sub:"L. 106", key:"A major", level:9, year:1904, dur:6 },
+  { id:"debussy-g90", c:"debussy", title:"La plus que lente", sub:"L. 121", key:"G♭ major", level:5, year:1910, dur:4 },
+  { id:"liszt-g91", c:"liszt", coll:"Liebesträume", title:"Liebestraum No. 1", sub:"S. 541", key:"A♭ major", level:7, year:1850, dur:5 },
+  { id:"liszt-g92", c:"liszt", coll:"Hungarian Rhapsodies", title:"Hungarian Rhapsody No. 2", sub:"S. 244", key:"C♯ minor", level:9, year:1847, dur:10 },
+  { id:"liszt-g93", c:"liszt", coll:"Hungarian Rhapsodies", title:"Hungarian Rhapsody No. 6", sub:"S. 244", key:"D♭ major", level:9, year:1847, dur:7 },
+  { id:"liszt-g94", c:"liszt", coll:"Consolations", title:"Consolation No. 1", sub:"S. 172", key:"E major", level:5, year:1850, dur:3 },
+  { id:"liszt-g95", c:"liszt", coll:"Transcendental Études", title:"Transcendental Étude No. 4 'Mazeppa'", sub:"S. 139", key:"D minor", level:10, year:1852, dur:8 },
+  { id:"liszt-g96", c:"liszt", coll:"Concert Études", title:"Un sospiro", sub:"Concert Étude No. 3", key:"D♭ major", level:9, year:1848, dur:6 },
+  { id:"liszt-g97", c:"liszt", title:"Piano Sonata in B minor", sub:"S. 178", key:"B minor", level:10, year:1853, dur:30 },
+  { id:"liszt-g98", c:"liszt", coll:"Années de pèlerinage", title:"Les jeux d'eaux à la Villa d'Este", sub:"Années de pèlerinage III", key:"F♯ major", level:8, year:1877, dur:8 },
+  { id:"liszt-g99", c:"liszt", coll:"Années de pèlerinage", title:"Sonetto 104 del Petrarca", sub:"Années de pèlerinage II", key:"E major", level:8, year:1846, dur:7 },
+  { id:"liszt-g100", c:"liszt", title:"Mephisto Waltz No. 1", sub:"S. 514", key:"A major", level:10, year:1860, dur:11 },
+  { id:"beethoven-g101", c:"beethoven", coll:"Piano Sonatas", title:"Moonlight Sonata (III)", sub:"Op. 27 No. 2", key:"C♯ minor", level:9, year:1801, dur:7 },
+  { id:"beethoven-g102", c:"beethoven", coll:"Piano Sonatas", title:"Pathétique (I)", sub:"Op. 13", key:"C minor", level:8, year:1798, dur:9 },
+  { id:"beethoven-g103", c:"beethoven", coll:"Piano Sonatas", title:"Waldstein Sonata (I)", sub:"Op. 53", key:"C major", level:10, year:1804, dur:11 },
+  { id:"beethoven-g104", c:"beethoven", coll:"Piano Sonatas", title:"Appassionata (I)", sub:"Op. 57", key:"F minor", level:10, year:1805, dur:10 },
+  { id:"beethoven-g105", c:"beethoven", coll:"Piano Sonatas", title:"Tempest Sonata (III)", sub:"Op. 31 No. 2", key:"D minor", level:9, year:1802, dur:7 },
+  { id:"beethoven-g106", c:"beethoven", coll:"Piano Sonatas", title:"Sonata in E major (I)", sub:"Op. 109", key:"E major", level:10, year:1820, dur:4 },
+  { id:"beethoven-g107", c:"beethoven", title:"Rondo a capriccio 'Rage over a Lost Penny'", sub:"Op. 129", key:"G major", level:8, year:1795, dur:6 },
+  { id:"beethoven-g108", c:"beethoven", title:"Bagatelle in A minor 'Für Elise'", sub:"WoO 59", key:"A minor", level:4, year:1810, dur:3 },
+  { id:"beethoven-g109", c:"beethoven", title:"Diabelli Variations", sub:"Op. 120", key:"C major", level:10, year:1823, dur:50 },
+  { id:"rachmaninoff-g110", c:"rachmaninoff", coll:"Préludes, Op. 23", title:"Prelude in D major", sub:"Op. 23 No. 4", key:"D major", level:7, year:1903, dur:5 },
+  { id:"rachmaninoff-g111", c:"rachmaninoff", coll:"Préludes, Op. 32", title:"Prelude in G♯ minor", sub:"Op. 32 No. 12", key:"G♯ minor", level:7, year:1910, dur:3 },
+  { id:"rachmaninoff-g112", c:"rachmaninoff", coll:"Préludes, Op. 32", title:"Prelude in B minor", sub:"Op. 32 No. 10", key:"B minor", level:8, year:1910, dur:5 },
+  { id:"rachmaninoff-g113", c:"rachmaninoff", coll:"Études-Tableaux", title:"Étude-Tableau in A minor", sub:"Op. 39 No. 6", key:"A minor", level:9, year:1917, dur:3 },
+  { id:"rachmaninoff-g114", c:"rachmaninoff", coll:"Études-Tableaux", title:"Étude-Tableau in E♭ minor", sub:"Op. 39 No. 5", key:"E♭ minor", level:9, year:1917, dur:5 },
+  { id:"rachmaninoff-g115", c:"rachmaninoff", coll:"Moments musicaux", title:"Moment musical in E minor", sub:"Op. 16 No. 4", key:"E minor", level:9, year:1896, dur:3 },
+  { id:"rachmaninoff-g116", c:"rachmaninoff", coll:"Morceaux de fantaisie", title:"Elégie", sub:"Op. 3 No. 1", key:"E♭ minor", level:6, year:1892, dur:5 },
+  { id:"rachmaninoff-g117", c:"rachmaninoff", title:"Piano Sonata No. 2", sub:"Op. 36", key:"B♭ minor", level:10, year:1913, dur:20 },
+  { id:"satie-g118", c:"satie", coll:"Gymnopédies", title:"Gymnopédie No. 2", sub:"", key:"C major", level:3, year:1888, dur:3 },
+  { id:"satie-g119", c:"satie", coll:"Gymnopédies", title:"Gymnopédie No. 3", sub:"", key:"A minor", level:3, year:1888, dur:3 },
+  { id:"satie-g120", c:"satie", coll:"Gnossiennes", title:"Gnossienne No. 2", sub:"", key:"—", level:6, year:1890, dur:2 },
+  { id:"satie-g121", c:"satie", coll:"Gnossiennes", title:"Gnossienne No. 3", sub:"", key:"—", level:6, year:1890, dur:2.5 },
+  { id:"satie-g122", c:"satie", title:"Je te veux", sub:"", key:"—", level:6, year:1897, dur:5 },
+  { id:"satie-g123", c:"satie", title:"Embryons desséchés", sub:"", key:"—", level:6, year:1913, dur:4 },
+  { id:"satie-g124", c:"satie", title:"Sonatine bureaucratique", sub:"", key:"C major", level:5, year:1917, dur:4 },
+  { id:"satie-g125", c:"satie", title:"Le Piccadilly", sub:"", key:"—", level:6, year:1904, dur:2 },
+  { id:"bach-g126", c:"bach", coll:"The Well-Tempered Clavier, Book I", title:"Prelude & Fugue in C minor", sub:"WTC I, BWV 847", key:"C minor", level:6, year:1722, dur:3 },
+  { id:"bach-g127", c:"bach", coll:"The Well-Tempered Clavier, Book I", title:"Prelude & Fugue in D major", sub:"WTC I, BWV 850", key:"D major", level:7, year:1722, dur:3 },
+  { id:"bach-g128", c:"bach", title:"Italian Concerto", sub:"BWV 971", key:"F major", level:8, year:1735, dur:12 },
+  { id:"bach-g129", c:"bach", coll:"Goldberg Variations", title:"Aria", sub:"Goldberg Variations, BWV 988", key:"G major", level:5, year:1741, dur:4 },
+  { id:"bach-g130", c:"bach", coll:"Inventions", title:"Invention No. 4", sub:"BWV 775", key:"D minor", level:4, year:1723, dur:1 },
+  { id:"bach-g131", c:"bach", coll:"Inventions", title:"Invention No. 8", sub:"BWV 779", key:"F major", level:4, year:1723, dur:1 },
+  { id:"bach-g132", c:"bach", coll:"Inventions", title:"Invention No. 13", sub:"BWV 784", key:"A minor", level:4, year:1723, dur:1.5 },
+  { id:"bach-g133", c:"bach", title:"Chromatic Fantasia and Fugue", sub:"BWV 903", key:"D minor", level:9, year:1720, dur:11 },
+  { id:"bach-g134", c:"bach", title:"Jesu, Joy of Man's Desiring", sub:"BWV 147", key:"G major", level:4, year:1723, dur:3 },
+];
+
+/* ================================================================
+   Piano calendar — real 'on this day' facts (MM-DD)
+   ================================================================ */
+const CALENDAR = window.MUSIC_CALENDAR || [
+  { md:"01-27", kind:"Birthday", text:"Wolfgang Amadeus Mozart was born in Salzburg (1756)." },
+  { md:"03-01", kind:"Birthday", text:"Frédéric Chopin was born near Warsaw (1810)." },
+  { md:"03-07", kind:"Birthday", text:"Maurice Ravel was born in Ciboure, France (1875)." },
+  { md:"03-31", kind:"Birthday", text:"Johann Sebastian Bach was born in Eisenach (1685)." },
+  { md:"04-01", kind:"Birthday", text:"Sergei Rachmaninoff was born in Russia (1873)." },
+  { md:"05-07", kind:"Birthday", text:"Both Brahms (1833) and Tchaikovsky (1840) were born on this day." },
+  { md:"05-17", kind:"Birthday", text:"Erik Satie was born in Honfleur, France (1866)." },
+  { md:"06-08", kind:"Birthday", text:"Robert Schumann was born in Zwickau (1810)." },
+  { md:"08-22", kind:"Birthday", text:"Claude Debussy was born in Saint-Germain-en-Laye (1862)." },
+  { md:"09-13", kind:"Birthday", text:"Clara Schumann — pianist and composer — was born in Leipzig (1819)." },
+  { md:"10-17", kind:"Remembered", text:"Chopin died in Paris at just 39 (1849)." },
+  { md:"10-22", kind:"Birthday", text:"Franz Liszt was born in Raiding, Hungary (1811)." },
+  { md:"12-17", kind:"Birthday", text:"Ludwig van Beethoven was baptised in Bonn (1770)." },
+];
+
+/* ================================================================
+   Persistent state (localStorage)
+   ================================================================ */
+const LS_KEY = "pp_v1";
+const DEFAULT_STATE = { progress:{}, practiceSec:{}, saved:[], recent:["rav-menuet-haydn","cho-pre284"], lang:"en", theme:"light" };
+function applyTheme(){ document.documentElement.dataset.theme = (S.theme==="dark") ? "dark" : "light"; }
+// Language options — Chinese split into Traditional / Simplified
+const LANGS = { "en":"English", "zh-Hant":"繁體中文", "zh-Hans":"简体中文", "ja":"日本語", "ko":"한국어", "fr":"Français", "es":"Español", "de":"Deutsch" };
+
+// Real score PDFs (public domain, from IMSLP mirrors / Internet Archive)
+const SCORES = {
+  "rav-pavane": "library/ravel/scores/rav-pavane.pdf",
+  "rav-jeux-deau": "library/ravel/scores/rav-jeux-deau.pdf",
+  "rav-sonatine-1": "library/ravel/scores/rav-sonatine.pdf",
+  "rav-sonatine-2": "library/ravel/scores/rav-sonatine.pdf",
+  "rav-sonatine-3": "library/ravel/scores/rav-sonatine.pdf",
+  "rav-gaspard-1": "library/ravel/scores/rav-gaspard.pdf",
+  "rav-gaspard-2": "library/ravel/scores/rav-gaspard.pdf",
+  "rav-gaspard-3": "library/ravel/scores/rav-gaspard.pdf",
+  "rav-valses-1": "library/ravel/scores/rav-valses.pdf",
+  "rav-valses-2": "library/ravel/scores/rav-valses.pdf",
+  "rav-valses-3": "library/ravel/scores/rav-valses.pdf",
+  "rav-valses-4": "library/ravel/scores/rav-valses.pdf",
+  "rav-valses-5": "library/ravel/scores/rav-valses.pdf",
+  "rav-valses-6": "library/ravel/scores/rav-valses.pdf",
+  "rav-valses-7": "library/ravel/scores/rav-valses.pdf",
+  "rav-valses-8": "library/ravel/scores/rav-valses.pdf",
+  "rav-tombeau-1": "library/ravel/scores/rav-tombeau.pdf",
+  "rav-tombeau-2": "library/ravel/scores/rav-tombeau.pdf",
+  "rav-tombeau-3": "library/ravel/scores/rav-tombeau.pdf",
+  "rav-tombeau-4": "library/ravel/scores/rav-tombeau.pdf",
+  "rav-tombeau-5": "library/ravel/scores/rav-tombeau.pdf",
+  "rav-tombeau-6": "library/ravel/scores/rav-tombeau.pdf",
+  "rav-mamere-1": "library/ravel/scores/rav-mamere.pdf",
+  "rav-mamere-2": "library/ravel/scores/rav-mamere.pdf",
+  "rav-mamere-3": "library/ravel/scores/rav-mamere.pdf",
+  "rav-mamere-4": "library/ravel/scores/rav-mamere.pdf",
+  "rav-mamere-5": "library/ravel/scores/rav-mamere.pdf",
+};
+let S = load();
+function load() {
+  try { return Object.assign({}, DEFAULT_STATE, JSON.parse(localStorage.getItem(LS_KEY) || "{}")); }
+  catch { return JSON.parse(JSON.stringify(DEFAULT_STATE)); }
+}
+function save() { localStorage.setItem(LS_KEY, JSON.stringify(S)); }
+
+const pieceById = id => PIECES.find(p => p.id === id);
+const piecesOf = cId => PIECES.filter(p => p.c === cId);
+const modeOf = p => /minor/i.test(p.key) ? "minor" : "major";
+const pctOf = id => S.progress[id] || 0;
+const secOf = id => S.practiceSec[id] || 0;
+const fmtDur = m => { const s = Math.round(m*60); return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`; };
+const fmtClock = s => `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+const fmtHrs = s => { const h=Math.floor(s/3600), m=Math.round((s%3600)/60); return h ? (m?`${h}h${m}m`:`${h}h`) : `${m}m`; };
+
+function pushRecent(id) {
+  S.recent = [id, ...S.recent.filter(x => x !== id)].slice(0, 8);
+  save();
+}
+
+/* ================================================================
+   Warm-up (pre-practice scales) generator — 練習音階
+   ================================================================ */
+const REL_MINOR = { "C":"A","G":"E","D":"B","A":"F♯","E":"C♯","B":"G♯","F":"D","B♭":"G","E♭":"C","A♭":"F","D♭":"B♭","G♭":"E♭","F♯":"D♯" };
+const REL_MAJOR = { "A":"C","E":"G","B":"D","F♯":"A","C♯":"E","G♯":"B","D":"F","G":"B♭","C":"E♭","F":"A♭","B♭":"D♭","E♭":"G♭" };
+function warmupFor(p) {
+  const tonic = p.key.replace(/ (major|minor)/i, "").trim();
+  const mode = modeOf(p);
+  const rel = mode === "major" ? (REL_MINOR[tonic] || "the relative minor") : (REL_MAJOR[tonic] || "the relative major");
+  const relLabel = mode === "major" ? `${rel} harmonic minor` : `${rel} major`;
+  return [
+    `<b>${tonic} ${mode} scale</b> — 2 octaves, hands together, slow and even. This is the home key of the piece.`,
+    `<b>${tonic} ${mode} arpeggio</b> — 2 octaves up and down; keep the thumb-under smooth.`,
+    `<b>${relLabel} scale</b> — the closely-related key you'll touch in the middle section.`,
+    `<b>${tonic} ${mode} scale</b> — 2 octaves, hands together, slow and even. This is the home key of the piece.`,
+    `<b>${tonic} ${mode} arpeggio</b> — 2 octaves up and down; keep the thumb-under smooth.`,
+    `<b>${relLabel} scale</b> — the closely-related key you'll touch in the middle section.`,
+    `<b>Chromatic scale from ${tonic}</b> — light fingers, steady pulse, to loosen the hand before playing.`,
+  ];
+}
+
+/* ================================================================
+   Notation system — generate MusicXML for 練音階 (scales / arpeggios /
+   chromatic) with correct key signature (升降符號), render via OSMD so
+   every exercise is drawn consistently (五線譜 + 音符).
+   ================================================================ */
+const LETTERS = ["C","D","E","F","G","A","B"];
+const SHARP_ORDER = ["F","C","G","D","A","E","B"];
+const FLAT_ORDER  = ["B","E","A","D","G","C","F"];
+const MAJOR_FIFTHS = { "C":0,"G":1,"D":2,"A":3,"E":4,"B":5,"F♯":6,"C♯":7,"F":-1,"B♭":-2,"E♭":-3,"A♭":-4,"D♭":-5,"G♭":-6 };
+const MINOR_FIFTHS = { "A":0,"E":1,"B":2,"F♯":3,"C♯":4,"G♯":5,"D♯":6,"D":-1,"G":-2,"C":-3,"F":-4,"B♭":-5,"E♭":-6 };
+// semitone value of each natural letter, for chromatic spelling
+const LETTER_SEMI = { "C":0,"D":2,"E":4,"F":5,"G":7,"A":9,"B":11 };
+const CHROM_SHARP = [["C",0],["C",1],["D",0],["D",1],["E",0],["F",0],["F",1],["G",0],["G",1],["A",0],["A",1],["B",0]];
+
+function fifthsFor(tonic, mode){ return (mode==="minor"?MINOR_FIFTHS:MAJOR_FIFTHS)[tonic] ?? 0; }
+function alterForLetter(letter, fifths){
+  if (fifths>0 && SHARP_ORDER.slice(0,fifths).includes(letter)) return 1;
+  if (fifths<0 && FLAT_ORDER.slice(0,-fifths).includes(letter)) return -1;
+  return 0;
+}
+// build ascending+descending diatonic scale, one octave, as [{step,alter,octave}]
+function scaleNotes(tonic, fifths){
+  const start = LETTERS.indexOf(tonic[0]);
+  const up = [];
+  let oct = 4;
+  for (let i=0;i<=7;i++){
+    const li = (start+i)%7;
+    if (i>0 && li===0) oct++;               // wrapped past B -> C, next octave
+    const letter = LETTERS[li];
+    up.push({ step:letter, alter:alterForLetter(letter,fifths), octave:oct });
+  }
+  const down = up.slice(0,7).reverse();
+  return up.concat(down);
+}
+function arpeggioNotes(tonic, fifths){
+  const s = scaleNotes(tonic, fifths);
+  const idx = [0,2,4,7];                      // 1-3-5-8
+  const up = idx.map(i=>s[i]);
+  return up.concat(up.slice(0,3).reverse());
+}
+function chromaticNotes(tonic){
+  const startPc = (LETTER_SEMI[tonic[0]] + (tonic.includes("♯")?1:tonic.includes("♭")?-1:0) + 12) % 12;
+  const notes = []; let oct = 4;
+  for (let i=0;i<=12;i++){
+    const pc = (startPc+i)%12;
+    if (i>0 && pc===0) oct++;
+    const [step,alter] = CHROM_SHARP[pc];
+    notes.push({ step, alter, octave:oct });
+  }
+  return notes;
+}
+function noteXML(n){
+  return `<note><pitch><step>${n.step}</step>${n.alter?`<alter>${n.alter}</alter>`:""}<octave>${n.octave}</octave></pitch><duration>1</duration><type>eighth</type></note>`;
+}
+function restXML(){ return `<note><rest/><duration>1</duration><type>eighth</type></note>`; }
+function exerciseXML(notes, fifths){
+  // 8 eighth-notes (4/4) per measure, pad the last measure with rests
+  const measures = [];
+  for (let i=0;i<notes.length;i+=8){
+    let body = notes.slice(i,i+8).map(noteXML).join("");
+    const pad = 8 - Math.min(8, notes.length-i);
+    for (let r=0;r<pad;r++) body += restXML();
+    const attrs = i===0 ? `<attributes><divisions>2</divisions><key><fifths>${fifths}</fifths></key><time><beats>4</beats><beat-type>4</beat-type></time><clef><sign>G</sign><line>2</line></clef></attributes>` : "";
+    measures.push(`<measure number="${measures.length+1}">${attrs}${body}</measure>`);
+  }
+  return `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd"><score-partwise version="3.1"><part-list><score-part id="P1"><part-name></part-name></score-part></part-list><part id="P1">${measures.join("")}</part></score-partwise>`;
+}
+function exercisesFor(p){
+  const tonic = p.key.replace(/ (major|minor)/i,"").trim();
+  const mode = modeOf(p);
+  const fifths = fifthsFor(tonic, mode);
+  return [
+    { label:`${tonic} ${mode} scale`, hint:"2 octaves feel — slow & even, hands together", xml:exerciseXML(scaleNotes(tonic,fifths),fifths) },
+    { label:`${tonic} ${mode} arpeggio`, hint:"1-3-5-8 up & down, smooth thumb-under", xml:exerciseXML(arpeggioNotes(tonic,fifths),fifths) },
+    { label:`Chromatic from ${tonic}`, hint:"light fingers, steady pulse", xml:exerciseXML(chromaticNotes(tonic),0) },
+  ];
+}
+// render a MusicXML string into host via OSMD (consistent staff/notes)
+async function renderNotation(host, xml){
+  if (!window.opensheetmusicdisplay){ host.innerHTML = `<div class="score-note">Notation engine not loaded</div>`; return; }
+  try {
+    const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(host, {
+      autoResize:true, drawTitle:false, drawSubtitle:false, drawPartNames:false,
+      drawingParameters:"compacttight", drawMeasureNumbers:false
+    });
+    await osmd.load(xml); osmd.render();
+  } catch(e){ host.innerHTML = `<div class="score-note">Couldn't render notation</div>`; }
+}
+
+/* difficulty label */
+function levelLabel(l) {
+  if (l <= 3) return "Intermediate";
+  if (l <= 6) return "Advanced";
+  if (l <= 8) return "Early-virtuoso";
+  return "Virtuoso";
+}
+
+/* ================================================================
+   Routing
+   ================================================================ */
+let rootTab = "home";
+function show(view, root, hash) {
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("is-active"));
+  const el = document.getElementById("view-" + view);
+  el.classList.add("is-active", "fade");
+  setTimeout(() => el.classList.remove("fade"), 300);
+  document.getElementById("screen").scrollTop = 0;
+  if (root) {
+    rootTab = root;
+    document.querySelectorAll(".tabbtn").forEach(b => b.classList.toggle("is-active", b.dataset.tab === root));
+  }
+  if (hash !== null) setHash(hash === undefined ? view : hash);
+}
+
+/* ---- hash routing: every page has a #link ---- */
+let suppressRoute = false;
+function setHash(h) {
+  if ("#" + h === location.hash) return;
+  suppressRoute = true;
+  location.hash = h;
+}
+function routeTo(hash) {
+  const [seg, arg] = (hash || "").replace(/^#\/?/, "").split("/");
+  if (seg === "composer" && COMPOSERS[arg]) openPianist(arg);
+  else if (seg === "piece" && pieceById(arg)) openSheet(arg);
+  else if (seg === "library") { renderLibrary(); show("library","library"); }
+  else if (seg === "saved") { renderSaved(); show("saved","saved"); }
+  else if (seg === "profile") { renderProfile(); show("profile","profile"); }
+  else { renderHome(); show("home","home"); }
+}
+window.addEventListener("hashchange", () => {
+  if (suppressRoute) { suppressRoute = false; return; }
+  routeTo(location.hash);
+});
+document.getElementById("tabbar").addEventListener("click", e => {
+  const b = e.target.closest(".tabbtn"); if (!b) return;
+  const t = b.dataset.tab;
+  if (t === "home") { renderHome(); show("home","home"); }
+  else if (t === "library") { renderLibrary(); show("library","library"); }
+  else if (t === "saved") { renderSaved(); show("saved","saved"); }
+  else if (t === "profile") { renderProfile(); show("profile","profile"); }
+});
+
+/* ================================================================
+   Icons
+   ================================================================ */
+const IC = {
+  search: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>`,
+  back: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`,
+  play: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M8 5.5v13a1 1 0 0 0 1.5.87l11-6.5a1 1 0 0 0 0-1.74l-11-6.5A1 1 0 0 0 8 5.5Z"/></svg>`,
+  pause: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>`,
+  bookmark: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg>`,
+  clock: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`,
+  metro: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8l-2.2-16H10.2L8 21Z"/><path d="M6 21h12"/><path d="m12 8 4 6"/></svg>`,
+  bell: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10.5 20a1.5 1.5 0 0 0 3 0"/></svg>`,
+  globe: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/></svg>`,
+  music: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>`,
+  moon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10Z"/></svg>`,
+};
+
+/* score preview — decorative grand-staff SVG */
+function scoreSVG() {
+  const line = y => `<line x1="20" x2="612" y1="${y}" y2="${y}" stroke="#c9c9cf" stroke-width="1"/>`;
+  let s = "";
+  for (let i=0;i<5;i++) s += line(24 + i*11);        // treble
+  for (let i=0;i<5;i++) s += line(104 + i*11);       // bass
+  // note heads scattered
+  const notes = [90,130,170,210,250,290,330,370,410,450,490,530,570];
+  let heads = "";
+  notes.forEach((x,i) => {
+    const y = 24 + ((i*7)%5)*11 + (i%2?5:0);
+    heads += `<ellipse cx="${x}" cy="${y}" rx="6" ry="4.5" fill="#3a3a40" transform="rotate(-18 ${x} ${y})"/><line x1="${x+5.5}" x2="${x+5.5}" y1="${y}" y2="${y-30}" stroke="#3a3a40" stroke-width="1.4"/>`;
+    const y2 = 104 + ((i*4)%5)*11;
+    heads += `<ellipse cx="${x}" cy="${y2}" rx="6" ry="4.5" fill="#8a8a92" transform="rotate(-18 ${x} ${y2})"/>`;
+  });
+  return `<svg viewBox="0 0 632 168" xmlns="http://www.w3.org/2000/svg">
+    <text x="26" y="60" font-size="62" fill="#3a3a40" font-family="Georgia, serif">𝄞</text>
+    <text x="26" y="128" font-size="46" fill="#8a8a92" font-family="Georgia, serif">𝄢</text>
+    ${s}${heads}
+    <line x1="611" x2="611" y1="24" y2="148" stroke="#c9c9cf" stroke-width="2"/>
+  </svg>`;
+}
+
+/* progress ring svg */
+function ringSVG(pct) {
+  const r = 26, c = 2*Math.PI*r, off = c*(1 - pct/100);
+  return `<svg class="ring" viewBox="0 0 62 62">
+    <circle cx="31" cy="31" r="${r}" fill="none" stroke="var(--mu-gray-200)" stroke-width="6"/>
+    <circle cx="31" cy="31" r="${r}" fill="none" stroke="var(--mu-gray-900)" stroke-width="6"
+      stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 31 31)"/>
+    <text x="31" y="36" text-anchor="middle">${pct}%</text>
+  </svg>`;
+}
+
+/* piece row markup */
+function pieceRow(p, idx, opts={}) {
+  const pct = pctOf(p.id);
+  const meta = [COMPOSERS[p.c].name.split(" ").slice(-1)[0], p.key, `${fmtDur(p.dur)}`];
+  return `<div class="prow" data-piece="${p.id}">
+    ${opts.num ? `<div class="prow-num">${idx+1}</div>` : ""}
+    <div class="prow-body">
+      <div class="prow-title">${p.title}${p.sub?` <span style="color:var(--mu-ink-3);font-weight:500">· ${p.sub}</span>`:""}</div>
+      <div class="prow-meta">${meta.map((m,i)=>`<span class="${i?'dot-sep':''}">${m}</span>`).join("")}</div>
+    </div>
+    <div class="prow-right">
+      <span class="lvpill">Lv ${p.level}</span>
+      ${pct>0?`<span class="prow-pct">${pct}%</span>`:""}
+    </div>
+  </div>`;
+}
+function wirePieceRows(container) {
+  container.querySelectorAll(".prow[data-piece]").forEach(r =>
+    r.addEventListener("click", () => openSheet(r.dataset.piece)));
+}
+
+/* ================================================================
+   HOME
+   ================================================================ */
+function renderHome() {
+  const v = document.getElementById("view-home");
+  v.innerHTML = `
+    <div class="appbar" style="flex-direction:column;align-items:stretch;gap:2px">
+      <div class="appbar-title">Practice</div>
+      <div class="appbar-sub">Find your next piece to master</div>
+    </div>
+    <div class="search">
+      ${IC.search}
+      <input id="homeSearch" type="search" placeholder="Search pieces, composers, keys…" autocomplete="off">
+    </div>
+    <div id="homeBody"></div>`;
+  const input = v.querySelector("#homeSearch");
+  input.addEventListener("input", () => renderHomeBody(input.value.trim()));
+  renderHomeBody("");
+}
+
+function renderHomeBody(q) {
+  const body = document.getElementById("homeBody");
+  if (q) { body.innerHTML = renderSearchResults(q); wirePieceRows(body);
+    body.querySelectorAll("[data-composer]").forEach(c => c.addEventListener("click",()=>openPianist(c.dataset.composer)));
+    return; }
+
+  // Recent + practice stats + calendar — 2-column layout
+  // Prototype: "recent play" = pieces whose page you stayed on >2 min. Hardcoded for the demo.
+  const recent = ["rav-menuet-haydn","cho-pre284"].map(pieceById).filter(Boolean);
+  const totalSec = Object.values(S.practiceSec).reduce((a,b)=>a+b,0);
+  const played = new Set([...Object.keys(S.practiceSec).filter(k=>S.practiceSec[k]>0), ...S.recent]).size;
+  const today = todayCalendar();
+  const recentHTML = `
+    <div class="sec home-grid">
+      <div class="home-col">
+        <div class="home-block-title">Your recent play</div>
+        <div class="home-card">
+          <div class="rlist">
+            ${recent.length ? recent.map(p=>{
+              const pct = pctOf(p.id);
+              return `<div class="rrow" data-piece="${p.id}">
+                <div class="rthumb"></div>
+                <div class="rrow-body"><div class="rrow-title">${p.title}</div><div class="rrow-sub">${COMPOSERS[p.c].name}</div></div>
+                ${pct>0?`<span class="rrow-pct">${pct}%</span>`:""}
+              </div>`;
+            }).join("") : `<div class="empty-sub" style="padding:8px 2px">Nothing played yet.</div>`}
+          </div>
+        </div>
+      </div>
+      <div class="home-col">
+        <div class="home-block-title">Your practice</div>
+        <div class="home-card practice-card">
+          <div class="side-stats">
+            <div class="side-stat"><div class="side-num">12h50m</div><div class="side-lbl">Practiced</div></div>
+          </div>
+        </div>
+        <div class="home-block-title" style="margin-top:20px">Music calendar</div>
+        <div class="home-card home-cal">
+          <div class="cal-date-big">${today.dateLabel}</div>
+          <div class="cal-events">
+            ${today.events.map(ev=>{
+              const ym = ev.text.match(/\((1[6-9]\d\d)\)/); const year = ym?ym[1]:"";
+              const sub = ev.text.replace(/\s*\(1[6-9]\d\d\)/g,"").trim();
+              const by = ev.composer ? COMPOSERS[ev.composer].name : "On this day";
+              return `<div class="cal-event">
+                ${ev.composer?`<img class="cal-avatar" src="images/composers/${ev.composer}.jpg" alt="">`:`<div class="cal-avatar cal-avatar-ph">${IC.music}</div>`}
+                <div class="cal-event-text">
+                  <div class="cal-eyebrow">${by}${year?" • "+year:""}</div>
+                  <div class="cal-title">${ev.kind}: ${ev.title}</div>
+                  <div class="cal-sub">${sub} ${ev.composer?`<a class="cal-link" data-composer="${ev.composer}">View the piece →</a>`:""}</div>
+                </div>
+              </div>`;
+            }).join("")}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  const calHTML = "";
+
+  // Browse shortcut
+  const browseHTML = `
+    <div class="sec">
+      <div class="sec-head"><div class="sec-title">Jump into the library</div>
+        <div class="sec-link" id="homeToLib">See all</div></div>
+      <div class="cgrid">
+        ${Object.keys(COMPOSERS).slice(0,4).map(id => composerCard(id)).join("")}
+      </div>
+    </div>`;
+
+  body.innerHTML = recentHTML + calHTML + browseHTML;
+  wirePieceRows(body);
+  body.querySelectorAll(".rrow").forEach(t => t.addEventListener("click",()=>openSheet(t.dataset.piece)));
+  body.querySelectorAll("[data-composer]").forEach(c => c.addEventListener("click",()=>openPianist(c.dataset.composer)));
+  const toLib = body.querySelector("#homeToLib");
+  if (toLib) toLib.addEventListener("click", ()=>{ renderLibrary(); show("library","library"); });
+}
+
+function renderSearchResults(q) {
+  const ql = q.toLowerCase();
+  const pcs = PIECES.filter(p =>
+    p.title.toLowerCase().includes(ql) || p.sub.toLowerCase().includes(ql) ||
+    p.key.toLowerCase().includes(ql) || COMPOSERS[p.c].name.toLowerCase().includes(ql));
+  const comps = Object.keys(COMPOSERS).filter(id => COMPOSERS[id].name.toLowerCase().includes(ql));
+  if (!pcs.length && !comps.length)
+    return `<div class="empty"><div class="empty-title">No matches for "${q}"</div>
+      <div class="empty-sub">Try a composer, a key like "minor", or a piece name.</div></div>`;
+  let html = "";
+  if (comps.length) html += `<div class="sec"><div class="grouphead">Composers</div><div class="cgrid" style="margin-top:10px">${comps.map(composerCard).join("")}</div></div>`;
+  if (pcs.length) html += `<div class="sec"><div class="grouphead">Pieces · ${pcs.length}</div><div class="rowlist">${pcs.map((p,i)=>pieceRow(p,i)).join("")}</div></div>`;
+  return html;
+}
+
+function todayCalendar() {
+  const now = new Date();
+  const md = `${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+  const dateLabel = now.toLocaleString("en-US",{month:"short",day:"numeric"});
+  const events = CALENDAR.filter(c => c.md === md);
+  return { dateLabel, events: events.length ? events : [{ kind:"On this day", composer:null, title:"A quiet day", text:"No milestone today — a clear page for your own practice." }] };
+}
+
+function composerCard(id) {
+  const c = COMPOSERS[id];
+  return `<div class="ccard" data-composer="${id}">
+    <div class="cav cav-photo"><img src="images/composers/${id}.jpg" alt="${c.name}"></div>
+    <div class="ccard-text">
+      <div class="ccard-name">${c.name}</div>
+      <div class="ccard-era">${c.era}</div>
+    </div>
+    <div class="ccard-count">${piecesOf(id).length}<span>pieces</span></div>
+  </div>`;
+}
+
+/* ================================================================
+   LIBRARY
+   ================================================================ */
+function renderLibrary() {
+  const v = document.getElementById("view-library");
+  const ids = Object.keys(COMPOSERS);
+  v.innerHTML = `
+    <div class="appbar" style="flex-direction:column;align-items:stretch;gap:2px">
+      <div class="appbar-title">Library</div>
+      <div class="appbar-sub">${PIECES.length} pieces · ${ids.length} composers</div>
+    </div>
+    <div class="search">
+      ${IC.search}
+      <input id="libSearch" type="search" placeholder="Search pieces, composers, keys…" autocomplete="off">
+    </div>
+    <div id="libBody" style="margin-top:18px"></div>`;
+  const input = v.querySelector("#libSearch");
+  input.addEventListener("input", () => renderLibraryBody(input.value.trim()));
+  renderLibraryBody("");
+}
+function renderLibraryBody(q) {
+  const body = document.getElementById("libBody");
+  body.innerHTML = q
+    ? renderSearchResults(q)
+    : `<div class="cgrid">${Object.keys(COMPOSERS).map(composerCard).join("")}</div>`;
+  wirePieceRows(body);
+  body.querySelectorAll("[data-composer]").forEach(c => c.addEventListener("click",()=>openPianist(c.dataset.composer)));
+}
+
+/* ================================================================
+   PIANIST detail — with filter/sort
+   ================================================================ */
+const SORT_LABELS = { level:"Level", year:"Year", length:"Length", key:"Key", coll:"Collection" };
+let pianistState = { id:null, sort:"level", tonality:"all", q:"" };
+function openPianist(id) {
+  pianistState = { id, sort:"level", tonality:"all", q:"" };
+  renderPianist(); show("pianist","library","composer/"+id);
+}
+function renderPianist() {
+  const { id } = pianistState;
+  const c = COMPOSERS[id];
+  const v = document.getElementById("view-pianist");
+  v.innerHTML = `
+    <div class="appbar">
+      <button class="appbar-back" id="pBack">${IC.back}</button>
+      <div style="flex:1"></div>
+    </div>
+    <div class="phero">
+      <div class="cav cav-photo"><img src="images/composers/${id}.jpg" alt="${c.name}"></div>
+      <div class="phero-txt">
+        <div class="phero-head"><span class="phero-name">${c.name}</span><span class="phero-era">${c.era}</span></div>
+        <div class="phero-bio">${c.bio}</div>
+      </div>
+    </div>
+
+    <div class="sortchips" id="sortChips">
+      <span class="filter-count">${piecesOf(id).length} pieces</span>
+      <span class="grow"></span>
+      <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="pieceSearch" type="search" placeholder="Search pieces…" autocomplete="off" value="${pianistState.q||''}"></label>
+      ${Object.entries(SORT_LABELS).map(([k,l])=>`<button data-sort="${k}" class="${k===pianistState.sort?'is-active':''}">${l}</button>`).join("")}
+    </div>
+    <div id="pieceListWrap"></div>`;
+
+  v.querySelector("#pBack").addEventListener("click", ()=>{ renderLibrary(); show("library","library"); });
+  v.querySelector("#pieceSearch").addEventListener("input", e=>{ pianistState.q = e.target.value.trim(); renderPieceList(); });
+  v.querySelector("#sortChips").addEventListener("click", e=>{
+    const b = e.target.closest("button[data-sort]"); if (!b) return;
+    pianistState.sort = b.dataset.sort;
+    v.querySelectorAll("#sortChips button").forEach(x=>x.classList.toggle("is-active", x===b));
+    renderPieceList();
+  });
+  renderPieceList();
+}
+function renderPieceList() {
+  const { id, sort, tonality, q } = pianistState;
+  let list = piecesOf(id);
+  if (tonality !== "all") list = list.filter(p => modeOf(p) === tonality);
+  if (q) { const ql = q.toLowerCase();
+    list = list.filter(p => p.title.toLowerCase().includes(ql) || (p.sub||"").toLowerCase().includes(ql)
+      || p.key.toLowerCase().includes(ql) || (p.coll||"").toLowerCase().includes(ql)); }
+
+  const wrap = document.getElementById("pieceListWrap");
+  // grouped rendering
+  let groups = [];
+  if (sort === "level") {
+    list.sort((a,b)=>a.level-b.level);
+    groups = [["", list]];
+  } else if (sort === "year") {
+    list.sort((a,b)=>a.year-b.year);
+    groups = [["By year written", list]];
+  } else if (sort === "length") {
+    list.sort((a,b)=>a.dur-b.dur);
+    const short = list.filter(p=>p.dur<3), mid = list.filter(p=>p.dur>=3&&p.dur<5), long = list.filter(p=>p.dur>=5);
+    groups = [["Under 3 min", short],["3–5 min", mid],["Over 5 min", long]].filter(([,a])=>a.length);
+  } else if (sort === "key") {
+    list.sort((a,b)=>a.key.localeCompare(b.key));
+    const maj = list.filter(p=>modeOf(p)==="major"), min = list.filter(p=>modeOf(p)==="minor");
+    groups = [["Major keys", maj],["Minor keys", min]].filter(([,a])=>a.length);
+  } else if (sort === "coll") {
+    const colls = {};
+    list.forEach(p => { const k = p.coll || "Standalone pieces"; (colls[k] = colls[k] || []).push(p); });
+    // collections first (multi-piece sets), standalone last
+    groups = Object.entries(colls).sort((a,b)=>{
+      if (a[0]==="Standalone pieces") return 1; if (b[0]==="Standalone pieces") return -1;
+      return b[1].length - a[1].length;
+    });
+  }
+  if (!list.length) { wrap.innerHTML = `<div class="empty"><div class="empty-title">Nothing in this filter</div></div>`; return; }
+  wrap.innerHTML = groups.map(([label, arr]) =>
+    `${label ? `<div class="grouphead">${label} · ${arr.length}</div>` : ""}<div class="rowlist">${arr.map((p,i)=>pieceRowWithSort(p,i,sort)).join("")}</div>`
+  ).join("");
+  wirePieceRows(wrap);
+}
+function pieceRowWithSort(p, idx, sort) {
+  const pct = pctOf(p.id);
+  let extra;
+  if (sort === "year") extra = p.year;
+  else if (sort === "length") extra = fmtDur(p.dur);
+  else if (sort === "key") extra = p.key;
+  else extra = "Lv " + p.level;   // level & collection
+  return `<div class="prow" data-piece="${p.id}">
+    <div class="prow-body">
+      <div class="prow-title">${p.title}${p.sub?` <span style="color:var(--mu-ink-3);font-weight:500">· ${p.sub}</span>`:""}</div>
+      <div class="prow-meta"><span>${p.key}</span><span class="dot-sep">${fmtDur(p.dur)}</span><span class="dot-sep">${p.year}</span></div>
+    </div>
+    <div class="prow-right">
+      <span class="lvpill">${extra}</span>
+      ${pct>0?`<span class="prow-pct">${pct}%</span>`:""}
+    </div>
+  </div>`;
+}
+
+/* ================================================================
+   SHEET detail
+   ================================================================ */
+let sheetCtx = null; // { id, playing, playT, timerOn, metroOn }
+function openSheet(id) {
+  pushRecent(id);
+  stopAllPractice();
+  const realBpm = window.SCORE_NOTES && window.SCORE_NOTES[id] && window.SCORE_NOTES[id].bpm;
+  sheetCtx = { id, playing:false, playT:0, timerOn:false, metroOn:false, bpm: realBpm || defaultBpm(id), tab:"focus", zoom:1 };
+  renderSheet(); show("sheet", rootTab === "home" ? "home" : rootTab, "piece/"+id);
+}
+function defaultBpm(id){ const p=pieceById(id); return p.level>=8?72:(p.level>=5?88:100); }
+
+// piece MusicXML — structured notation rendered consistently by OSMD (like
+// MuseScore), loaded from library/scores-xml.js. Preferred over any PDF scan.
+const PIECE_XML = window.SCORE_XML || {};
+
+// Pre-engraved score images (clean editions, e.g. LilyPond SVG) — display only.
+// pieceId -> [page1, page2, ...]. Takes priority for DISPLAY; playback still uses SCORE_NOTES.
+const SCORE_SVG = {
+  "rav-menuet-haydn": ["library/ravel/scores/menuet-p1.svg","library/ravel/scores/menuet-p2.svg","library/ravel/scores/menuet-p3.svg"],
+};
+
+// Spotify recordings — pieceId -> "track/<id>" | "album/<id>" (needs internet).
+// Add by pasting a Spotify share link's id here.
+const SPOTIFY = {
+  "rav-menuet-haydn": "track/7f0jFRqjpp8hhDUzp8fjRr",  // Seong-Jin Cho
+};
+
+function renderSheet() {
+  const p = pieceById(sheetCtx.id);
+  const c = COMPOSERS[p.c];
+  const isMarked = S.saved.includes(p.id);
+  const v = document.getElementById("view-sheet");
+  const TABS = [["focus","Music"],["practice","Warm-Up"],["explore","Explore more"]];
+  v.innerHTML = `
+    <div class="appbar">
+      <button class="appbar-back" id="sBack">${IC.back}</button>
+      <div style="flex:1"></div>
+      ${isPlayable(p.id) ? `<button class="appbar-back hdr-play" id="hdrPlay" title="Play">${IC.play}</button>` : ""}
+      <button class="appbar-back mark-btn ${isMarked?'is-marked':''}" id="markBtn" title="Save">${IC.bookmark}</button>
+    </div>
+
+    <div class="sheet-hero">
+      <div class="sheet-eyebrow">${c.name}</div>
+      <div class="sheet-title">${p.title}${p.sub ? ` <span class="sheet-sub">${p.sub}</span>` : ""}</div>
+      <div class="sheet-meta">
+        <span><b>Lv ${p.level}</b> · ${levelLabel(p.level)}</span>
+        <span>${p.year}</span>
+        <span>${fmtDur(p.dur)}</span>
+        <span>${p.key}</span>
+        <span id="bpmTag">♩ ${sheetCtx.bpm}</span>
+      </div>
+    </div>
+
+    <div class="sheet-tabs"><div class="seg" id="sheetSeg">
+      ${TABS.map(([k,l])=>`<button data-stab="${k}" class="${sheetCtx.tab===k?'is-active':''}">${l}</button>`).join("")}
+    </div></div>
+
+    <div id="sheetPane"></div>`;
+
+  // common wiring (persists across tab switches)
+  v.querySelector("#sBack").addEventListener("click", ()=>{ stopAllPractice(); backFromSheet(); });
+  const markBtn = v.querySelector("#markBtn");
+  const toggleMark = ()=>{ const i=S.saved.indexOf(p.id); if(i>=0)S.saved.splice(i,1); else S.saved.unshift(p.id); save();
+    document.querySelectorAll("#markBtn,#fMark").forEach(b=>b.classList.toggle("is-marked", S.saved.includes(p.id))); };
+  markBtn.addEventListener("click", toggleMark);
+  const hdrPlay = v.querySelector("#hdrPlay");
+  if (hdrPlay) hdrPlay.addEventListener("click", ()=>togglePlay(p.id));
+  v.querySelector("#sheetSeg").addEventListener("click", e=>{
+    const b=e.target.closest("button[data-stab]"); if(!b || b.dataset.stab===sheetCtx.tab) return;
+    stopAllPractice();
+    sheetCtx.tab=b.dataset.stab;
+    v.querySelectorAll("#sheetSeg button").forEach(x=>x.classList.toggle("is-active", x.dataset.stab===sheetCtx.tab));
+    renderSheetPane(p, toggleMark);
+  });
+  renderSheetPane(p, toggleMark);
+}
+
+// --- score element: OSMD (if we have MusicXML) > real PDF scan > placeholder SVG
+function scoreEl(p, variant){
+  const h = variant==="focus" ? "min-height:60vh" : "height:300px";
+  if (SCORE_SVG[p.id]) return SCORE_SVG[p.id].map(src=>`<img class="score-svg-page" src="${src}" alt="${p.title} score">`).join("");
+  if (PIECE_XML[p.id]) return `<div class="osmd-host" id="pieceOsmd" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
+  if (SCORES[p.id]) return `<iframe src="${SCORES[p.id]}#view=FitH&toolbar=0&navpanes=0" title="${p.title} score" style="width:100%;${h};border:0;border-radius:8px;background:#fff"></iframe>`;
+  return `<div class="score-empty">
+    <div class="score-empty-ic">${IC.music}</div>
+    <div class="score-empty-t">No score added for this piece yet</div>
+    <div class="score-empty-s">Real public-domain scores are in for 7 Ravel works so far — this one is on the list.</div>
+  </div>`;
+}
+
+function renderSheetPane(p, toggleMark){
+  const pane = document.getElementById("sheetPane");
+  const c = COMPOSERS[p.c];
+  const totalSec = Math.round(p.dur*60);
+  const pct = pctOf(p.id);
+  const lastName = c.name.split(" ").slice(-1)[0];
+
+  if (sheetCtx.tab === "explore") {
+    const yt = "https://www.youtube.com/results?search_query=" + encodeURIComponent(`${c.name} ${p.title} ${p.sub||""} piano`);
+    const similar = PIECES.filter(x=>x.id!==p.id)
+      .map(x=>({x, s:(x.c===p.c?0:6)+Math.abs(x.level-p.level)}))
+      .sort((a,b)=>a.s-b.s).slice(0,4).map(o=>o.x);
+    const aboutHTML = p.about
+      ? `<p class="story-p">${p.story}</p>
+         <div class="about-block"><div class="about-label">Series</div><p>${p.about.series}</p></div>
+         <div class="about-block"><div class="about-label">Background</div><p>${p.about.background}</p></div>
+         <div class="about-block"><div class="about-label">Influence</div><p>${p.about.influence}</p></div>`
+      : `<p class="story-p">${p.story}</p>`;
+    pane.innerHTML = `
+      <div class="sec"><div class="sec-head"><div class="sec-title">The story</div></div>${aboutHTML}</div>
+      ${SCORES[p.id] ? `<div class="explore-links">
+        <a class="explore-link" href="${SCORES[p.id]}" target="_blank" rel="noopener">${IC.music}<span>Full score (PDF)</span><span class="explore-arrow">↗</span></a>
+      </div>` : ""}
+      <div class="sec" style="margin-top:54px"><div class="sec-head"><div class="sec-title">Similar pieces</div></div>
+        <div class="rowlist">${similar.map((x,i)=>pieceRow(x,i)).join("")}</div>
+      </div>
+      <div class="actionbtn-row"><button class="btn btn-secondary" id="composerBtn">More by ${lastName}</button></div>`;
+    wirePieceRows(pane);
+    pane.querySelector("#composerBtn").addEventListener("click", ()=>{ stopAllPractice(); openPianist(p.c); });
+
+  } else if (sheetCtx.tab === "practice") {
+    const exs = exercisesFor(p);
+    pane.innerHTML = `
+      <div class="prac-intro"><b>Suggestion</b> — warm up in <b>${p.key}</b> first. Play each exercise slowly ~3× (hands separately, then together) with the metronome before you start the piece.</div>
+      ${exs.map((ex,i)=>`
+        <div class="exercise">
+          <div class="ex-head"><div class="ex-title">${i+1}. ${ex.label}</div><div class="ex-hint">${ex.hint}</div></div>
+          <div class="ex-placeholder">Add later</div>
+        </div>`).join("")}`;
+
+  } else { // focus (default) — score with a floating action toolbar overlaid on top
+    const cUp = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`;
+    const cDn = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+    const full = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>`;
+    pane.innerHTML = `
+      <div class="focus-view" id="focusView">
+        <div class="focus-scroll" id="focusScroll"><div class="focus-zoom" id="focusZoom">${scoreEl(p,"focus")}</div></div>
+        <div class="focus-actions">
+          <button id="pgPrev" title="Previous">${cUp}</button>
+          <button id="pgNext" title="Next">${cDn}</button>
+          <span class="fa-sep"></span>
+          <button id="zoomOut" title="Zoom out">−</button>
+          <span id="zoomVal">${Math.round(sheetCtx.zoom*100)}%</span>
+          <button id="zoomIn" title="Zoom in">+</button>
+          <span class="fa-sep"></span>
+          <button id="metroDown" title="Slower">−</button>
+          <button id="metroToggle" class="${sheetCtx.metroOn?'is-on':''}" title="Metronome">${IC.metro}</button>
+          <span id="bpmPanel">${sheetCtx.bpm}</span>
+          <button id="metroUp" title="Faster">+</button>
+          <span class="fa-sep"></span>
+          <button id="fullBtn" title="Full screen">${full}</button>
+        </div>
+      </div>
+      ${SCORES[p.id] ? `<div class="focus-pdf-link"><a href="${SCORES[p.id]}" target="_blank" rel="noopener">Open full PDF ↗</a></div>` : ""}
+      ${SPOTIFY[p.id] ? `<div class="spotify-embed"><iframe style="border-radius:12px" src="https://open.spotify.com/embed/${SPOTIFY[p.id]}?utm_source=generator" width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>` : ""}`;
+    const oh = pane.querySelector("#pieceOsmd"); if (oh) renderNotation(oh, PIECE_XML[p.id]);
+    applyZoom(pane);
+    const scroll = pane.querySelector("#focusScroll"), fv = pane.querySelector("#focusView");
+    pane.querySelector("#pgNext").addEventListener("click", ()=> scroll.scrollBy({top: scroll.clientHeight*0.85, behavior:"smooth"}));
+    pane.querySelector("#pgPrev").addEventListener("click", ()=> scroll.scrollBy({top: -scroll.clientHeight*0.85, behavior:"smooth"}));
+    pane.querySelector("#zoomIn").addEventListener("click", ()=>{ sheetCtx.zoom=Math.min(3, sheetCtx.zoom+0.25); applyZoom(pane); });
+    pane.querySelector("#zoomOut").addEventListener("click", ()=>{ sheetCtx.zoom=Math.max(0.5, sheetCtx.zoom-0.25); applyZoom(pane); });
+    pane.querySelector("#fullBtn").addEventListener("click", ()=>{ if(!document.fullscreenElement) (fv.requestFullscreen||fv.webkitRequestFullscreen)?.call(fv); else (document.exitFullscreen||document.webkitExitFullscreen)?.call(document); });
+    // metronome (moved here from Practice) — BPM shown in the hero tag
+    const mt = pane.querySelector("#metroToggle");
+    mt.addEventListener("click", ()=>{
+      sheetCtx.metroOn = !sheetCtx.metroOn; mt.classList.toggle("is-on", sheetCtx.metroOn);
+      if (sheetCtx.metroOn) startMetro(document.querySelectorAll("#metroDots i")); else stopMetro(document.querySelectorAll("#metroDots i"));
+    });
+    const bumpBpm = d => { sheetCtx.bpm = Math.max(40, Math.min(208, sheetCtx.bpm+d));
+      const t = document.querySelector("#bpmTag"); if (t) t.textContent = "♩ "+sheetCtx.bpm;
+      const bp = document.querySelector("#bpmPanel"); if (bp) bp.textContent = sheetCtx.bpm;
+      if (sheetCtx.metroOn) restartMetro(); };
+    pane.querySelector("#metroDown").addEventListener("click", ()=>bumpBpm(-4));
+    pane.querySelector("#metroUp").addEventListener("click", ()=>bumpBpm(4));
+  }
+}
+
+function applyZoom(pane){
+  const z=pane.querySelector("#focusZoom"), val=pane.querySelector("#zoomVal");
+  if (z) z.style.transform = `scale(${sheetCtx.zoom})`;
+  if (val) val.textContent = Math.round(sheetCtx.zoom*100)+"%";
+}
+function wirePlay(p, totalSec, root){
+  const playBtn=root.querySelector("#playBtn"), fill=root.querySelector("#trackFill"), tCur=root.querySelector("#tCur");
+  if (!playBtn) return;
+  playBtn.addEventListener("click", ()=>{
+    sheetCtx.playing=!sheetCtx.playing; playBtn.innerHTML=sheetCtx.playing?IC.pause:IC.play;
+    if (sheetCtx.playing){
+      sheetCtx.playTimer=setInterval(()=>{
+        sheetCtx.playT+=0.2;
+        if (sheetCtx.playT>=totalSec){ sheetCtx.playT=0; sheetCtx.playing=false; playBtn.innerHTML=IC.play; clearInterval(sheetCtx.playTimer); }
+        fill.style.width=(sheetCtx.playT/totalSec*100)+"%"; tCur.textContent=fmtClock(Math.floor(sheetCtx.playT));
+      },200);
+    } else clearInterval(sheetCtx.playTimer);
+  });
+}
+function wireMetro(root){
+  const metroGo=root.querySelector("#metroGo"), bpmVal=root.querySelector("#bpmVal"), dots=root.querySelectorAll("#metroDots i");
+  if (!metroGo) return;
+  root.querySelector("#bpmDown").addEventListener("click", ()=>{ sheetCtx.bpm=Math.max(40,sheetCtx.bpm-4); bpmVal.textContent=sheetCtx.bpm; if(sheetCtx.metroOn) restartMetro(); });
+  root.querySelector("#bpmUp").addEventListener("click", ()=>{ sheetCtx.bpm=Math.min(208,sheetCtx.bpm+4); bpmVal.textContent=sheetCtx.bpm; if(sheetCtx.metroOn) restartMetro(); });
+  metroGo.addEventListener("click", ()=>{
+    sheetCtx.metroOn=!sheetCtx.metroOn; metroGo.textContent=sheetCtx.metroOn?"Stop":"Start"; metroGo.classList.toggle("is-on",sheetCtx.metroOn);
+    if (sheetCtx.metroOn) startMetro(dots); else stopMetro(dots);
+  });
+}
+function wireTimer(p, root){
+  const timerGo=root.querySelector("#timerGo"), timerVal=root.querySelector("#timerVal");
+  if (!timerGo) return;
+  timerGo.addEventListener("click", ()=>{
+    sheetCtx.timerOn=!sheetCtx.timerOn; timerGo.textContent=sheetCtx.timerOn?"Pause":"Start"; timerGo.classList.toggle("is-on",sheetCtx.timerOn);
+    if (sheetCtx.timerOn){ sheetCtx.timer=setInterval(()=>{ S.practiceSec[p.id]=secOf(p.id)+1; timerVal.textContent=fmtClock(secOf(p.id)); if(secOf(p.id)%5===0) save(); },1000); }
+    else { clearInterval(sheetCtx.timer); save(); }
+  });
+  root.querySelector("#timerReset").addEventListener("click", ()=>{ S.practiceSec[p.id]=0; save(); timerVal.textContent="0:00"; });
+}
+function wireProgress(p, root){
+  const range=root.querySelector("#progRange"), ringHost=root.querySelector("#ringHost");
+  if (!range) return;
+  range.addEventListener("input", ()=>{ S.progress[p.id]=+range.value; save(); ringHost.innerHTML=ringSVG(+range.value); });
+}
+function backFromSheet(){ if (rootTab==="home"){ renderHome(); show("home","home"); } else if (rootTab==="saved"){ renderSaved(); show("saved","saved"); } else { renderPianist(); show("pianist","library","composer/"+pianistState.id); } }
+
+/* ---- metronome via Web Audio ---- */
+let audioCtx = null, metroInterval = null, metroBeat = 0;
+function startMetro(dots) {
+  audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+  if (audioCtx.state==="suspended") audioCtx.resume();
+  metroBeat = 0;
+  const tick = () => {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    const accent = metroBeat % 4 === 0;
+    o.frequency.value = accent ? 1500 : 1000;
+    g.gain.setValueAtTime(accent?0.5:0.28, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.05);
+    o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+0.06);
+    dots.forEach((d,i)=>d.classList.toggle("beat", i===metroBeat%4));
+    metroBeat++;
+  };
+  tick();
+  metroInterval = setInterval(tick, 60000/sheetCtx.bpm);
+}
+function stopMetro(dots){ clearInterval(metroInterval); metroInterval=null; if(dots) dots.forEach(d=>d.classList.remove("beat")); }
+function restartMetro(){ const dots=document.querySelectorAll("#metroDots i"); stopMetro(dots); startMetro(dots); }
+function stopAllPractice() {
+  if (!sheetCtx) return;
+  clearInterval(sheetCtx.playTimer); clearInterval(sheetCtx.timer);
+  stopMetro(document.querySelectorAll("#metroDots i"));
+  stopPlayback();
+  if (sheetCtx.timerOn) save();
+  sheetCtx.playing=sheetCtx.timerOn=sheetCtx.metroOn=false;
+}
+
+/* ---- real playback: sampled grand piano (Salamander) driven by MusicXML notes ---- */
+let playback = null;
+let sampler = null; // { ctx, buffers:{midi:AudioBuffer}, midis:[], ready:Promise }
+function isPlayable(id){ return !!(window.SCORE_NOTES && window.SCORE_NOTES[id]); }
+function getSampler(){
+  if (sampler) return sampler;
+  const ctx = new (window.AudioContext||window.webkitAudioContext)();
+  const buffers = {};
+  const entries = Object.entries(window.PIANO_SAMPLES || {});
+  const ready = Promise.all(entries.map(([midi,uri])=>{
+    const bin = atob(uri.split(",").pop());
+    const arr = new Uint8Array(bin.length); for (let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+    return ctx.decodeAudioData(arr.buffer).then(buf=>{ buffers[+midi]=buf; });
+  }));
+  sampler = { ctx, buffers, midis: entries.map(e=>+e[0]).sort((a,b)=>a-b), ready };
+  return sampler;
+}
+function stopPlayback(){
+  if (!playback) return;
+  clearInterval(playback.tick);
+  playback.nodes.forEach(n=>{ try{ n.stop(); }catch(e){} });
+  playback = null;
+  const hp = document.querySelector("#hdrPlay"); if (hp) hp.innerHTML = IC.play;
+  const fill = document.querySelector("#trackFill"); if (fill) fill.style.width = "0%";
+  const tc = document.querySelector("#tCur"); if (tc) tc.textContent = "0:00";
+}
+async function playPiece(id, onProgress, onEnd){
+  stopPlayback();
+  const data = window.SCORE_NOTES && window.SCORE_NOTES[id];
+  if (!data || !data.notes.length) return false;
+  const S = getSampler();
+  await S.ready;
+  const ctx = S.ctx;
+  if (ctx.state === "suspended") await ctx.resume();
+  const spb = 60/(sheetCtx.bpm || data.bpm || 72);   // seconds per quarter, follows the tempo tag
+  const t0 = ctx.currentTime + 0.25;
+  const master = ctx.createGain(); master.gain.value = 0.85; master.connect(ctx.destination);
+  const nodes = []; let musicEnd = 0;
+  data.notes.forEach(([midi,off,dur])=>{
+    // nearest recorded sample, pitch-shifted to the target note
+    let best = S.midis[0];
+    for (const m of S.midis) if (Math.abs(m-midi) < Math.abs(best-midi)) best = m;
+    const buf = S.buffers[best]; if (!buf) return;
+    const start = t0 + off*spb, held = Math.max(0.15, dur*spb);
+    const src = ctx.createBufferSource(); src.buffer = buf; src.playbackRate.value = Math.pow(2,(midi-best)/12);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.85, start);
+    const relEnd = start + held + 0.35;                 // let the note ring, then release
+    g.gain.setValueAtTime(0.85, start + held);
+    g.gain.exponentialRampToValueAtTime(0.0001, relEnd);
+    src.connect(g); g.connect(master); src.start(start); src.stop(relEnd + 0.05);
+    nodes.push(src); musicEnd = Math.max(musicEnd, off+dur);
+  });
+  playback = { ctx, nodes };
+  const total = musicEnd*spb;
+  playback.tick = setInterval(()=>{
+    const el = ctx.currentTime - t0;
+    onProgress && onProgress(Math.max(0,Math.min(1, el/total)), Math.max(0, el));
+    if (el >= total) { onEnd && onEnd(); stopPlayback(); }
+  }, 100);
+  return true;
+}
+function togglePlay(id){
+  if (playback) { stopPlayback(); return; }
+  const hp = document.querySelector("#hdrPlay"); if (hp) hp.innerHTML = IC.pause;
+  const fill = document.querySelector("#trackFill"), tCur = document.querySelector("#tCur");
+  playPiece(id,
+    (frac,el)=>{ if(fill) fill.style.width=(frac*100)+"%"; if(tCur) tCur.textContent=fmtClock(Math.floor(el)); },
+    ()=>{}).then(ok=>{ if(!ok && hp) hp.innerHTML = IC.play; });
+}
+
+/* ================================================================
+   SAVED
+   ================================================================ */
+function renderSaved() {
+  const v = document.getElementById("view-saved");
+  const list = S.saved.map(pieceById).filter(Boolean);
+  v.innerHTML = `
+    <div class="appbar" style="flex-direction:column;align-items:stretch;gap:2px">
+      <div class="appbar-title">Saved</div>
+      <div class="appbar-sub">${list.length} marked ${list.length===1?"piece":"pieces"}</div>
+    </div>
+    ${list.length ? `<div class="rowlist">${list.map((p,i)=>pieceRow(p,i)).join("")}</div>` :
+      `<div class="empty">
+        <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg>
+        <div class="empty-title">No saved pieces yet</div>
+        <div class="empty-sub">Tap the bookmark on any piece to keep it here.</div>
+      </div>`}`;
+  wirePieceRows(v);
+}
+
+/* ================================================================
+   PROFILE
+   ================================================================ */
+function renderProfile() {
+  const v = document.getElementById("view-profile");
+  const totalSec = Object.values(S.practiceSec).reduce((a,b)=>a+b,0);
+  const touched = Object.keys(S.progress).filter(k=>S.progress[k]>0).length || Object.keys(S.practiceSec).length;
+  const learned = Object.values(S.progress).filter(p=>p>=100).length;
+  const inProgress = PIECES.filter(p=>pctOf(p.id)>0 && pctOf(p.id)<100).sort((a,b)=>pctOf(b.id)-pctOf(a.id));
+  v.innerHTML = `
+    <div class="appbar" style="flex-direction:column;align-items:stretch;gap:2px">
+      <div class="appbar-title">Profile</div>
+      <div class="appbar-sub">Advanced pianist</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;margin:6px 0 20px">
+      <div class="cav" style="width:64px;height:64px;font-size:24px;margin:0">你</div>
+      <div>
+        <div style="font-size:20px;font-weight:700;letter-spacing:-0.02em">Pianist</div>
+        <div style="font-size:13px;color:var(--mu-ink-3)">Keep the streak alive 🎹</div>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-num">${fmtHrs(totalSec)}</div><div class="stat-lbl">Practiced</div></div>
+      <div class="stat"><div class="stat-num">${touched}</div><div class="stat-lbl">Pieces</div></div>
+      <div class="stat"><div class="stat-num">${learned}</div><div class="stat-lbl">Mastered</div></div>
+    </div>
+
+    ${inProgress.length ? `<div class="sec">
+      <div class="sec-head"><div class="sec-title">In progress</div></div>
+      <div class="rowlist">${inProgress.map((p,i)=>pieceRow(p,i)).join("")}</div>
+    </div>` : ""}
+
+    <div class="sec">
+      <div class="sec-head"><div class="sec-title">Settings</div></div>
+      <div class="settrow"><div class="settrow-ic">${IC.bell}</div><div class="settrow-txt">Practice reminders</div><div class="settrow-val">Daily · 7pm</div></div>
+      <div class="settrow" id="themeRow" style="cursor:pointer"><div class="settrow-ic">${IC.moon}</div><div class="settrow-txt">Appearance</div><div class="settrow-val" id="themeVal">${S.theme==="dark"?"Dark":"Light"} ›</div></div>
+      <label class="settrow" style="cursor:pointer;position:relative">
+        <div class="settrow-ic">${IC.globe}</div><div class="settrow-txt">Language</div>
+        <div class="settrow-val" id="langVal">${LANGS[S.lang]||"English"} ›</div>
+        <select id="langSel" aria-label="Language" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer">
+          ${Object.entries(LANGS).map(([k,name])=>`<option value="${k}" ${k===S.lang?"selected":""}>${name}</option>`).join("")}
+        </select>
+      </label>
+      <div class="settrow" id="resetRow" style="cursor:pointer"><div class="settrow-ic">↺</div><div class="settrow-txt">Reset practice data</div><div class="settrow-val">›</div></div>
+    </div>`;
+  wirePieceRows(v);
+  v.querySelector("#themeRow").addEventListener("click", ()=>{
+    S.theme = S.theme==="dark" ? "light" : "dark"; save(); applyTheme();
+    v.querySelector("#themeVal").textContent = (S.theme==="dark"?"Dark":"Light") + " ›";
+  });
+  const langSel = v.querySelector("#langSel");
+  langSel.addEventListener("change", ()=>{
+    S.lang = langSel.value; save();
+    v.querySelector("#langVal").textContent = (LANGS[S.lang]||"English") + " ›";
+    document.documentElement.lang = S.lang;
+  });
+  const reset = v.querySelector("#resetRow");
+  reset.addEventListener("click", ()=>{
+    if (confirm("Reset all progress, timers and saved pieces?")) { S = JSON.parse(JSON.stringify(DEFAULT_STATE)); save(); renderProfile(); }
+  });
+}
+
+/* ================================================================
+   Boot — route from the URL hash so every page is deep-linkable
+   ================================================================ */
+applyTheme();
+routeTo(location.hash);
+</script>
+</body>
+</html>
