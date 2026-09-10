@@ -1638,7 +1638,7 @@ function openSheet(id) {
   stopAllPractice();
   const realBpm = window.SCORE_NOTES && window.SCORE_NOTES[id] && window.SCORE_NOTES[id].bpm;
   const mobile = window.innerWidth <= 640;
-  sheetCtx = { id, playing:false, playT:0, timerOn:false, metroOn:false, bpm: realBpm || defaultBpm(id), tab:"focus", zoom: mobile ? 0.7 : 1 };
+  sheetCtx = { id, playing:false, playT:0, timerOn:false, metroOn:false, bpm: realBpm || defaultBpm(id), tab:"focus", zoom: mobile ? 0.5 : 1 };
   renderSheet(); show("sheet", rootTab === "home" ? "home" : rootTab, "piece/"+id);
 }
 function defaultBpm(id){ const p=pieceById(id); return p.level>=8?72:(p.level>=5?88:100); }
