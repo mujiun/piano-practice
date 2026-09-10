@@ -33,7 +33,7 @@
   }
   @media (max-width: 900px) {
     .stage { padding: 0; }
-    .device { width: 100vw; height: 100vh; border-radius: 0; }
+    .device { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; }
   }
 
   /* ---- screen scroll area ---- */
@@ -121,7 +121,7 @@
   .side-stats { display: flex; gap: 36px; padding: 14px 0; }
   .side-num { font-size: 38px; font-weight: 700; letter-spacing: -0.025em; line-height: 1; }
   .side-lbl { font-size: 13px; color: var(--mu-ink-3); margin-top: 6px; }
-  .home-cal { justify-content: flex-start !important; }
+  .home-cal { justify-content: flex-start !important; padding: 6px 16px 18px; }
   .home-cal .cal-date-big { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; padding: 10px 0 20px; }
   .cal-events { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
   .cal-event { display: flex; align-items: center; gap: 14px; }
@@ -369,6 +369,9 @@
   .focus-view:fullscreen .focus-scroll { max-height: none; height: calc(100vh - 32px); }
   .focus-view:-webkit-full-screen { background: var(--mu-bg); padding: 16px; box-sizing: border-box; }
   .focus-view:-webkit-full-screen .focus-scroll { max-height: none; height: calc(100vh - 32px); }
+  /* CSS-overlay fullscreen fallback (mobile / iOS) */
+  .focus-view.fake-fs { position: fixed; inset: 0; z-index: 300; margin: 0; padding: 12px; box-sizing: border-box; background: var(--mu-bg); }
+  .focus-view.fake-fs .focus-scroll { max-height: none; height: 100%; }
   .focus-pdf-link { text-align: center; margin-top: 12px; }
   .focus-pdf-link a { font-size: 13px; font-weight: 550; color: var(--mu-ink-3); text-decoration: none; }
   .focus-pdf-link a:hover { color: var(--mu-ink); }
@@ -526,14 +529,17 @@
     .home-grid { grid-template-columns: 1fr; gap: 18px; }
     .home-grid > .home-col:first-child .home-card { height: auto; max-height: 60vh; overflow-y: auto; }
     .home-grid > .home-col:last-child .home-card { flex: none; }
-    .practice-card { min-height: 200px; }
+    .practice-card { min-height: 280px; }
     /* composer + tool grids to a single column */
     .cgrid { grid-template-columns: 1fr; }
     .toolgrid { grid-template-columns: 1fr; }
     /* sheet controls wrap comfortably */
     .sheet-meta { font-size: 12px; }
     .sheet-title { font-size: 23px; }
-    .focus-actions { flex-wrap: wrap; max-width: 92%; justify-content: center; }
+    /* floating toolbar: full-width, single scrollable row */
+    .focus-actions { left: 8px; right: 8px; transform: none; max-width: none; flex-wrap: nowrap;
+      overflow-x: auto; justify-content: flex-start; }
+    .focus-actions button { flex-shrink: 0; }
     .psearch { min-width: 130px; flex: 1; }
     .sortchips { gap: 5px; }
     .sortchips button { padding: 0 11px; font-size: 12px; }
@@ -1780,7 +1786,16 @@ function renderSheetPane(p, toggleMark){
     pane.querySelector("#pgPrev").addEventListener("click", ()=> scroll.scrollBy({top: -scroll.clientHeight*0.85, behavior:"smooth"}));
     pane.querySelector("#zoomIn").addEventListener("click", ()=>{ sheetCtx.zoom=Math.min(3, sheetCtx.zoom+0.25); applyZoom(pane); });
     pane.querySelector("#zoomOut").addEventListener("click", ()=>{ sheetCtx.zoom=Math.max(0.5, sheetCtx.zoom-0.25); applyZoom(pane); });
-    pane.querySelector("#fullBtn").addEventListener("click", ()=>{ if(!document.fullscreenElement) (fv.requestFullscreen||fv.webkitRequestFullscreen)?.call(fv); else (document.exitFullscreen||document.webkitExitFullscreen)?.call(document); });
+    pane.querySelector("#fullBtn").addEventListener("click", ()=>{
+      const iOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+      const nativeFS = (fv.requestFullscreen || fv.webkitRequestFullscreen) && !iOS;
+      if (nativeFS) {
+        if (document.fullscreenElement || document.webkitFullscreenElement) (document.exitFullscreen||document.webkitExitFullscreen).call(document);
+        else (fv.requestFullscreen||fv.webkitRequestFullscreen).call(fv);
+      } else {
+        fv.classList.toggle("fake-fs");   // CSS overlay fallback (mobile / iOS)
+      }
+    });
     // metronome (moved here from Practice) — BPM shown in the hero tag
     const mt = pane.querySelector("#metroToggle");
     mt.addEventListener("click", ()=>{
