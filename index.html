@@ -490,7 +490,9 @@
   .tgl-knob { position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.2); transition: transform .15s ease; }
   .tgl.is-on .tgl-knob { transform: translateX(20px); }
   html[data-theme="dark"] .tgl.is-on { background: #6f6f7a; } /* muted on-track in dark mode (avoid harsh white) */
-  .lang-select { width: auto; height: 38px; padding: 0 34px 0 12px; margin-left: auto; font-size: 14px; }
+  .lang-trigger { width: auto; height: 40px; display: inline-flex; align-items: center; gap: 10px; padding: 0 12px; font-size: 14px; }
+  .lang-caret { color: var(--mu-ink-3); flex-shrink: 0; transition: transform .15s ease; }
+  .dropdown.is-open .lang-caret { transform: rotate(180deg); }
   .stat-lbl { font-size: 12px; color: var(--mu-ink-3); }
   .settrow { display: flex; align-items: center; gap: 12px; padding: 15px 4px; border-bottom: 1px solid var(--mu-gray-100); }
   .settrow-ic { width: 34px; height: 34px; border-radius: 9px; background: var(--mu-gray-100); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -2162,9 +2164,15 @@ function renderProfile() {
       </div>
       <div class="settrow">
         <div class="settrow-ic">${IC.globe}</div><div class="settrow-txt">${t("Language")}</div>
-        <select id="langSel" class="input lang-select" aria-label="Language">
-          ${Object.entries(LANGS).map(([k,name])=>`<option value="${k}" ${k===S.lang?"selected":""}>${name}</option>`).join("")}
-        </select>
+        <div class="dropdown" id="langDD" style="margin-left:auto">
+          <button type="button" class="input lang-trigger" id="langTrigger" aria-haspopup="menu" aria-expanded="false">
+            <span>${LANGS[S.lang]}</span>
+            <svg class="lang-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="menu menu-right" role="menu" id="langMenu">
+            ${Object.entries(LANGS).map(([k,name])=>`<button type="button" class="menu-item${k===S.lang?' is-selected':''}" role="menuitem" data-lang="${k}">${name}</button>`).join("")}
+          </div>
+        </div>
       </div>
     </div>`;
   wirePieceRows(v);
@@ -2174,12 +2182,21 @@ function renderProfile() {
     sw.classList.toggle('is-on', S.theme==='dark');
     sw.setAttribute('aria-checked', S.theme==='dark');
   });
-  const langSel = v.querySelector("#langSel");
-  langSel.addEventListener("change", ()=>{
-    S.lang = langSel.value; save();
-    document.documentElement.lang = S.lang;
-    applyTabLabels();
-    renderProfile();
+  const langDD = v.querySelector("#langDD");
+  const langTrigger = v.querySelector("#langTrigger");
+  langTrigger.addEventListener("click", e=>{
+    e.stopPropagation();
+    const open = langDD.classList.toggle("is-open");
+    langTrigger.setAttribute("aria-expanded", open);
+  });
+  document.addEventListener("click", e=>{ if(!langDD.contains(e.target)) langDD.classList.remove("is-open"); });
+  v.querySelectorAll("#langMenu .menu-item").forEach(mi=>{
+    mi.addEventListener("click", ()=>{
+      S.lang = mi.dataset.lang; save();
+      document.documentElement.lang = S.lang;
+      applyTabLabels();
+      renderProfile();
+    });
   });
 }
 
