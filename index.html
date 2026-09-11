@@ -255,7 +255,7 @@
   .psearch-ic svg { width: 16px; height: 16px; }
   .psearch input { border: none; background: transparent; outline: none; font-size: 13px; color: var(--mu-ink); width: 130px; }
   .sortchips .filter-count { align-self: center; }
-  .sortchips button { height: 32px; padding: 0 14px; border: 1px solid var(--mu-border); background: var(--mu-white);
+  .sortchips button { height: 36px; padding: 0 14px; border: 1px solid var(--mu-border); background: var(--mu-white);
     border-radius: var(--mu-radius-full); font-size: 13px; font-weight: 500; color: var(--mu-ink-2); cursor: pointer;
     transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease); }
   .sortchips button:hover { border-color: var(--mu-gray-400); }
@@ -569,7 +569,7 @@
     .sortchips { gap: 6px; }
     .sortchips .grow { display: none; }
     .sortchips .psearch { order: -1; flex: 1 0 100%; }
-    .sortchips button { order: 1; padding: 0 12px; font-size: 12px; }
+    .sortchips button { order: 1; min-width: 44px; padding: 0 16px; font-size: 13px; }
     .sortchips .filter-count { order: 2; flex: 1 0 100%; margin-top: 2px; }
     /* pianist hero: avatar above name */
     .phero { flex-direction: column; }
@@ -585,7 +585,7 @@
     .focus-actions button { width: 44px; height: 44px; }
     .zoomctrl button { width: 44px; height: 44px; }
     .appbar-back { width: 44px; height: 44px; }
-    .sortchips button { height: 44px; }
+    .sortchips button { height: 36px; }
     .cal-link, .home-card, .recent-item, .tabbtn { min-height: 44px; }
   }
 </style>
@@ -622,7 +622,7 @@
       </button>
       <button class="tabbtn" data-tab="saved">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg>
-        <span class="tb-lbl" data-k="Save">Save</span>
+        <span class="tb-lbl" data-k="Playlist">Playlist</span>
       </button>
       <button class="tabbtn" data-tab="profile">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg>
@@ -1117,8 +1117,8 @@ const LANGS = { "en":"English", "zh-Hant":"繁體中文", "zh-Hans":"简体中�
 // UI-chrome translations (keyed by English string; musical titles/bios stay original)
 const TL = {
   "zh-Hant": {
-    "Home":"首頁","Library":"曲庫","Save":"收藏","Profile":"個人檔案",
-    "Your recent play":"最近彈奏","Your practice":"練習概況","Practiced in 2026":"2026 年練習","days":"天",
+    "Home":"首頁","Library":"曲庫","Playlist":"播放清單","Profile":"個人檔案",
+    "Your playlist":"我的播放清單","Your practice":"練習概況","Practiced in 2026":"2026 年練習","days":"天",
     "On this day":"歷史上的今天","View composer":"查看作曲家","Jump into the library":"進入曲庫","See all":"查看全部","Nothing played yet.":"尚無彈奏紀錄",
     "Search":"搜尋","Composers":"作曲家","Pieces":"樂曲","pieces":"首","piece":"首",
     "Saved":"已收藏","No saved pieces yet":"尚未收藏樂曲","Tap the bookmark on any piece to keep it here.":"點擊任一樂曲的書籤即可收藏。",
@@ -1129,8 +1129,8 @@ const TL = {
     "marked":"已收藏"
   },
   "zh-Hans": {
-    "Home":"首页","Library":"曲库","Save":"收藏","Profile":"个人资料",
-    "Your recent play":"最近弹奏","Your practice":"练习概况","Practiced in 2026":"2026 年练习","days":"天",
+    "Home":"首页","Library":"曲库","Playlist":"播放列表","Profile":"个人资料",
+    "Your playlist":"我的播放列表","Your practice":"练习概况","Practiced in 2026":"2026 年练习","days":"天",
     "On this day":"历史上的今天","View composer":"查看作曲家","Jump into the library":"进入曲库","See all":"查看全部","Nothing played yet.":"尚无弹奏记录",
     "Search":"搜索","Composers":"作曲家","Pieces":"乐曲","pieces":"首","piece":"首",
     "Saved":"已收藏","No saved pieces yet":"尚未收藏乐曲","Tap the bookmark on any piece to keep it here.":"点击任一乐曲的书签即可收藏。",
@@ -1540,7 +1540,7 @@ function renderHomeBody(q) {
   const recentHTML = `
     <div class="sec home-grid">
       <div class="home-col">
-        <div class="home-block-title">${t("Your recent play")}</div>
+        <div class="home-block-title">${t("Your playlist")}</div>
         <div class="home-card">
           <div class="rlist">
             ${recent.length ? recent.map(p=>{
@@ -2111,7 +2111,7 @@ function renderSaved() {
   const list = S.saved.map(pieceById).filter(Boolean);
   v.innerHTML = `
     <div class="appbar" style="flex-direction:column;align-items:stretch;gap:2px">
-      <div class="appbar-title">${t("Saved")}</div>
+      <div class="appbar-title">${t("Playlist")}</div>
       <div class="appbar-sub">${S.lang==='en' ? `${list.length} marked ${list.length===1?"piece":"pieces"}` : `已收藏 ${list.length} 首`}</div>
     </div>
     ${list.length ? `<div class="rowlist">${list.map((p,i)=>pieceRowWithSort(p,i,'name')).join("")}</div>` :
