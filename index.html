@@ -284,6 +284,7 @@
   .sheet-hero { margin-top: 6px; }
   .sheet-eyebrow { font-size: 14px; font-weight: 600; color: var(--mu-ink-2); letter-spacing: -0.01em; }
   .sheet-title { font-size: 27px; font-weight: 700; letter-spacing: -0.028em; line-height: 1.1; margin-top: 4px; }
+  .sheet-work { font-size: 15px; font-weight: 500; color: var(--mu-ink-3); margin-top: 5px; }
   .sheet-sub { font-size: 17px; font-weight: 500; color: var(--mu-ink-3); letter-spacing: 0; }
   .sheet-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
   .sheet-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px;
@@ -1394,6 +1395,14 @@ function pieceNameHTML(p){
   return p.title;
 }
 function movementLabelHTML(p){return isMovement(p)?`${_dim(`${romanize(movNo(p))}.`)} ${p.title}`:p.title;}
+// plain work + catalogue, e.g. "Le tombeau de Couperin, M. 68" ("" if standalone with no catalogue)
+function pieceWorkLine(p){
+  if(p.coll){const[w,cat]=splitColl(p.coll);return `${w}${cat?`, ${cat}`:""}`;}
+  if(p.sub && /^[A-Za-z]{1,4}\.?\s*\d/.test(p.sub) && !/·|No\./.test(p.sub)) return catFix(p.sub);
+  return "";
+}
+// row form: short movement title first, full work name greyed after it
+function pieceRowNameHTML(p){const w=pieceWorkLine(p);return w && w!==p.title ? `${p.title}${_dim(` · ${w}`)}` : p.title;}
 
 /* piece row markup */
 function pieceRow(p, idx, opts={}) {
@@ -1402,7 +1411,7 @@ function pieceRow(p, idx, opts={}) {
   return `<div class="prow" data-piece="${p.id}">
     ${opts.num ? `<div class="prow-num">${idx+1}</div>` : ""}
     <div class="prow-body">
-      <div class="prow-title">${pieceNameHTML(p)}</div>
+      <div class="prow-title">${pieceRowNameHTML(p)}</div>
       <div class="prow-meta">${meta.map((m,i)=>`<span class="${i?'dot-sep':''}">${m}</span>`).join("")}</div>
     </div>
     <div class="prow-right">
@@ -1458,7 +1467,7 @@ function renderHomeBody(q) {
               const pct = pctOf(p.id);
               return `<div class="rrow" data-piece="${p.id}">
                 <div class="rthumb"></div>
-                <div class="rrow-body"><div class="rrow-title">${pieceNameHTML(p)}</div><div class="rrow-sub">${COMPOSERS[p.c].name}</div></div>
+                <div class="rrow-body"><div class="rrow-title">${pieceRowNameHTML(p)}</div><div class="rrow-sub">${COMPOSERS[p.c].name}</div></div>
                 ${pct>0?`<span class="rrow-pct">${pct}%</span>`:""}
               </div>`;
             }).join("") : `<div class="empty-sub" style="padding:8px 2px">Nothing played yet.</div>`}
@@ -1673,7 +1682,7 @@ function pieceRowWithSort(p, idx, sort) {
   else extra = "Lv " + p.level;   // level & collection
   return `<div class="prow" data-piece="${p.id}">
     <div class="prow-body">
-      <div class="prow-title">${sort==='coll'?movementLabelHTML(p):pieceNameHTML(p)}</div>
+      <div class="prow-title">${sort==='coll'?movementLabelHTML(p):pieceRowNameHTML(p)}</div>
       <div class="prow-meta"><span>${p.key}</span><span class="dot-sep">${fmtDur(p.dur)}</span><span class="dot-sep">${p.year}</span></div>
     </div>
     <div class="prow-right">
@@ -1728,7 +1737,8 @@ function renderSheet() {
 
     <div class="sheet-hero">
       <div class="sheet-eyebrow">${c.name}</div>
-      <div class="sheet-title">${pieceNameHTML(p)}</div>
+      <div class="sheet-title">${p.title}</div>
+      ${pieceWorkLine(p) && pieceWorkLine(p)!==p.title ? `<div class="sheet-work">${pieceWorkLine(p)}</div>` : ""}
       <div class="sheet-meta">
         <span><b>Lv ${p.level}</b> · ${levelLabel(p.level)}</span>
         <span>${p.year}</span>
