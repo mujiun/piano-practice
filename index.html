@@ -1602,10 +1602,10 @@ function renderLibraryBody(q) {
 /* ================================================================
    PIANIST detail — with filter/sort
    ================================================================ */
-const SORT_LABELS = { level:"Level", name:"Name", year:"Year", length:"Length", key:"Key", coll:"Collection" };
-let pianistState = { id:null, sort:"level", tonality:"all", q:"" };
+const SORT_LABELS = { name:"Name", level:"Level", year:"Year", length:"Length", key:"Key", coll:"Collection" };
+let pianistState = { id:null, sort:"name", tonality:"all", q:"" };
 function openPianist(id) {
-  pianistState = { id, sort:"level", tonality:"all", q:"" };
+  pianistState = { id, sort:"name", tonality:"all", q:"" };
   renderPianist(); show("pianist","library","composer/"+id);
 }
 function renderPianist() {
@@ -1688,18 +1688,12 @@ function renderPieceList() {
 }
 function pieceRowWithSort(p, idx, sort) {
   const pct = pctOf(p.id);
-  let extra;
-  if (sort === "year") extra = p.year;
-  else if (sort === "length") extra = fmtDur(p.dur);
-  else if (sort === "key") extra = p.key;
-  else extra = "Lv " + p.level;   // level & collection
   return `<div class="prow" data-piece="${p.id}">
     <div class="prow-body">
       <div class="prow-title">${sort==='coll'?movementLabelHTML(p):pieceNameHTML(p)}</div>
-      <div class="prow-meta"><span>${p.key}</span><span class="dot-sep">${fmtDur(p.dur)}</span><span class="dot-sep">${p.year}</span></div>
+      <div class="prow-meta"><span>Lv ${p.level}</span><span class="dot-sep">${p.year}</span><span class="dot-sep">${fmtDur(p.dur)}</span><span class="dot-sep">${p.key}</span></div>
     </div>
     <div class="prow-right">
-      <span class="lvpill">${extra}</span>
       ${pct>0?`<span class="prow-pct">${pct}%</span>`:""}
     </div>
   </div>`;
