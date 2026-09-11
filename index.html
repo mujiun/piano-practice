@@ -569,7 +569,7 @@
     /* artist controls: search bar → sort chips → count (stacked) */
     .sortchips { gap: 6px; }
     .sortchips .grow { display: none; }
-    .sortchips .psearch { order: -1; flex: 1 0 100%; }
+    .sortchips .psearch { order: -1; flex: 1 0 100%; margin-bottom: 8px; }
     .sortchips button { order: 1; min-width: 44px; padding: 0 16px; font-size: 13px; }
     .sortchips .filter-count { order: 2; flex: 1 0 100%; margin-top: 2px; }
     /* pianist hero: avatar above name */
@@ -1685,7 +1685,7 @@ function renderPianist() {
     <div class="phero">
       <div class="cav cav-photo"><img src="images/composers/${id}.jpg" alt="${c.name}"></div>
       <div class="phero-txt">
-        <div class="phero-head"><span class="phero-name">${cName(id)}</span><span class="phero-era">${c.era} · ${piecesOf(id).length} ${t("pieces")}</span></div>
+        <div class="phero-head"><span class="phero-name">${cName(id)}</span><span class="phero-era">${c.era} · ${S.lang==='en' ? piecesOf(id).length+' pieces available' : (S.lang==='zh-Hans'?'收录 ':'收錄 ')+piecesOf(id).length+' 首'}</span></div>
         <div class="phero-bio">${c.bio}</div>
       </div>
     </div>
