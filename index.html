@@ -1565,15 +1565,13 @@ function renderHomeBody(q) {
           <div class="cal-date-big">${today.dateLabel}</div>
           <div class="cal-events">
             ${today.events.map(ev=>{
-              const ym = ev.text.match(/\((1[6-9]\d\d)\)/); const year = ym?ym[1]:"";
-              const sub = ev.text.replace(/\s*\(1[6-9]\d\d\)/g,"").trim();
               const by = ev.composer ? cName(ev.composer) : "On this day";
               return `<div class="cal-event">
                 ${ev.composer?`<img class="cal-avatar" src="images/composers/${ev.composer}.jpg" alt="">`:`<div class="cal-avatar cal-avatar-ph">${IC.music}</div>`}
                 <div class="cal-event-text">
-                  <div class="cal-eyebrow">${by}${year?" • "+year:""}</div>
-                  <div class="cal-title">${ev.kind}: ${ev.title}</div>
-                  <div class="cal-sub">${sub} ${ev.composer?`<a class="cal-link" data-composer="${ev.composer}">View the piece →</a>`:""}</div>
+                  <div class="cal-eyebrow">${by}${ev.year?" • "+ev.year:""}</div>
+                  <div class="cal-title">${ev.title}</div>
+                  <div class="cal-sub">${ev.text} ${ev.composer?`<a class="cal-link" data-composer="${ev.composer}">View the piece →</a>`:""}</div>
                 </div>
               </div>`;
             }).join("")}
@@ -1621,7 +1619,7 @@ function todayCalendar() {
   const md = `${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
   const dateLabel = now.toLocaleString("en-US",{month:"short",day:"numeric"});
   const events = CALENDAR.filter(c => c.md === md);
-  return { dateLabel, events: events.length ? events : [{ kind:"On this day", composer:null, title:"A quiet day", text:"No milestone today — a clear page for your own practice." }] };
+  return { dateLabel, events: events.length ? events : [{ composer:null, year:"", title:"A quiet day", text:"No milestone today — a clear page for your own practice." }] };
 }
 
 function composerCard(id) {
