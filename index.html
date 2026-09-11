@@ -489,6 +489,7 @@
   .switch.is-on { background: var(--mu-gray-900); }
   .switch-knob { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: var(--mu-shadow-sm); transition: transform .15s ease; }
   .switch.is-on .switch-knob { transform: translateX(18px); }
+  html[data-theme="dark"] .switch.is-on .switch-knob { background: #17171b; } /* on-track is light in dark mode → dark knob for contrast */
   .stat-lbl { font-size: 12px; color: var(--mu-ink-3); }
   .settrow { display: flex; align-items: center; gap: 12px; padding: 15px 4px; border-bottom: 1px solid var(--mu-gray-100); }
   .settrow-ic { width: 34px; height: 34px; border-radius: 9px; background: var(--mu-gray-100); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -1109,7 +1110,7 @@ const LS_KEY = "pp_v1";
 const DEFAULT_STATE = { progress:{}, practiceSec:{}, saved:[], recent:["rav-menuet-haydn","cho-pre284"], lang:"en", theme:"light" };
 function applyTheme(){ document.documentElement.dataset.theme = (S.theme==="dark") ? "dark" : "light"; }
 // Language options — Chinese split into Traditional / Simplified
-const LANGS = { "en":"English", "zh-Hant":"繁體中文", "zh-Hans":"简体中文", "ja":"日本語", "ko":"한국어", "fr":"Français", "es":"Español", "de":"Deutsch" };
+const LANGS = { "en":"English", "zh-Hant":"繁體中文", "zh-Hans":"简体中文" };
 
 // Real score PDFs (public domain, from IMSLP mirrors / Internet Archive)
 const SCORES = {
@@ -2111,7 +2112,6 @@ function renderProfile() {
           ${Object.entries(LANGS).map(([k,name])=>`<option value="${k}" ${k===S.lang?"selected":""}>${name}</option>`).join("")}
         </select>
       </label>
-      <div class="settrow" id="resetRow" style="cursor:pointer"><div class="settrow-ic">↺</div><div class="settrow-txt">Reset practice data</div><div class="settrow-val">›</div></div>
     </div>`;
   wirePieceRows(v);
   v.querySelector("#themeSwitch").addEventListener("click", e=>{
@@ -2125,10 +2125,7 @@ function renderProfile() {
     S.lang = langSel.value; save();
     v.querySelector("#langVal").textContent = (LANGS[S.lang]||"English") + " ›";
     document.documentElement.lang = S.lang;
-  });
-  const reset = v.querySelector("#resetRow");
-  reset.addEventListener("click", ()=>{
-    if (confirm("Reset all progress, timers and saved pieces?")) { S = JSON.parse(JSON.stringify(DEFAULT_STATE)); save(); renderProfile(); }
+    renderProfile();
   });
 }
 
