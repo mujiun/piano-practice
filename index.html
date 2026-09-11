@@ -1140,6 +1140,31 @@ const TL = {
 };
 function t(s){ const m = TL[S.lang]; return (m && m[s]) || s; }
 function applyTabLabels(){ document.querySelectorAll(".tb-lbl").forEach(el=>{ el.textContent = t(el.dataset.k); }); }
+// Standard Chinese names for the 20 composers (Traditional / Simplified)
+const COMPOSER_NAME_LOCAL = {
+  ravel:{"zh-Hant":"莫里斯·拉威爾","zh-Hans":"莫里斯·拉威尔"},
+  chopin:{"zh-Hant":"弗雷德里克·蕭邦","zh-Hans":"弗雷德里克·肖邦"},
+  debussy:{"zh-Hant":"克勞德·德布西","zh-Hans":"克劳德·德彪西"},
+  liszt:{"zh-Hant":"法蘭茲·李斯特","zh-Hans":"弗朗茨·李斯特"},
+  beethoven:{"zh-Hant":"路德維希·范·貝多芬","zh-Hans":"路德维希·凡·贝多芬"},
+  rachmaninoff:{"zh-Hant":"謝爾蓋·拉赫曼尼諾夫","zh-Hans":"谢尔盖·拉赫玛尼诺夫"},
+  satie:{"zh-Hant":"艾瑞克·薩蒂","zh-Hans":"埃里克·萨蒂"},
+  bach:{"zh-Hant":"約翰·塞巴斯蒂安·巴赫","zh-Hans":"约翰·塞巴斯蒂安·巴赫"},
+  mozart:{"zh-Hant":"沃夫岡·阿瑪迪斯·莫札特","zh-Hans":"沃尔夫冈·阿马德乌斯·莫扎特"},
+  schubert:{"zh-Hant":"法蘭茲·舒伯特","zh-Hans":"弗朗茨·舒伯特"},
+  schumann:{"zh-Hant":"羅伯特·舒曼","zh-Hans":"罗伯特·舒曼"},
+  brahms:{"zh-Hant":"約翰尼斯·布拉姆斯","zh-Hans":"约翰内斯·勃拉姆斯"},
+  mendelssohn:{"zh-Hant":"菲利克斯·孟德爾頌","zh-Hans":"费利克斯·门德尔松"},
+  grieg:{"zh-Hant":"愛德華·葛利格","zh-Hans":"爱德华·格里格"},
+  tchaikovsky:{"zh-Hant":"彼得·伊里奇·柴可夫斯基","zh-Hans":"彼得·伊里奇·柴可夫斯基"},
+  scriabin:{"zh-Hant":"亞歷山大·斯克里亞賓","zh-Hans":"亚历山大·斯克里亚宾"},
+  prokofiev:{"zh-Hant":"謝爾蓋·普羅高菲夫","zh-Hans":"谢尔盖·普罗科菲耶夫"},
+  scarlatti:{"zh-Hant":"多梅尼科·史卡拉第","zh-Hans":"多梅尼科·斯卡拉蒂"},
+  faure:{"zh-Hant":"加布里埃·佛瑞","zh-Hans":"加布里埃尔·福雷"},
+  granados:{"zh-Hant":"恩里克·格拉納多斯","zh-Hans":"恩里克·格拉纳多斯"}
+};
+function cName(id){ const m = COMPOSER_NAME_LOCAL[id]; return (m && m[S.lang]) || (COMPOSERS[id] && COMPOSERS[id].name) || id; }
+function cNameShort(id){ if(S.lang==='en'){ const n = COMPOSERS[id]?COMPOSERS[id].name:id; return n.split(" ").slice(-1)[0]; } return cName(id); }
 
 // Real score PDFs (public domain, from IMSLP mirrors / Internet Archive)
 const SCORES = {
@@ -1459,7 +1484,7 @@ function pieceRowNameHTML(p){
 /* piece row markup */
 function pieceRow(p, idx, opts={}) {
   const pct = pctOf(p.id);
-  const meta = [COMPOSERS[p.c].name.split(" ").slice(-1)[0], p.key, `${fmtDur(p.dur)}`];
+  const meta = [cNameShort(p.c), p.key, `${fmtDur(p.dur)}`];
   return `<div class="prow" data-piece="${p.id}">
     ${opts.num ? `<div class="prow-num">${idx+1}</div>` : ""}
     <div class="prow-body">
@@ -1518,7 +1543,7 @@ function renderHomeBody(q) {
             ${recent.length ? recent.map(p=>{
               const pct = pctOf(p.id);
               return `<div class="rrow" data-piece="${p.id}">
-                <div class="rrow-body"><div class="rrow-title">${pieceNameHTML(p)}</div><div class="rrow-sub">${COMPOSERS[p.c].name}</div></div>
+                <div class="rrow-body"><div class="rrow-title">${pieceNameHTML(p)}</div><div class="rrow-sub">${cName(p.c)}</div></div>
                 ${pct>0?`<span class="rrow-pct">${pct}%</span>`:""}
               </div>`;
             }).join("") : `<div class="empty-sub" style="padding:8px 2px">${t("Nothing played yet.")}</div>`}
@@ -1539,7 +1564,7 @@ function renderHomeBody(q) {
             ${today.events.map(ev=>{
               const ym = ev.text.match(/\((1[6-9]\d\d)\)/); const year = ym?ym[1]:"";
               const sub = ev.text.replace(/\s*\(1[6-9]\d\d\)/g,"").trim();
-              const by = ev.composer ? COMPOSERS[ev.composer].name : "On this day";
+              const by = ev.composer ? cName(ev.composer) : "On this day";
               return `<div class="cal-event">
                 ${ev.composer?`<img class="cal-avatar" src="images/composers/${ev.composer}.jpg" alt="">`:`<div class="cal-avatar cal-avatar-ph">${IC.music}</div>`}
                 <div class="cal-event-text">
@@ -1601,7 +1626,7 @@ function composerCard(id) {
   return `<div class="ccard" data-composer="${id}">
     <div class="cav cav-photo"><img src="images/composers/${id}.jpg" alt="${c.name}"></div>
     <div class="ccard-text">
-      <div class="ccard-name">${c.name}</div>
+      <div class="ccard-name">${cName(id)}</div>
       <div class="ccard-era">${c.era}</div>
     </div>
     <div class="ccard-count">${piecesOf(id).length}<span>${t("pieces")}</span></div>
@@ -1658,7 +1683,7 @@ function renderPianist() {
     <div class="phero">
       <div class="cav cav-photo"><img src="images/composers/${id}.jpg" alt="${c.name}"></div>
       <div class="phero-txt">
-        <div class="phero-head"><span class="phero-name">${c.name}</span><span class="phero-era">${c.era}</span></div>
+        <div class="phero-head"><span class="phero-name">${cName(id)}</span><span class="phero-era">${c.era}</span></div>
         <div class="phero-bio">${c.bio}</div>
       </div>
     </div>
@@ -1787,7 +1812,7 @@ function renderSheet() {
     </div>
 
     <div class="sheet-hero">
-      <div class="sheet-eyebrow">${c.name}</div>
+      <div class="sheet-eyebrow">${cName(p.c)}</div>
       <div class="sheet-title">${pieceNameHTML(p)}</div>
       <div class="sheet-meta">
         <span><b>Lv ${p.level}</b> · ${levelLabel(p.level)}</span>
