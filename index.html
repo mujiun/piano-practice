@@ -283,7 +283,7 @@
      =============================================================== */
   .sheet-hero { margin-top: 6px; }
   .sheet-eyebrow { font-size: 14px; font-weight: 600; color: var(--mu-ink-2); letter-spacing: -0.01em; }
-  .sheet-title { font-size: 27px; font-weight: 700; letter-spacing: -0.028em; line-height: 1.1; margin-top: 4px; }
+  .sheet-title { font-size: 27px; font-weight: 700; letter-spacing: -0.028em; line-height: 1.1; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sheet-work { font-size: 15px; font-weight: 500; color: var(--mu-ink-3); margin-top: 5px; }
   .sheet-sub { font-size: 17px; font-weight: 500; color: var(--mu-ink-3); letter-spacing: 0; }
   .sheet-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
@@ -543,7 +543,7 @@
     .toolgrid { grid-template-columns: 1fr; }
     /* sheet controls wrap comfortably */
     .sheet-meta { font-size: 12px; }
-    .sheet-title { font-size: 23px; }
+    .sheet-title { font-size: 23px; white-space: normal; overflow: visible; }
     /* floating toolbar: hug items, centered (metronome hidden on mobile) */
     .focus-actions { max-width: calc(100vw - 24px); overflow-x: auto; }
     .focus-actions button { flex-shrink: 0; }
