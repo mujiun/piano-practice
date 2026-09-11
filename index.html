@@ -255,12 +255,10 @@
   .psearch-ic svg { width: 16px; height: 16px; }
   .psearch input { border: none; background: transparent; outline: none; font-size: 13px; color: var(--mu-ink); width: 130px; }
   .sortchips .filter-count { align-self: center; }
-  .sort-ic { display: inline-flex; align-items: center; gap: 6px; align-self: center; color: var(--mu-ink-2); height: 36px; padding: 0 12px; border: 1px solid var(--mu-border); background: var(--mu-white); border-radius: var(--mu-radius-full); cursor: pointer; font-size: 13px; font-weight: 500; }
-  .sort-ic:hover { border-color: var(--mu-gray-400); }
-  .sort-ic svg { flex-shrink: 0; }
-  .sort-ic .sd-up, .sort-ic .sd-dn { stroke: var(--mu-gray-400); }
-  .sort-ic[data-dir="asc"] .sd-up { stroke: var(--mu-ink); }
-  .sort-ic[data-dir="desc"] .sd-dn { stroke: var(--mu-ink); }
+  .sort-lead { display: inline-flex; align-items: center; gap: 6px; align-self: center; color: var(--mu-ink-3); font-size: 13px; font-weight: 500; margin-right: 2px; }
+  .sort-lead svg { flex-shrink: 0; }
+  #sortChipGroup { display: contents; }
+  .chip-arw { margin-left: 5px; vertical-align: -1px; }
   .sortchips button { height: 36px; padding: 0 14px; border: 1px solid var(--mu-border); background: var(--mu-white);
     border-radius: var(--mu-radius-full); font-size: 13px; font-weight: 500; color: var(--mu-ink-2); cursor: pointer;
     transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease); }
@@ -1674,11 +1672,17 @@ function renderLibraryBody(q) {
    ================================================================ */
 const SORT_LABELS = { name:"Name", level:"Level", year:"Year", length:"Length", key:"Key", coll:"Work" };
 let pianistState = { id:null, sort:"name", tonality:"all", q:"", dir:"asc" };
-// ascending vs descending sort icon (arrow + magnitude lines)
-function sortIconSVG(dir){
-  return dir==="desc"
-    ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M11 4h10"/><path d="M11 8h7"/><path d="M11 12h4"/></svg>`
-    : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/><path d="M11 12h4"/><path d="M11 16h7"/><path d="M11 20h10"/></svg>`;
+// direction arrow shown on the active sort chip (asc = up, desc = down)
+function dirArrow(dir){
+  const p = dir==="desc" ? "M3 6l4 4 4-4" : "M3 10l4-4 4 4";
+  return `<svg class="chip-arw" width="12" height="12" viewBox="0 0 14 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="${p}"/></svg>`;
+}
+// sort chips markup; active chip carries + toggles its direction arrow
+function sortChipsHTML(){
+  return Object.entries(SORT_LABELS).map(([k,l])=>{
+    const active = k===pianistState.sort;
+    return `<button data-sort="${k}" class="${active?'is-active':''}">${t(l)}${active?dirArrow(pianistState.dir):''}</button>`;
+  }).join("");
 }
 function openPianist(id) {
   pianistState = { id, sort:"name", tonality:"all", q:"", dir:"asc" };
@@ -1702,8 +1706,8 @@ function renderPianist() {
     </div>
 
     <div class="sortchips" id="sortChips">
-      <button class="sort-ic" id="sortDir" data-dir="${pianistState.dir}" title="Reverse order" aria-label="Reverse order"><svg class="sd-arrows" width="11" height="16" viewBox="0 0 12 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="sd-up" d="M2 6l4-4 4 4"/><path class="sd-dn" d="M2 10l4 4 4-4"/></svg><span>${t("Sort")}</span></button>
-      ${Object.entries(SORT_LABELS).map(([k,l])=>`<button data-sort="${k}" class="${k===pianistState.sort?'is-active':''}">${t(l)}</button>`).join("")}
+      <span class="sort-lead" aria-hidden="true"><svg width="11" height="16" viewBox="0 0 12 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l4-4 4 4"/><path d="M2 10l4 4 4-4"/></svg>${t("Sort")}</span>
+      <span id="sortChipGroup">${sortChipsHTML()}</span>
       <span class="grow"></span>
       <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="pieceSearch" type="search" placeholder="${t('Search')}" autocomplete="off" value="${pianistState.q||''}"></label>
     </div>
@@ -1712,19 +1716,11 @@ function renderPianist() {
   v.querySelector("#pBack").addEventListener("click", ()=>{ renderLibrary(); show("library","library"); });
   v.querySelector("#pieceSearch").addEventListener("input", e=>{ pianistState.q = e.target.value.trim(); renderPieceList(); });
   v.querySelector("#sortChips").addEventListener("click", e=>{
-    const dirBtn = e.target.closest("#sortDir");
-    if (dirBtn) {
-      pianistState.dir = pianistState.dir==="asc" ? "desc" : "asc";
-      dirBtn.dataset.dir = pianistState.dir;
-      dirBtn.title = pianistState.dir==="asc" ? "Sort ascending" : "Sort descending";
-      renderPieceList();
-      return;
-    }
     const b = e.target.closest("button[data-sort]"); if (!b) return;
-    pianistState.sort = b.dataset.sort;
-    pianistState.dir = "asc";
-    const sd = v.querySelector("#sortDir"); if (sd) sd.dataset.dir = "asc";
-    v.querySelectorAll("#sortChips button[data-sort]").forEach(x=>x.classList.toggle("is-active", x===b));
+    const k = b.dataset.sort;
+    if (k === pianistState.sort) pianistState.dir = pianistState.dir==="asc" ? "desc" : "asc";
+    else { pianistState.sort = k; pianistState.dir = "asc"; }
+    const grp = v.querySelector("#sortChipGroup"); if (grp) grp.innerHTML = sortChipsHTML();
     renderPieceList();
   });
   renderPieceList();
