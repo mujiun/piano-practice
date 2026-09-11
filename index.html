@@ -1665,8 +1665,7 @@ function renderPieceList() {
     groups = [["", list]];
   } else if (sort === "length") {
     list.sort((a,b)=>a.dur-b.dur);
-    const short = list.filter(p=>p.dur<3), mid = list.filter(p=>p.dur>=3&&p.dur<5), long = list.filter(p=>p.dur>=5);
-    groups = [["Under 3 min", short],["3–5 min", mid],["Over 5 min", long]].filter(([,a])=>a.length);
+    groups = [["", list]];
   } else if (sort === "key") {
     list.sort((a,b)=>a.key.localeCompare(b.key));
     const maj = list.filter(p=>modeOf(p)==="major"), min = list.filter(p=>modeOf(p)==="minor");
