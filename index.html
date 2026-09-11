@@ -255,6 +255,7 @@
   .psearch-ic svg { width: 16px; height: 16px; }
   .psearch input { border: none; background: transparent; outline: none; font-size: 13px; color: var(--mu-ink); width: 130px; }
   .sortchips .filter-count { align-self: center; }
+  .sort-ic { display: inline-flex; align-items: center; align-self: center; color: var(--mu-ink-3); margin-right: 2px; }
   .sortchips button { height: 36px; padding: 0 14px; border: 1px solid var(--mu-border); background: var(--mu-white);
     border-radius: var(--mu-radius-full); font-size: 13px; font-weight: 500; color: var(--mu-ink-2); cursor: pointer;
     transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease); }
@@ -1684,16 +1685,16 @@ function renderPianist() {
     <div class="phero">
       <div class="cav cav-photo"><img src="images/composers/${id}.jpg" alt="${c.name}"></div>
       <div class="phero-txt">
-        <div class="phero-head"><span class="phero-name">${cName(id)}</span><span class="phero-era">${c.era}</span></div>
+        <div class="phero-head"><span class="phero-name">${cName(id)}</span><span class="phero-era">${c.era} · ${piecesOf(id).length} ${t("pieces")}</span></div>
         <div class="phero-bio">${c.bio}</div>
       </div>
     </div>
 
     <div class="sortchips" id="sortChips">
-      <span class="filter-count">${piecesOf(id).length} ${t("pieces")}</span>
+      <span class="sort-ic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h5"/></svg></span>
+      ${Object.entries(SORT_LABELS).map(([k,l])=>`<button data-sort="${k}" class="${k===pianistState.sort?'is-active':''}">${t(l)}</button>`).join("")}
       <span class="grow"></span>
       <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="pieceSearch" type="search" placeholder="${t('Search')}" autocomplete="off" value="${pianistState.q||''}"></label>
-      ${Object.entries(SORT_LABELS).map(([k,l])=>`<button data-sort="${k}" class="${k===pianistState.sort?'is-active':''}">${t(l)}</button>`).join("")}
     </div>
     <div id="pieceListWrap"></div>`;
 
