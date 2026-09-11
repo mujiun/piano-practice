@@ -1401,8 +1401,12 @@ function pieceWorkLine(p){
   if(p.sub && /^[A-Za-z]{1,4}\.?\s*\d/.test(p.sub) && !/·|No\./.test(p.sub)) return catFix(p.sub);
   return "";
 }
-// row form: short movement title first, full work name greyed after it
-function pieceRowNameHTML(p){const w=pieceWorkLine(p);return w && w!==p.title ? `${p.title}${_dim(` · ${w}`)}` : p.title;}
+// row form: movement number + short title first, full work name greyed after it
+function pieceRowNameHTML(p){
+  const w=pieceWorkLine(p);
+  if(isMovement(p)) return `${movementLabelHTML(p)}${w?_dim(` · ${w}`):""}`;
+  return w && w!==p.title ? `${p.title}${_dim(` · ${w}`)}` : p.title;
+}
 
 /* piece row markup */
 function pieceRow(p, idx, opts={}) {
@@ -1737,7 +1741,7 @@ function renderSheet() {
 
     <div class="sheet-hero">
       <div class="sheet-eyebrow">${c.name}</div>
-      <div class="sheet-title">${p.title}</div>
+      <div class="sheet-title">${isMovement(p)?movementLabelHTML(p):p.title}</div>
       ${pieceWorkLine(p) && pieceWorkLine(p)!==p.title ? `<div class="sheet-work">${pieceWorkLine(p)}</div>` : ""}
       <div class="sheet-meta">
         <span><b>Lv ${p.level}</b> · ${levelLabel(p.level)}</span>
