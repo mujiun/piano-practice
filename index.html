@@ -1695,7 +1695,7 @@ function pieceRowWithSort(p, idx, sort) {
   else tag = "Lv " + p.level;   // name, level, coll
   return `<div class="prow" data-piece="${p.id}">
     <div class="prow-body">
-      <div class="prow-title">${sort==='coll'?movementLabelHTML(p):pieceNameHTML(p)}</div>
+      <div class="prow-title">${sort==='coll'?(isMovement(p)?`${romanize(movNo(p))}. ${p.title}`:p.title):pieceNameHTML(p)}</div>
       <div class="prow-meta"><span>Lv ${p.level}</span><span class="dot-sep">${p.year}</span><span class="dot-sep">${fmtDur(p.dur)}</span><span class="dot-sep">${p.key}</span></div>
     </div>
     <div class="prow-right">
