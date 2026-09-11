@@ -1424,7 +1424,7 @@ function pieceRow(p, idx, opts={}) {
   return `<div class="prow" data-piece="${p.id}">
     ${opts.num ? `<div class="prow-num">${idx+1}</div>` : ""}
     <div class="prow-body">
-      <div class="prow-title">${pieceRowNameHTML(p)}</div>
+      <div class="prow-title">${pieceNameHTML(p)}</div>
       <div class="prow-meta">${meta.map((m,i)=>`<span class="${i?'dot-sep':''}">${m}</span>`).join("")}</div>
     </div>
     <div class="prow-right">
