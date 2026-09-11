@@ -1124,7 +1124,7 @@ const TL = {
   "zh-Hant": {
     "Home":"首頁","Library":"曲庫","Playlist":"播放清單","Profile":"個人檔案",
     "Your playlist":"我的播放清單","Your practice":"練習概況","Practiced in 2026":"2026 年練習","days":"天",
-    "On this day":"歷史上的今天","View composer":"查看作曲家","Sort":"排序","Jump into the library":"進入曲庫","See all":"查看全部","Nothing played yet.":"尚無彈奏紀錄",
+    "On this day":"歷史上的今天","View composer":"查看作曲家","Sort":"排序","Composer":"作曲家","Jump into the library":"進入曲庫","See all":"查看全部","Nothing played yet.":"尚無彈奏紀錄",
     "Search":"搜尋","Composers":"作曲家","Pieces":"樂曲","pieces":"首","piece":"首",
     "Saved":"已收藏","No saved pieces yet":"尚未收藏樂曲","Tap the bookmark on any piece to keep it here.":"點擊任一樂曲的書籤即可收藏。",
     "In progress":"進行中","Settings":"設定","Dark mode":"深色模式","Language":"語言","Advanced pianist":"進階鋼琴家",
@@ -1136,7 +1136,7 @@ const TL = {
   "zh-Hans": {
     "Home":"首页","Library":"曲库","Playlist":"播放列表","Profile":"个人资料",
     "Your playlist":"我的播放列表","Your practice":"练习概况","Practiced in 2026":"2026 年练习","days":"天",
-    "On this day":"历史上的今天","View composer":"查看作曲家","Sort":"排序","Jump into the library":"进入曲库","See all":"查看全部","Nothing played yet.":"尚无弹奏记录",
+    "On this day":"历史上的今天","View composer":"查看作曲家","Sort":"排序","Composer":"作曲家","Jump into the library":"进入曲库","See all":"查看全部","Nothing played yet.":"尚无弹奏记录",
     "Search":"搜索","Composers":"作曲家","Pieces":"乐曲","pieces":"首","piece":"首",
     "Saved":"已收藏","No saved pieces yet":"尚未收藏乐曲","Tap the bookmark on any piece to keep it here.":"点击任一乐曲的书签即可收藏。",
     "In progress":"进行中","Settings":"设置","Dark mode":"深色模式","Language":"语言","Advanced pianist":"进阶钢琴家",
@@ -1676,6 +1676,7 @@ function renderLibraryBody(q) {
    PIANIST detail — with filter/sort
    ================================================================ */
 const SORT_LABELS = { name:"Name", level:"Level", year:"Year", length:"Length", key:"Key", coll:"Work" };
+const SORT_LABELS_SAVED = { name:"Name", level:"Level", year:"Year", length:"Length", key:"Key", composer:"Composer" };
 let pianistState = { id:null, sort:"name", tonality:"all", q:"", dir:"asc" };
 function openPianist(id) {
   pianistState = { id, sort:"name", tonality:"all", q:"", dir:"asc" };
@@ -1721,6 +1722,12 @@ function groupPieces(list, sort) {
       return b[1].length - a[1].length;
     });
   }
+  if (sort === "composer") {
+    const by = {};
+    list.forEach(p => { (by[p.c] = by[p.c] || []).push(p); });
+    Object.values(by).forEach(arr => arr.sort((a,b)=>pieceFullName(a).localeCompare(pieceFullName(b))));
+    return Object.keys(by).sort((a,b)=>cName(a).localeCompare(cName(b))).map(cid=>[cName(cid), by[cid]]);
+  }
   if (sort === "year") list.sort((a,b)=>a.year-b.year);
   else if (sort === "length") list.sort((a,b)=>a.dur-b.dur);
   else if (sort === "level") list.sort((a,b)=>a.level-b.level);
@@ -1736,9 +1743,10 @@ function renderGroups(wrap, groups, sort, dir) {
   wirePieceRows(wrap);
 }
 // shared: the Sort button + field chips + search bar markup
-function sortBarHTML(state, searchId) {
+function sortBarHTML(state, searchId, labels) {
+  labels = labels || SORT_LABELS;
   return `<button class="sort-lead" data-role="dir" data-dir="${state.dir}" title="Ascending / descending"><svg width="11" height="16" viewBox="0 0 12 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="sd-up" d="M2 6l4-4 4 4"/><path class="sd-dn" d="M2 10l4 4 4-4"/></svg>${t("Sort")}</button>
-      ${Object.entries(SORT_LABELS).map(([k,l])=>`<button data-sort="${k}" class="${k===state.sort?'is-active':''}">${t(l)}</button>`).join("")}
+      ${Object.entries(labels).map(([k,l])=>`<button data-sort="${k}" class="${k===state.sort?'is-active':''}">${t(l)}</button>`).join("")}
       <span class="grow"></span>
       <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="${searchId}" type="search" placeholder="${t('Search')}" autocomplete="off" value="${state.q||''}"></label>`;
 }
@@ -1778,7 +1786,7 @@ function pieceRowWithSort(p, idx, sort) {
       <div class="prow-meta"><span>Lv ${p.level}</span><span class="dot-sep">${p.year}</span><span class="dot-sep">${fmtDur(p.dur)}</span><span class="dot-sep">${p.key}</span></div>
     </div>
     <div class="prow-right">
-      ${(sort==='coll'||sort==='name')?"":`<span class="lvpill">${tag}</span>`}
+      ${(sort==='coll'||sort==='name'||sort==='composer')?"":`<span class="lvpill">${tag}</span>`}
       ${pct>0?`<span class="prow-pct">${pct}%</span>`:""}
     </div>
   </div>`;
@@ -2131,7 +2139,7 @@ function renderSaved() {
       <div class="appbar-sub">${S.lang==='en' ? `${total} marked ${total===1?"piece":"pieces"}` : `已收藏 ${total} 首`}</div>
     </div>
     ${total ? `
-      <div class="sortchips" id="savedSort">${sortBarHTML(savedState, "savedSearch")}</div>
+      <div class="sortchips" id="savedSort">${sortBarHTML(savedState, "savedSearch", SORT_LABELS_SAVED)}</div>
       <div id="savedListWrap"></div>` :
       `<div class="empty">
         <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg>
