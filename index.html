@@ -179,6 +179,7 @@
   .prow-num { width: 26px; text-align: center; font-family: var(--mu-mono); font-size: 13px; color: var(--mu-gray-400); flex-shrink: 0; }
   .prow-body { flex: 1; min-width: 0; }
   .prow-title { font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pn-dim { color: var(--mu-ink-3); font-weight: 500; }
   .prow-meta { font-size: 12.5px; color: var(--mu-ink-3); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; }
   .prow-meta .dot-sep::before { content: "·"; margin-right: 8px; }
   .prow-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
@@ -1383,6 +1384,16 @@ function pieceFullName(p){
   if(p.sub && /^[A-Za-z]{1,4}\.?\s*\d/.test(p.sub) && !/·|No\./.test(p.sub)) return `${p.title}, ${catFix(p.sub)}`;
   return p.title;
 }
+// HTML forms that grey the catalogue + movement number for easier reading
+function splitColl(coll){const m=coll.match(/^(.*?),\s*([A-Za-z]{0,4}\.?\s*\d.*)$/);return m?[m[1],catFix(m[2])]:[coll,""];}
+function _dim(s){return `<span class="pn-dim">${s}</span>`;}
+function pieceNameHTML(p){
+  if(isMovement(p)){const[w,cat]=splitColl(p.coll);const mv=`${romanize(movNo(p))}.`;return `${w}${_dim(cat?`, ${cat}: ${mv}`:`: ${mv}`)} ${p.title}`;}
+  if(p.coll && p.coll!==p.title){const[w,cat]=splitColl(p.coll);return `${w}${cat?_dim(`, ${cat}`):""}: ${p.title}`;}
+  if(p.sub && /^[A-Za-z]{1,4}\.?\s*\d/.test(p.sub) && !/·|No\./.test(p.sub)) return `${p.title}${_dim(`, ${catFix(p.sub)}`)}`;
+  return p.title;
+}
+function movementLabelHTML(p){return isMovement(p)?`${_dim(`${romanize(movNo(p))}.`)} ${p.title}`:p.title;}
 
 /* piece row markup */
 function pieceRow(p, idx, opts={}) {
@@ -1391,7 +1402,7 @@ function pieceRow(p, idx, opts={}) {
   return `<div class="prow" data-piece="${p.id}">
     ${opts.num ? `<div class="prow-num">${idx+1}</div>` : ""}
     <div class="prow-body">
-      <div class="prow-title">${pieceFullName(p)}</div>
+      <div class="prow-title">${pieceNameHTML(p)}</div>
       <div class="prow-meta">${meta.map((m,i)=>`<span class="${i?'dot-sep':''}">${m}</span>`).join("")}</div>
     </div>
     <div class="prow-right">
@@ -1417,7 +1428,7 @@ function renderHome() {
     </div>
     <div class="search">
       ${IC.search}
-      <input id="homeSearch" type="search" placeholder="Search pieces, composers, keys…" autocomplete="off">
+      <input id="homeSearch" type="search" placeholder="Search" autocomplete="off">
     </div>
     <div id="homeBody"></div>`;
   const input = v.querySelector("#homeSearch");
@@ -1447,7 +1458,7 @@ function renderHomeBody(q) {
               const pct = pctOf(p.id);
               return `<div class="rrow" data-piece="${p.id}">
                 <div class="rthumb"></div>
-                <div class="rrow-body"><div class="rrow-title">${pieceFullName(p)}</div><div class="rrow-sub">${COMPOSERS[p.c].name}</div></div>
+                <div class="rrow-body"><div class="rrow-title">${pieceNameHTML(p)}</div><div class="rrow-sub">${COMPOSERS[p.c].name}</div></div>
                 ${pct>0?`<span class="rrow-pct">${pct}%</span>`:""}
               </div>`;
             }).join("") : `<div class="empty-sub" style="padding:8px 2px">Nothing played yet.</div>`}
@@ -1550,7 +1561,7 @@ function renderLibrary() {
     </div>
     <div class="search">
       ${IC.search}
-      <input id="libSearch" type="search" placeholder="Search pieces, composers, keys…" autocomplete="off">
+      <input id="libSearch" type="search" placeholder="Search" autocomplete="off">
     </div>
     <div id="libBody" style="margin-top:18px"></div>`;
   const input = v.querySelector("#libSearch");
@@ -1569,7 +1580,7 @@ function renderLibraryBody(q) {
 /* ================================================================
    PIANIST detail — with filter/sort
    ================================================================ */
-const SORT_LABELS = { level:"Level", name:"Name (A to Z)", year:"Year", length:"Length", key:"Key", coll:"Collection" };
+const SORT_LABELS = { level:"Level", name:"Name", year:"Year", length:"Length", key:"Key", coll:"Collection" };
 let pianistState = { id:null, sort:"level", tonality:"all", q:"" };
 function openPianist(id) {
   pianistState = { id, sort:"level", tonality:"all", q:"" };
@@ -1595,7 +1606,7 @@ function renderPianist() {
     <div class="sortchips" id="sortChips">
       <span class="filter-count">${piecesOf(id).length} pieces</span>
       <span class="grow"></span>
-      <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="pieceSearch" type="search" placeholder="Search pieces…" autocomplete="off" value="${pianistState.q||''}"></label>
+      <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="pieceSearch" type="search" placeholder="Search" autocomplete="off" value="${pianistState.q||''}"></label>
       ${Object.entries(SORT_LABELS).map(([k,l])=>`<button data-sort="${k}" class="${k===pianistState.sort?'is-active':''}">${l}</button>`).join("")}
     </div>
     <div id="pieceListWrap"></div>`;
@@ -1662,7 +1673,7 @@ function pieceRowWithSort(p, idx, sort) {
   else extra = "Lv " + p.level;   // level & collection
   return `<div class="prow" data-piece="${p.id}">
     <div class="prow-body">
-      <div class="prow-title">${sort==='coll'?movementLabel(p):pieceFullName(p)}</div>
+      <div class="prow-title">${sort==='coll'?movementLabelHTML(p):pieceNameHTML(p)}</div>
       <div class="prow-meta"><span>${p.key}</span><span class="dot-sep">${fmtDur(p.dur)}</span><span class="dot-sep">${p.year}</span></div>
     </div>
     <div class="prow-right">
@@ -1717,7 +1728,7 @@ function renderSheet() {
 
     <div class="sheet-hero">
       <div class="sheet-eyebrow">${c.name}</div>
-      <div class="sheet-title">${pieceFullName(p)}</div>
+      <div class="sheet-title">${pieceNameHTML(p)}</div>
       <div class="sheet-meta">
         <span><b>Lv ${p.level}</b> · ${levelLabel(p.level)}</span>
         <span>${p.year}</span>
