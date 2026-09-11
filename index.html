@@ -31,7 +31,7 @@
     position: relative;
     display: flex; flex-direction: column;
   }
-  @media (max-width: 900px) {
+  @media (max-width: 1024px) {
     .stage { padding: 0; min-height: 100vh; min-height: 100dvh; align-items: stretch; }
     .device { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; }
   }
@@ -558,6 +558,16 @@
     .tabbar { height: 58px; padding: 6px 10px calc(env(safe-area-inset-bottom) + 4px); }
     .tabbtn { font-size: 0; gap: 0; }
     .tabbtn svg { width: 25px; height: 25px; }
+  }
+
+  /* Touch devices (iPad / phone): all interactive controls meet the 44×44px tap-target minimum */
+  @media (pointer: coarse) {
+    .focus-actions { gap: 4px; }
+    .focus-actions button { width: 44px; height: 44px; }
+    .zoomctrl button { width: 44px; height: 44px; }
+    .appbar-back { width: 44px; height: 44px; }
+    .sortchips button { height: 44px; }
+    .cal-link, .home-card, .recent-item, .tabbtn { min-height: 44px; }
   }
 </style>
 </head>
@@ -1662,7 +1672,7 @@ const PIECE_XML = window.SCORE_XML || {};
 // Pre-engraved score images (clean editions, e.g. LilyPond SVG) — display only.
 // pieceId -> [page1, page2, ...]. Takes priority for DISPLAY; playback still uses SCORE_NOTES.
 const SCORE_SVG = {
-  "rav-menuet-haydn": ["library/ravel/scores/menuet-p1.svg","library/ravel/scores/menuet-p2.svg","library/ravel/scores/menuet-p3.svg"],
+  // (pre-engraved SVG page sets go here; the menuet renders from MusicXML via OSMD instead)
 };
 
 // Spotify recordings — pieceId -> "track/<id>" | "album/<id>" (needs internet).
