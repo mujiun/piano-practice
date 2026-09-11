@@ -1698,73 +1698,71 @@ function renderPianist() {
       </div>
     </div>
 
-    <div class="sortchips" id="sortChips">
-      <button class="sort-lead" id="sortDir" data-dir="${pianistState.dir}" title="Ascending / descending"><svg width="11" height="16" viewBox="0 0 12 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="sd-up" d="M2 6l4-4 4 4"/><path class="sd-dn" d="M2 10l4 4 4-4"/></svg>${t("Sort")}</button>
-      ${Object.entries(SORT_LABELS).map(([k,l])=>`<button data-sort="${k}" class="${k===pianistState.sort?'is-active':''}">${t(l)}</button>`).join("")}
-      <span class="grow"></span>
-      <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="pieceSearch" type="search" placeholder="${t('Search')}" autocomplete="off" value="${pianistState.q||''}"></label>
-    </div>
+    <div class="sortchips" id="sortChips">${sortBarHTML(pianistState, "pieceSearch")}</div>
     <div id="pieceListWrap"></div>`;
 
   v.querySelector("#pBack").addEventListener("click", ()=>{ renderLibrary(); show("library","library"); });
   v.querySelector("#pieceSearch").addEventListener("input", e=>{ pianistState.q = e.target.value.trim(); renderPieceList(); });
-  v.querySelector("#sortChips").addEventListener("click", e=>{
-    const dirBtn = e.target.closest("#sortDir");
-    if (dirBtn) {
-      pianistState.dir = pianistState.dir==="asc" ? "desc" : "asc";
-      dirBtn.dataset.dir = pianistState.dir;
-      renderPieceList();
-      return;
-    }
-    const b = e.target.closest("button[data-sort]"); if (!b) return;
-    pianistState.sort = b.dataset.sort;
-    v.querySelectorAll("#sortChips button[data-sort]").forEach(x=>x.classList.toggle("is-active", x===b));
-    renderPieceList();
-  });
+  wireSortBar(v.querySelector("#sortChips"), pianistState, renderPieceList);
   renderPieceList();
 }
+// shared: sort a piece list into labelled groups by sort key
+function groupPieces(list, sort) {
+  if (sort === "key") {
+    list.sort((a,b)=>a.key.localeCompare(b.key));
+    const maj = list.filter(p=>modeOf(p)==="major"), min = list.filter(p=>modeOf(p)==="minor");
+    return [["Major keys", maj],["Minor keys", min]].filter(([,a])=>a.length);
+  }
+  if (sort === "coll") {
+    const colls = {};
+    list.forEach(p => { const k = p.coll || "Standalone pieces"; (colls[k] = colls[k] || []).push(p); });
+    return Object.entries(colls).sort((a,b)=>{
+      if (a[0]==="Standalone pieces") return 1; if (b[0]==="Standalone pieces") return -1;
+      return b[1].length - a[1].length;
+    });
+  }
+  if (sort === "year") list.sort((a,b)=>a.year-b.year);
+  else if (sort === "length") list.sort((a,b)=>a.dur-b.dur);
+  else if (sort === "level") list.sort((a,b)=>a.level-b.level);
+  else list.sort((a,b)=>pieceFullName(a).localeCompare(pieceFullName(b))); // name (default)
+  return [["", list]];
+}
+// shared: render labelled groups into a wrap, honouring sort field + direction
+function renderGroups(wrap, groups, sort, dir) {
+  wrap.innerHTML = groups.map(([label, arr]) => {
+    const rows = dir === "desc" ? arr.slice().reverse() : arr;
+    return `${label ? `<div class="grouphead">${label} · ${arr.length}</div>` : ""}<div class="rowlist">${rows.map((p,i)=>pieceRowWithSort(p,i,sort)).join("")}</div>`;
+  }).join("");
+  wirePieceRows(wrap);
+}
+// shared: the Sort button + field chips + search bar markup
+function sortBarHTML(state, searchId) {
+  return `<button class="sort-lead" data-role="dir" data-dir="${state.dir}" title="Ascending / descending"><svg width="11" height="16" viewBox="0 0 12 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="sd-up" d="M2 6l4-4 4 4"/><path class="sd-dn" d="M2 10l4 4 4-4"/></svg>${t("Sort")}</button>
+      ${Object.entries(SORT_LABELS).map(([k,l])=>`<button data-sort="${k}" class="${k===state.sort?'is-active':''}">${t(l)}</button>`).join("")}
+      <span class="grow"></span>
+      <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="${searchId}" type="search" placeholder="${t('Search')}" autocomplete="off" value="${state.q||''}"></label>`;
+}
+// shared: wire a sort bar's dir button + chips to a state object + rerender callback
+function wireSortBar(container, state, rerender) {
+  container.addEventListener("click", e=>{
+    const dirBtn = e.target.closest('[data-role="dir"]');
+    if (dirBtn) { state.dir = state.dir==="asc" ? "desc" : "asc"; dirBtn.dataset.dir = state.dir; rerender(); return; }
+    const b = e.target.closest("button[data-sort]"); if (!b) return;
+    state.sort = b.dataset.sort;
+    container.querySelectorAll("button[data-sort]").forEach(x=>x.classList.toggle("is-active", x===b));
+    rerender();
+  });
+}
 function renderPieceList() {
-  const { id, sort, tonality, q } = pianistState;
+  const { id, sort, tonality, q, dir } = pianistState;
   let list = piecesOf(id);
   if (tonality !== "all") list = list.filter(p => modeOf(p) === tonality);
   if (q) { const ql = q.toLowerCase();
     list = list.filter(p => p.title.toLowerCase().includes(ql) || (p.sub||"").toLowerCase().includes(ql)
       || p.key.toLowerCase().includes(ql) || (p.coll||"").toLowerCase().includes(ql)); }
-
   const wrap = document.getElementById("pieceListWrap");
-  // grouped rendering
-  let groups = [];
-  if (sort === "level") {
-    list.sort((a,b)=>a.level-b.level);
-    groups = [["", list]];
-  } else if (sort === "name") {
-    list.sort((a,b)=>pieceFullName(a).localeCompare(pieceFullName(b)));
-    groups = [["", list]];
-  } else if (sort === "year") {
-    list.sort((a,b)=>a.year-b.year);
-    groups = [["", list]];
-  } else if (sort === "length") {
-    list.sort((a,b)=>a.dur-b.dur);
-    groups = [["", list]];
-  } else if (sort === "key") {
-    list.sort((a,b)=>a.key.localeCompare(b.key));
-    const maj = list.filter(p=>modeOf(p)==="major"), min = list.filter(p=>modeOf(p)==="minor");
-    groups = [["Major keys", maj],["Minor keys", min]].filter(([,a])=>a.length);
-  } else if (sort === "coll") {
-    const colls = {};
-    list.forEach(p => { const k = p.coll || "Standalone pieces"; (colls[k] = colls[k] || []).push(p); });
-    // collections first (multi-piece sets), standalone last
-    groups = Object.entries(colls).sort((a,b)=>{
-      if (a[0]==="Standalone pieces") return 1; if (b[0]==="Standalone pieces") return -1;
-      return b[1].length - a[1].length;
-    });
-  }
   if (!list.length) { wrap.innerHTML = `<div class="empty"><div class="empty-title">Nothing in this filter</div></div>`; return; }
-  wrap.innerHTML = groups.map(([label, arr]) => {
-    const rows = pianistState.dir === "desc" ? arr.slice().reverse() : arr;
-    return `${label ? `<div class="grouphead">${label} · ${arr.length}</div>` : ""}<div class="rowlist">${rows.map((p,i)=>pieceRowWithSort(p,i,sort)).join("")}</div>`;
-  }).join("");
-  wirePieceRows(wrap);
+  renderGroups(wrap, groupPieces(list, sort), sort, dir);
 }
 function pieceRowWithSort(p, idx, sort) {
   const pct = pctOf(p.id);
@@ -2123,21 +2121,39 @@ function togglePlay(id){
 /* ================================================================
    SAVED
    ================================================================ */
+let savedState = { sort:"name", q:"", dir:"asc" };
 function renderSaved() {
   const v = document.getElementById("view-saved");
-  const list = S.saved.map(pieceById).filter(Boolean);
+  const total = S.saved.length;
   v.innerHTML = `
     <div class="appbar" style="flex-direction:column;align-items:stretch;gap:2px">
       <div class="appbar-title">${t("Playlist")}</div>
-      <div class="appbar-sub">${S.lang==='en' ? `${list.length} marked ${list.length===1?"piece":"pieces"}` : `已收藏 ${list.length} 首`}</div>
+      <div class="appbar-sub">${S.lang==='en' ? `${total} marked ${total===1?"piece":"pieces"}` : `已收藏 ${total} 首`}</div>
     </div>
-    ${list.length ? `<div class="rowlist">${list.map((p,i)=>pieceRowWithSort(p,i,'name')).join("")}</div>` :
+    ${total ? `
+      <div class="sortchips" id="savedSort">${sortBarHTML(savedState, "savedSearch")}</div>
+      <div id="savedListWrap"></div>` :
       `<div class="empty">
         <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg>
         <div class="empty-title">${t("No saved pieces yet")}</div>
         <div class="empty-sub">${t("Tap the bookmark on any piece to keep it here.")}</div>
       </div>`}`;
-  wirePieceRows(v);
+  if (total) {
+    v.querySelector("#savedSearch").addEventListener("input", e=>{ savedState.q = e.target.value.trim(); renderSavedList(); });
+    wireSortBar(v.querySelector("#savedSort"), savedState, renderSavedList);
+    renderSavedList();
+  }
+}
+function renderSavedList() {
+  const wrap = document.getElementById("savedListWrap"); if (!wrap) return;
+  let list = S.saved.map(pieceById).filter(Boolean);
+  const q = savedState.q;
+  if (q) { const ql = q.toLowerCase();
+    list = list.filter(p => p.title.toLowerCase().includes(ql) || (p.sub||"").toLowerCase().includes(ql)
+      || p.key.toLowerCase().includes(ql) || (p.coll||"").toLowerCase().includes(ql)
+      || COMPOSERS[p.c].name.toLowerCase().includes(ql)); }
+  if (!list.length) { wrap.innerHTML = `<div class="empty"><div class="empty-title">${t("No saved pieces yet")}</div></div>`; return; }
+  renderGroups(wrap, groupPieces(list, savedState.sort), savedState.sort, savedState.dir);
 }
 
 /* ================================================================
