@@ -256,8 +256,6 @@
   .sortchips .filter-count { align-self: center; }
   .sort-lead { display: inline-flex; align-items: center; gap: 6px; align-self: center; color: var(--mu-ink-3); font-size: 13px; font-weight: 500; margin-right: 2px; }
   .sort-lead svg { flex-shrink: 0; }
-  #sortChipGroup { display: contents; }
-  .chip-arw { margin-left: 5px; vertical-align: -1px; }
   .sortchips button { height: 36px; padding: 0 14px; border: 1px solid var(--mu-border); background: var(--mu-white);
     border-radius: var(--mu-radius-full); font-size: 13px; font-weight: 500; color: var(--mu-ink-2); cursor: pointer;
     transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease); }
@@ -1675,18 +1673,6 @@ function renderLibraryBody(q) {
    ================================================================ */
 const SORT_LABELS = { name:"Name", level:"Level", year:"Year", length:"Length", key:"Key", coll:"Work" };
 let pianistState = { id:null, sort:"name", tonality:"all", q:"", dir:"asc" };
-// direction arrow shown on the active sort chip (asc = up, desc = down)
-function dirArrow(dir){
-  const p = dir==="desc" ? "M3 6l4 4 4-4" : "M3 10l4-4 4 4";
-  return `<svg class="chip-arw" width="12" height="12" viewBox="0 0 14 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="${p}"/></svg>`;
-}
-// sort chips markup; active chip carries + toggles its direction arrow
-function sortChipsHTML(){
-  return Object.entries(SORT_LABELS).map(([k,l])=>{
-    const active = k===pianistState.sort;
-    return `<button data-sort="${k}" class="${active?'is-active':''}">${t(l)}${active?dirArrow(pianistState.dir):''}</button>`;
-  }).join("");
-}
 function openPianist(id) {
   pianistState = { id, sort:"name", tonality:"all", q:"", dir:"asc" };
   renderPianist(); show("pianist","library","composer/"+id);
@@ -1710,7 +1696,7 @@ function renderPianist() {
 
     <div class="sortchips" id="sortChips">
       <span class="sort-lead" aria-hidden="true"><svg width="11" height="16" viewBox="0 0 12 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l4-4 4 4"/><path d="M2 10l4 4 4-4"/></svg>${t("Sort")}</span>
-      <span id="sortChipGroup">${sortChipsHTML()}</span>
+      ${Object.entries(SORT_LABELS).map(([k,l])=>`<button data-sort="${k}" class="${k===pianistState.sort?'is-active':''}">${t(l)}</button>`).join("")}
       <span class="grow"></span>
       <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="pieceSearch" type="search" placeholder="${t('Search')}" autocomplete="off" value="${pianistState.q||''}"></label>
     </div>
@@ -1720,10 +1706,8 @@ function renderPianist() {
   v.querySelector("#pieceSearch").addEventListener("input", e=>{ pianistState.q = e.target.value.trim(); renderPieceList(); });
   v.querySelector("#sortChips").addEventListener("click", e=>{
     const b = e.target.closest("button[data-sort]"); if (!b) return;
-    const k = b.dataset.sort;
-    if (k === pianistState.sort) pianistState.dir = pianistState.dir==="asc" ? "desc" : "asc";
-    else { pianistState.sort = k; pianistState.dir = "asc"; }
-    const grp = v.querySelector("#sortChipGroup"); if (grp) grp.innerHTML = sortChipsHTML();
+    pianistState.sort = b.dataset.sort;
+    v.querySelectorAll("#sortChips button[data-sort]").forEach(x=>x.classList.toggle("is-active", x===b));
     renderPieceList();
   });
   renderPieceList();
@@ -1765,10 +1749,9 @@ function renderPieceList() {
     });
   }
   if (!list.length) { wrap.innerHTML = `<div class="empty"><div class="empty-title">Nothing in this filter</div></div>`; return; }
-  wrap.innerHTML = groups.map(([label, arr]) => {
-    const rows = pianistState.dir === "desc" ? arr.slice().reverse() : arr;
-    return `${label ? `<div class="grouphead">${label} · ${arr.length}</div>` : ""}<div class="rowlist">${rows.map((p,i)=>pieceRowWithSort(p,i,sort)).join("")}</div>`;
-  }).join("");
+  wrap.innerHTML = groups.map(([label, arr]) =>
+    `${label ? `<div class="grouphead">${label} · ${arr.length}</div>` : ""}<div class="rowlist">${arr.map((p,i)=>pieceRowWithSort(p,i,sort)).join("")}</div>`
+  ).join("");
   wirePieceRows(wrap);
 }
 function pieceRowWithSort(p, idx, sort) {
