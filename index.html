@@ -1479,7 +1479,6 @@ function renderHomeBody(q) {
             ${recent.length ? recent.map(p=>{
               const pct = pctOf(p.id);
               return `<div class="rrow" data-piece="${p.id}">
-                <div class="rthumb"></div>
                 <div class="rrow-body"><div class="rrow-title">${pieceNameHTML(p)}</div><div class="rrow-sub">${COMPOSERS[p.c].name}</div></div>
                 ${pct>0?`<span class="rrow-pct">${pct}%</span>`:""}
               </div>`;
