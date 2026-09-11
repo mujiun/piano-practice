@@ -521,8 +521,8 @@
   .tabbtn.is-active { color: var(--mu-ink); }
   .tabbtn.is-active svg { stroke-width: 2.2; }
 
-  .fade { animation: fade .2s var(--mu-ease); }
-  @keyframes fade { from { opacity: 0.55; } to { opacity: 1; } }
+  /* smooth page crossfade (View Transitions API) */
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; animation-timing-function: var(--mu-ease); }
 
   /* ---- dark mode (score sheet stays white) ---- */
   html[data-theme="dark"] {
@@ -1348,18 +1348,22 @@ function levelLabel(l) {
    ================================================================ */
 let rootTab = "home";
 function show(view, root, hash) {
-  document.querySelectorAll(".view").forEach(v => v.classList.remove("is-active"));
-  const el = document.getElementById("view-" + view);
-  el.classList.add("is-active", "fade");
-  setTimeout(() => el.classList.remove("fade"), 300);
-  document.getElementById("screen").scrollTop = 0;
-  document.body.classList.remove("fs-active");   // clear enlarge overlay on navigate
-  const tb = document.getElementById("tabbar");
-  if (tb) tb.style.display = (view === "sheet") ? "none" : "";   // focused reading view
-  if (root) {
-    rootTab = root;
-    document.querySelectorAll(".tabbtn").forEach(b => b.classList.toggle("is-active", b.dataset.tab === root));
-  }
+  const apply = () => {
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("is-active"));
+    const el = document.getElementById("view-" + view);
+    el.classList.add("is-active");
+    document.getElementById("screen").scrollTop = 0;
+    document.body.classList.remove("fs-active");   // clear enlarge overlay on navigate
+    const tb = document.getElementById("tabbar");
+    if (tb) tb.style.display = (view === "sheet") ? "none" : "";   // focused reading view
+    if (root) {
+      rootTab = root;
+      document.querySelectorAll(".tabbtn").forEach(b => b.classList.toggle("is-active", b.dataset.tab === root));
+    }
+  };
+  // smooth crossfade between pages where supported; instant otherwise
+  if (document.startViewTransition) document.startViewTransition(apply);
+  else apply();
   if (hash !== null) setHash(hash === undefined ? view : hash);
 }
 
