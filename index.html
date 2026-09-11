@@ -1119,7 +1119,7 @@ const TL = {
   "zh-Hant": {
     "Home":"首頁","Library":"曲庫","Save":"收藏","Profile":"個人檔案",
     "Your recent play":"最近彈奏","Your practice":"練習概況","Practiced in 2026":"2026 年練習","days":"天",
-    "Music calendar":"音樂日曆","Jump into the library":"進入曲庫","See all":"查看全部","Nothing played yet.":"尚無彈奏紀錄",
+    "On this day":"歷史上的今天","View composer":"查看作曲家","Jump into the library":"進入曲庫","See all":"查看全部","Nothing played yet.":"尚無彈奏紀錄",
     "Search":"搜尋","Composers":"作曲家","Pieces":"樂曲","pieces":"首","piece":"首",
     "Saved":"已收藏","No saved pieces yet":"尚未收藏樂曲","Tap the bookmark on any piece to keep it here.":"點擊任一樂曲的書籤即可收藏。",
     "In progress":"進行中","Settings":"設定","Dark mode":"深色模式","Language":"語言","Advanced pianist":"進階鋼琴家",
@@ -1131,7 +1131,7 @@ const TL = {
   "zh-Hans": {
     "Home":"首页","Library":"曲库","Save":"收藏","Profile":"个人资料",
     "Your recent play":"最近弹奏","Your practice":"练习概况","Practiced in 2026":"2026 年练习","days":"天",
-    "Music calendar":"音乐日历","Jump into the library":"进入曲库","See all":"查看全部","Nothing played yet.":"尚无弹奏记录",
+    "On this day":"历史上的今天","View composer":"查看作曲家","Jump into the library":"进入曲库","See all":"查看全部","Nothing played yet.":"尚无弹奏记录",
     "Search":"搜索","Composers":"作曲家","Pieces":"乐曲","pieces":"首","piece":"首",
     "Saved":"已收藏","No saved pieces yet":"尚未收藏乐曲","Tap the bookmark on any piece to keep it here.":"点击任一乐曲的书签即可收藏。",
     "In progress":"进行中","Settings":"设置","Dark mode":"深色模式","Language":"语言","Advanced pianist":"进阶钢琴家",
@@ -1560,7 +1560,7 @@ function renderHomeBody(q) {
             <div class="side-stat"><div class="side-num">8 ${t("days")}</div><div class="side-lbl">${t("Practiced in 2026")}</div></div>
           </div>
         </div>
-        <div class="home-block-title" style="margin-top:20px">${t("Music calendar")}</div>
+        <div class="home-block-title" style="margin-top:20px">${t("On this day")}</div>
         <div class="home-card home-cal">
           <div class="cal-date-big">${today.dateLabel}</div>
           <div class="cal-events">
@@ -1571,7 +1571,7 @@ function renderHomeBody(q) {
                 <div class="cal-event-text">
                   <div class="cal-eyebrow">${by}${ev.year?" • "+ev.year:""}</div>
                   <div class="cal-title">${ev.title}</div>
-                  <div class="cal-sub">${ev.text} ${ev.composer?`<a class="cal-link" data-composer="${ev.composer}">View the piece →</a>`:""}</div>
+                  <div class="cal-sub">${ev.text} ${ev.composer?`<a class="cal-link" data-composer="${ev.composer}">${t("View composer")} →</a>`:""}</div>
                 </div>
               </div>`;
             }).join("")}
