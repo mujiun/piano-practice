@@ -1466,7 +1466,7 @@ function renderHomeBody(q) {
 
   // Recent + practice stats + calendar — 2-column layout
   // Prototype: "recent play" = pieces whose page you stayed on >2 min. Hardcoded for the demo.
-  const recent = ["rav-menuet-haydn","cho-pre284"].map(pieceById).filter(Boolean);
+  const recent = ["rav-menuet-haydn","cho-pre284","rav-mamere-4"].map(pieceById).filter(Boolean);
   const totalSec = Object.values(S.practiceSec).reduce((a,b)=>a+b,0);
   const played = new Set([...Object.keys(S.practiceSec).filter(k=>S.practiceSec[k]>0), ...S.recent]).size;
   const today = todayCalendar();
