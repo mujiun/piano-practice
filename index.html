@@ -246,7 +246,7 @@
   .filter-count { font-family: var(--mu-mono); font-size: 12px; font-weight: 600; letter-spacing: .04em;
     text-transform: uppercase; color: var(--mu-gray-400); }
   /* upfront sort chips */
-  .sortchips { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 16px 0 6px; }
+  .sortchips { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 28px 0 6px; }
   .sortchips .grow { flex: 1; }
   .psearch { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; min-width: 160px;
     border: 1px solid var(--mu-border); border-radius: var(--mu-radius-full); background: var(--mu-white); }
@@ -255,7 +255,8 @@
   .psearch-ic svg { width: 16px; height: 16px; }
   .psearch input { border: none; background: transparent; outline: none; font-size: 13px; color: var(--mu-ink); width: 130px; }
   .sortchips .filter-count { align-self: center; }
-  .sort-ic { display: inline-flex; align-items: center; align-self: center; color: var(--mu-ink-3); margin-right: 2px; }
+  .sort-ic { display: inline-flex; align-items: center; justify-content: center; align-self: center; color: var(--mu-ink-2); margin-right: 2px; height: 36px; width: 34px; border: 0; background: transparent; border-radius: var(--mu-radius-md); cursor: pointer; }
+  .sort-ic:hover { background: var(--mu-gray-100); }
   .sortchips button { height: 36px; padding: 0 14px; border: 1px solid var(--mu-border); background: var(--mu-white);
     border-radius: var(--mu-radius-full); font-size: 13px; font-weight: 500; color: var(--mu-ink-2); cursor: pointer;
     transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease); }
@@ -1668,9 +1669,15 @@ function renderLibraryBody(q) {
    PIANIST detail — with filter/sort
    ================================================================ */
 const SORT_LABELS = { name:"Name", level:"Level", year:"Year", length:"Length", key:"Key", coll:"Work" };
-let pianistState = { id:null, sort:"name", tonality:"all", q:"" };
+let pianistState = { id:null, sort:"name", tonality:"all", q:"", dir:"asc" };
+// ascending vs descending sort icon (arrow + magnitude lines)
+function sortIconSVG(dir){
+  return dir==="desc"
+    ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M11 4h10"/><path d="M11 8h7"/><path d="M11 12h4"/></svg>`
+    : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/><path d="M11 12h4"/><path d="M11 16h7"/><path d="M11 20h10"/></svg>`;
+}
 function openPianist(id) {
-  pianistState = { id, sort:"name", tonality:"all", q:"" };
+  pianistState = { id, sort:"name", tonality:"all", q:"", dir:"asc" };
   renderPianist(); show("pianist","library","composer/"+id);
 }
 function renderPianist() {
@@ -1685,13 +1692,13 @@ function renderPianist() {
     <div class="phero">
       <div class="cav cav-photo"><img src="images/composers/${id}.jpg" alt="${c.name}"></div>
       <div class="phero-txt">
-        <div class="phero-head"><span class="phero-name">${cName(id)}</span><span class="phero-era">${c.era} · ${S.lang==='en' ? piecesOf(id).length+' pieces available' : (S.lang==='zh-Hans'?'收录 ':'收錄 ')+piecesOf(id).length+' 首'}</span></div>
+        <div class="phero-head"><span class="phero-name">${cName(id)}</span><span class="phero-era">${c.era}</span></div>
         <div class="phero-bio">${c.bio}</div>
       </div>
     </div>
 
     <div class="sortchips" id="sortChips">
-      <span class="sort-ic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/></svg></span>
+      <button class="sort-ic" id="sortDir" title="Reverse order" aria-label="Reverse order">${sortIconSVG(pianistState.dir)}</button>
       ${Object.entries(SORT_LABELS).map(([k,l])=>`<button data-sort="${k}" class="${k===pianistState.sort?'is-active':''}">${t(l)}</button>`).join("")}
       <span class="grow"></span>
       <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="pieceSearch" type="search" placeholder="${t('Search')}" autocomplete="off" value="${pianistState.q||''}"></label>
@@ -1701,9 +1708,19 @@ function renderPianist() {
   v.querySelector("#pBack").addEventListener("click", ()=>{ renderLibrary(); show("library","library"); });
   v.querySelector("#pieceSearch").addEventListener("input", e=>{ pianistState.q = e.target.value.trim(); renderPieceList(); });
   v.querySelector("#sortChips").addEventListener("click", e=>{
+    const dirBtn = e.target.closest("#sortDir");
+    if (dirBtn) {
+      pianistState.dir = pianistState.dir==="asc" ? "desc" : "asc";
+      dirBtn.innerHTML = sortIconSVG(pianistState.dir);
+      dirBtn.title = pianistState.dir==="asc" ? "Sort ascending" : "Sort descending";
+      renderPieceList();
+      return;
+    }
     const b = e.target.closest("button[data-sort]"); if (!b) return;
     pianistState.sort = b.dataset.sort;
-    v.querySelectorAll("#sortChips button").forEach(x=>x.classList.toggle("is-active", x===b));
+    pianistState.dir = "asc";
+    const sd = v.querySelector("#sortDir"); if (sd) sd.innerHTML = sortIconSVG("asc");
+    v.querySelectorAll("#sortChips button[data-sort]").forEach(x=>x.classList.toggle("is-active", x===b));
     renderPieceList();
   });
   renderPieceList();
@@ -1745,9 +1762,10 @@ function renderPieceList() {
     });
   }
   if (!list.length) { wrap.innerHTML = `<div class="empty"><div class="empty-title">Nothing in this filter</div></div>`; return; }
-  wrap.innerHTML = groups.map(([label, arr]) =>
-    `${label ? `<div class="grouphead">${label} · ${arr.length}</div>` : ""}<div class="rowlist">${arr.map((p,i)=>pieceRowWithSort(p,i,sort)).join("")}</div>`
-  ).join("");
+  wrap.innerHTML = groups.map(([label, arr]) => {
+    const rows = pianistState.dir === "desc" ? arr.slice().reverse() : arr;
+    return `${label ? `<div class="grouphead">${label} · ${arr.length}</div>` : ""}<div class="rowlist">${rows.map((p,i)=>pieceRowWithSort(p,i,sort)).join("")}</div>`;
+  }).join("");
   wirePieceRows(wrap);
 }
 function pieceRowWithSort(p, idx, sort) {
