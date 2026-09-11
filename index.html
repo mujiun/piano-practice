@@ -1662,7 +1662,7 @@ function renderPieceList() {
     groups = [["", list]];
   } else if (sort === "year") {
     list.sort((a,b)=>a.year-b.year);
-    groups = [["By year written", list]];
+    groups = [["", list]];
   } else if (sort === "length") {
     list.sort((a,b)=>a.dur-b.dur);
     const short = list.filter(p=>p.dur<3), mid = list.filter(p=>p.dur>=3&&p.dur<5), long = list.filter(p=>p.dur>=5);
