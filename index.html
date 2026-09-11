@@ -482,6 +482,9 @@
   .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 6px; }
   .stat { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-md); padding: 16px 14px; text-align: center; }
   .stat-num { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2em; font-variant-numeric: tabular-nums; }
+  .segtoggle { display: inline-flex; gap: 2px; padding: 2px; background: var(--mu-gray-100); border-radius: var(--mu-radius-full); margin-left: auto; }
+  .segtoggle button { border: 0; background: transparent; font: inherit; font-size: 13px; font-weight: 600; color: var(--mu-ink-3); padding: 6px 16px; border-radius: var(--mu-radius-full); cursor: pointer; }
+  .segtoggle button.is-active { background: var(--mu-white); color: var(--mu-ink); box-shadow: var(--mu-shadow-sm); }
   .stat-lbl { font-size: 12px; color: var(--mu-ink-3); }
   .settrow { display: flex; align-items: center; gap: 12px; padding: 15px 4px; border-bottom: 1px solid var(--mu-gray-100); }
   .settrow-ic { width: 34px; height: 34px; border-radius: 9px; background: var(--mu-gray-100); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -2094,7 +2097,12 @@ function renderProfile() {
 
     <div class="sec">
       <div class="sec-head"><div class="sec-title">Settings</div></div>
-      <div class="settrow" id="themeRow" style="cursor:pointer"><div class="settrow-ic">${IC.moon}</div><div class="settrow-txt">Appearance</div><div class="settrow-val" id="themeVal">${S.theme==="dark"?"Dark":"Light"} ›</div></div>
+      <div class="settrow"><div class="settrow-ic">${IC.moon}</div><div class="settrow-txt">Appearance</div>
+        <div class="segtoggle" id="themeToggle">
+          <button data-theme-set="light" class="${S.theme!=='dark'?'is-active':''}">Light</button>
+          <button data-theme-set="dark" class="${S.theme==='dark'?'is-active':''}">Dark</button>
+        </div>
+      </div>
       <label class="settrow" style="cursor:pointer;position:relative">
         <div class="settrow-ic">${IC.globe}</div><div class="settrow-txt">Language</div>
         <div class="settrow-val" id="langVal">${LANGS[S.lang]||"English"} ›</div>
@@ -2105,9 +2113,10 @@ function renderProfile() {
       <div class="settrow" id="resetRow" style="cursor:pointer"><div class="settrow-ic">↺</div><div class="settrow-txt">Reset practice data</div><div class="settrow-val">›</div></div>
     </div>`;
   wirePieceRows(v);
-  v.querySelector("#themeRow").addEventListener("click", ()=>{
-    S.theme = S.theme==="dark" ? "light" : "dark"; save(); applyTheme();
-    v.querySelector("#themeVal").textContent = (S.theme==="dark"?"Dark":"Light") + " ›";
+  v.querySelector("#themeToggle").addEventListener("click", e=>{
+    const b = e.target.closest("button[data-theme-set]"); if(!b) return;
+    S.theme = b.dataset.themeSet; save(); applyTheme();
+    v.querySelectorAll("#themeToggle button").forEach(x=>x.classList.toggle("is-active", x.dataset.themeSet===S.theme));
   });
   const langSel = v.querySelector("#langSel");
   langSel.addEventListener("change", ()=>{
