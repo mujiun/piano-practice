@@ -1699,7 +1699,7 @@ function pieceRowWithSort(p, idx, sort) {
       <div class="prow-meta"><span>Lv ${p.level}</span><span class="dot-sep">${p.year}</span><span class="dot-sep">${fmtDur(p.dur)}</span><span class="dot-sep">${p.key}</span></div>
     </div>
     <div class="prow-right">
-      ${sort==='coll'?"":`<span class="lvpill">${tag}</span>`}
+      ${(sort==='coll'||sort==='name')?"":`<span class="lvpill">${tag}</span>`}
       ${pct>0?`<span class="prow-pct">${pct}%</span>`:""}
     </div>
   </div>`;
