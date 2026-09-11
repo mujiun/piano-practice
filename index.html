@@ -180,7 +180,7 @@
   .prow-body { flex: 1; min-width: 0; }
   .prow-title { font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pn-dim { color: var(--mu-ink-3); font-weight: 500; }
-  .prow-title .pn-dim { font-weight: inherit; } /* rows: numbers grey but same 600 weight */
+  .prow-title .pn-dim, .rrow-title .pn-dim { font-weight: inherit; } /* rows: grey but same 600 weight */
   .prow-meta { font-size: 12.5px; color: var(--mu-ink-3); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; }
   .prow-meta .dot-sep::before { content: "·"; margin-right: 8px; }
   .prow-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
@@ -1480,7 +1480,7 @@ function renderHomeBody(q) {
               const pct = pctOf(p.id);
               return `<div class="rrow" data-piece="${p.id}">
                 <div class="rthumb"></div>
-                <div class="rrow-body"><div class="rrow-title">${pieceRowNameHTML(p)}</div><div class="rrow-sub">${COMPOSERS[p.c].name}</div></div>
+                <div class="rrow-body"><div class="rrow-title">${pieceNameHTML(p)}</div><div class="rrow-sub">${COMPOSERS[p.c].name}</div></div>
                 ${pct>0?`<span class="rrow-pct">${pct}%</span>`:""}
               </div>`;
             }).join("") : `<div class="empty-sub" style="padding:8px 2px">Nothing played yet.</div>`}
