@@ -194,7 +194,7 @@
     transition: box-shadow var(--mu-slow) var(--mu-ease), transform var(--mu-slow) var(--mu-ease);
     background: var(--mu-white);
   }
-  .ccard:hover { box-shadow: var(--mu-shadow-md); transform: translateY(-2px); }
+  .ccard:hover { box-shadow: var(--mu-shadow-md); }
   .cav {
     width: 52px; height: 52px; border-radius: 50%;
     display: inline-flex; align-items: center; justify-content: center;
@@ -1369,6 +1369,21 @@ function ringSVG(pct) {
   </svg>`;
 }
 
+/* --- piece naming: compose the concert-standard form from coll + title --- */
+function romanize(n){const t=[["X",10],["IX",9],["V",5],["IV",4],["I",1]];let r="";for(const[s,v]of t)while(n>=v){r+=s;n-=v;}return r;}
+function catFix(s){return s.replace(/\b([A-Za-z]{1,3})\.(?=\d)/g,"$1. ");} // M.68 → M. 68, K.545 → K. 545
+function movNo(p){const m=(p.sub||"").match(/No\.\s*(\d+)|\/(\d+)/);return m?+(m[1]||m[2]):0;}
+function isMovement(p){return !!p.coll && movNo(p)>0;}
+// short form for rows already grouped under their work header, e.g. "I. Prélude"
+function movementLabel(p){return isMovement(p)?`${romanize(movNo(p))}. ${p.title}`:p.title;}
+// full concert form, e.g. "Le tombeau de Couperin, M. 68: I. Prélude"
+function pieceFullName(p){
+  if(isMovement(p)) return `${catFix(p.coll)}: ${romanize(movNo(p))}. ${p.title}`;
+  if(p.coll && p.coll!==p.title) return `${catFix(p.coll)}: ${p.title}`;
+  if(p.sub && /^[A-Za-z]{1,4}\.?\s*\d/.test(p.sub) && !/·|No\./.test(p.sub)) return `${p.title}, ${catFix(p.sub)}`;
+  return p.title;
+}
+
 /* piece row markup */
 function pieceRow(p, idx, opts={}) {
   const pct = pctOf(p.id);
@@ -1376,7 +1391,7 @@ function pieceRow(p, idx, opts={}) {
   return `<div class="prow" data-piece="${p.id}">
     ${opts.num ? `<div class="prow-num">${idx+1}</div>` : ""}
     <div class="prow-body">
-      <div class="prow-title">${p.title}${p.sub?` <span style="color:var(--mu-ink-3);font-weight:500">· ${p.sub}</span>`:""}</div>
+      <div class="prow-title">${pieceFullName(p)}</div>
       <div class="prow-meta">${meta.map((m,i)=>`<span class="${i?'dot-sep':''}">${m}</span>`).join("")}</div>
     </div>
     <div class="prow-right">
@@ -1432,7 +1447,7 @@ function renderHomeBody(q) {
               const pct = pctOf(p.id);
               return `<div class="rrow" data-piece="${p.id}">
                 <div class="rthumb"></div>
-                <div class="rrow-body"><div class="rrow-title">${p.title}</div><div class="rrow-sub">${COMPOSERS[p.c].name}</div></div>
+                <div class="rrow-body"><div class="rrow-title">${pieceFullName(p)}</div><div class="rrow-sub">${COMPOSERS[p.c].name}</div></div>
                 ${pct>0?`<span class="rrow-pct">${pct}%</span>`:""}
               </div>`;
             }).join("") : `<div class="empty-sub" style="padding:8px 2px">Nothing played yet.</div>`}
@@ -1554,7 +1569,7 @@ function renderLibraryBody(q) {
 /* ================================================================
    PIANIST detail — with filter/sort
    ================================================================ */
-const SORT_LABELS = { level:"Level", year:"Year", length:"Length", key:"Key", coll:"Collection" };
+const SORT_LABELS = { level:"Level", name:"Name (A to Z)", year:"Year", length:"Length", key:"Key", coll:"Collection" };
 let pianistState = { id:null, sort:"level", tonality:"all", q:"" };
 function openPianist(id) {
   pianistState = { id, sort:"level", tonality:"all", q:"" };
@@ -1609,6 +1624,9 @@ function renderPieceList() {
   if (sort === "level") {
     list.sort((a,b)=>a.level-b.level);
     groups = [["", list]];
+  } else if (sort === "name") {
+    list.sort((a,b)=>pieceFullName(a).localeCompare(pieceFullName(b)));
+    groups = [["", list]];
   } else if (sort === "year") {
     list.sort((a,b)=>a.year-b.year);
     groups = [["By year written", list]];
@@ -1644,7 +1662,7 @@ function pieceRowWithSort(p, idx, sort) {
   else extra = "Lv " + p.level;   // level & collection
   return `<div class="prow" data-piece="${p.id}">
     <div class="prow-body">
-      <div class="prow-title">${p.title}${p.sub?` <span style="color:var(--mu-ink-3);font-weight:500">· ${p.sub}</span>`:""}</div>
+      <div class="prow-title">${sort==='coll'?movementLabel(p):pieceFullName(p)}</div>
       <div class="prow-meta"><span>${p.key}</span><span class="dot-sep">${fmtDur(p.dur)}</span><span class="dot-sep">${p.year}</span></div>
     </div>
     <div class="prow-right">
@@ -1699,7 +1717,7 @@ function renderSheet() {
 
     <div class="sheet-hero">
       <div class="sheet-eyebrow">${c.name}</div>
-      <div class="sheet-title">${p.title}${p.sub ? ` <span class="sheet-sub">${p.sub}</span>` : ""}</div>
+      <div class="sheet-title">${pieceFullName(p)}</div>
       <div class="sheet-meta">
         <span><b>Lv ${p.level}</b> · ${levelLabel(p.level)}</span>
         <span>${p.year}</span>
