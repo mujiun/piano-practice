@@ -1741,8 +1741,7 @@ function renderSheet() {
 
     <div class="sheet-hero">
       <div class="sheet-eyebrow">${c.name}</div>
-      <div class="sheet-title">${isMovement(p)?movementLabelHTML(p):p.title}</div>
-      ${pieceWorkLine(p) && pieceWorkLine(p)!==p.title ? `<div class="sheet-work">${pieceWorkLine(p)}</div>` : ""}
+      <div class="sheet-title">${pieceNameHTML(p)}</div>
       <div class="sheet-meta">
         <span><b>Lv ${p.level}</b> · ${levelLabel(p.level)}</span>
         <span>${p.year}</span>
