@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Piano Practice</title>
 <link rel="stylesheet" href="mu-system/mu.css">
 <script src="vendor/opensheetmusicdisplay.min.js"></script>
@@ -37,7 +37,7 @@
   }
 
   /* ---- screen scroll area ---- */
-  .screen { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .screen { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-top: env(safe-area-inset-top); }
   .screen::-webkit-scrollbar { width: 0; }
   .view { display: none; padding: 0 28px 120px; }
   .view.is-active { display: block; }
@@ -255,8 +255,12 @@
   .psearch-ic svg { width: 16px; height: 16px; }
   .psearch input { border: none; background: transparent; outline: none; font-size: 13px; color: var(--mu-ink); width: 130px; }
   .sortchips .filter-count { align-self: center; }
-  .sort-ic { display: inline-flex; align-items: center; justify-content: center; align-self: center; color: var(--mu-ink-2); margin-right: 2px; height: 36px; width: 34px; border: 0; background: transparent; border-radius: var(--mu-radius-md); cursor: pointer; }
-  .sort-ic:hover { background: var(--mu-gray-100); }
+  .sort-ic { display: inline-flex; align-items: center; gap: 6px; align-self: center; color: var(--mu-ink-2); height: 36px; padding: 0 12px; border: 1px solid var(--mu-border); background: var(--mu-white); border-radius: var(--mu-radius-full); cursor: pointer; font-size: 13px; font-weight: 500; }
+  .sort-ic:hover { border-color: var(--mu-gray-400); }
+  .sort-ic svg { flex-shrink: 0; }
+  .sort-ic .sd-up, .sort-ic .sd-dn { stroke: var(--mu-gray-400); }
+  .sort-ic[data-dir="asc"] .sd-up { stroke: var(--mu-ink); }
+  .sort-ic[data-dir="desc"] .sd-dn { stroke: var(--mu-ink); }
   .sortchips button { height: 36px; padding: 0 14px; border: 1px solid var(--mu-border); background: var(--mu-white);
     border-radius: var(--mu-radius-full); font-size: 13px; font-weight: 500; color: var(--mu-ink-2); cursor: pointer;
     transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease); }
@@ -520,8 +524,8 @@
   .tabbtn.is-active { color: var(--mu-ink); }
   .tabbtn.is-active svg { stroke-width: 2.2; }
 
-  .fade { animation: fade .28s var(--mu-ease); }
-  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .fade { animation: fade .2s var(--mu-ease); }
+  @keyframes fade { from { opacity: 0.55; } to { opacity: 1; } }
 
   /* ---- dark mode (score sheet stays white) ---- */
   html[data-theme="dark"] {
@@ -1121,7 +1125,7 @@ const TL = {
   "zh-Hant": {
     "Home":"首頁","Library":"曲庫","Playlist":"播放清單","Profile":"個人檔案",
     "Your playlist":"我的播放清單","Your practice":"練習概況","Practiced in 2026":"2026 年練習","days":"天",
-    "On this day":"歷史上的今天","View composer":"查看作曲家","Jump into the library":"進入曲庫","See all":"查看全部","Nothing played yet.":"尚無彈奏紀錄",
+    "On this day":"歷史上的今天","View composer":"查看作曲家","Sort":"排序","Jump into the library":"進入曲庫","See all":"查看全部","Nothing played yet.":"尚無彈奏紀錄",
     "Search":"搜尋","Composers":"作曲家","Pieces":"樂曲","pieces":"首","piece":"首",
     "Saved":"已收藏","No saved pieces yet":"尚未收藏樂曲","Tap the bookmark on any piece to keep it here.":"點擊任一樂曲的書籤即可收藏。",
     "In progress":"進行中","Settings":"設定","Dark mode":"深色模式","Language":"語言","Advanced pianist":"進階鋼琴家",
@@ -1133,7 +1137,7 @@ const TL = {
   "zh-Hans": {
     "Home":"首页","Library":"曲库","Playlist":"播放列表","Profile":"个人资料",
     "Your playlist":"我的播放列表","Your practice":"练习概况","Practiced in 2026":"2026 年练习","days":"天",
-    "On this day":"历史上的今天","View composer":"查看作曲家","Jump into the library":"进入曲库","See all":"查看全部","Nothing played yet.":"尚无弹奏记录",
+    "On this day":"历史上的今天","View composer":"查看作曲家","Sort":"排序","Jump into the library":"进入曲库","See all":"查看全部","Nothing played yet.":"尚无弹奏记录",
     "Search":"搜索","Composers":"作曲家","Pieces":"乐曲","pieces":"首","piece":"首",
     "Saved":"已收藏","No saved pieces yet":"尚未收藏乐曲","Tap the bookmark on any piece to keep it here.":"点击任一乐曲的书签即可收藏。",
     "In progress":"进行中","Settings":"设置","Dark mode":"深色模式","Language":"语言","Advanced pianist":"进阶钢琴家",
@@ -1698,7 +1702,7 @@ function renderPianist() {
     </div>
 
     <div class="sortchips" id="sortChips">
-      <button class="sort-ic" id="sortDir" title="Reverse order" aria-label="Reverse order">${sortIconSVG(pianistState.dir)}</button>
+      <button class="sort-ic" id="sortDir" data-dir="${pianistState.dir}" title="Reverse order" aria-label="Reverse order"><svg class="sd-arrows" width="11" height="16" viewBox="0 0 12 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="sd-up" d="M2 6l4-4 4 4"/><path class="sd-dn" d="M2 10l4 4 4-4"/></svg><span>${t("Sort")}</span></button>
       ${Object.entries(SORT_LABELS).map(([k,l])=>`<button data-sort="${k}" class="${k===pianistState.sort?'is-active':''}">${t(l)}</button>`).join("")}
       <span class="grow"></span>
       <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="pieceSearch" type="search" placeholder="${t('Search')}" autocomplete="off" value="${pianistState.q||''}"></label>
@@ -1711,7 +1715,7 @@ function renderPianist() {
     const dirBtn = e.target.closest("#sortDir");
     if (dirBtn) {
       pianistState.dir = pianistState.dir==="asc" ? "desc" : "asc";
-      dirBtn.innerHTML = sortIconSVG(pianistState.dir);
+      dirBtn.dataset.dir = pianistState.dir;
       dirBtn.title = pianistState.dir==="asc" ? "Sort ascending" : "Sort descending";
       renderPieceList();
       return;
@@ -1719,7 +1723,7 @@ function renderPianist() {
     const b = e.target.closest("button[data-sort]"); if (!b) return;
     pianistState.sort = b.dataset.sort;
     pianistState.dir = "asc";
-    const sd = v.querySelector("#sortDir"); if (sd) sd.innerHTML = sortIconSVG("asc");
+    const sd = v.querySelector("#sortDir"); if (sd) sd.dataset.dir = "asc";
     v.querySelectorAll("#sortChips button[data-sort]").forEach(x=>x.classList.toggle("is-active", x===b));
     renderPieceList();
   });
