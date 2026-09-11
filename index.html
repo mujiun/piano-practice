@@ -254,8 +254,12 @@
   .psearch-ic svg { width: 16px; height: 16px; }
   .psearch input { border: none; background: transparent; outline: none; font-size: 13px; color: var(--mu-ink); width: 130px; }
   .sortchips .filter-count { align-self: center; }
-  .sort-lead { display: inline-flex; align-items: center; gap: 6px; align-self: center; color: var(--mu-ink-3); font-size: 13px; font-weight: 500; margin-right: 2px; }
+  .sort-lead { display: inline-flex; align-items: center; gap: 6px; align-self: center; height: 36px; padding: 0 12px; border: 1px solid var(--mu-border); background: var(--mu-white); border-radius: var(--mu-radius-full); cursor: pointer; color: var(--mu-ink-2); font-size: 13px; font-weight: 500; margin-right: 2px; }
+  .sort-lead:hover { border-color: var(--mu-gray-400); }
   .sort-lead svg { flex-shrink: 0; }
+  .sort-lead .sd-up, .sort-lead .sd-dn { stroke: var(--mu-gray-400); }
+  .sort-lead[data-dir="asc"] .sd-up { stroke: var(--mu-ink); }
+  .sort-lead[data-dir="desc"] .sd-dn { stroke: var(--mu-ink); }
   .sortchips button { height: 36px; padding: 0 14px; border: 1px solid var(--mu-border); background: var(--mu-white);
     border-radius: var(--mu-radius-full); font-size: 13px; font-weight: 500; color: var(--mu-ink-2); cursor: pointer;
     transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease); }
@@ -1695,7 +1699,7 @@ function renderPianist() {
     </div>
 
     <div class="sortchips" id="sortChips">
-      <span class="sort-lead" aria-hidden="true"><svg width="11" height="16" viewBox="0 0 12 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l4-4 4 4"/><path d="M2 10l4 4 4-4"/></svg>${t("Sort")}</span>
+      <button class="sort-lead" id="sortDir" data-dir="${pianistState.dir}" title="Ascending / descending"><svg width="11" height="16" viewBox="0 0 12 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="sd-up" d="M2 6l4-4 4 4"/><path class="sd-dn" d="M2 10l4 4 4-4"/></svg>${t("Sort")}</button>
       ${Object.entries(SORT_LABELS).map(([k,l])=>`<button data-sort="${k}" class="${k===pianistState.sort?'is-active':''}">${t(l)}</button>`).join("")}
       <span class="grow"></span>
       <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="pieceSearch" type="search" placeholder="${t('Search')}" autocomplete="off" value="${pianistState.q||''}"></label>
@@ -1705,6 +1709,13 @@ function renderPianist() {
   v.querySelector("#pBack").addEventListener("click", ()=>{ renderLibrary(); show("library","library"); });
   v.querySelector("#pieceSearch").addEventListener("input", e=>{ pianistState.q = e.target.value.trim(); renderPieceList(); });
   v.querySelector("#sortChips").addEventListener("click", e=>{
+    const dirBtn = e.target.closest("#sortDir");
+    if (dirBtn) {
+      pianistState.dir = pianistState.dir==="asc" ? "desc" : "asc";
+      dirBtn.dataset.dir = pianistState.dir;
+      renderPieceList();
+      return;
+    }
     const b = e.target.closest("button[data-sort]"); if (!b) return;
     pianistState.sort = b.dataset.sort;
     v.querySelectorAll("#sortChips button[data-sort]").forEach(x=>x.classList.toggle("is-active", x===b));
@@ -1749,9 +1760,10 @@ function renderPieceList() {
     });
   }
   if (!list.length) { wrap.innerHTML = `<div class="empty"><div class="empty-title">Nothing in this filter</div></div>`; return; }
-  wrap.innerHTML = groups.map(([label, arr]) =>
-    `${label ? `<div class="grouphead">${label} · ${arr.length}</div>` : ""}<div class="rowlist">${arr.map((p,i)=>pieceRowWithSort(p,i,sort)).join("")}</div>`
-  ).join("");
+  wrap.innerHTML = groups.map(([label, arr]) => {
+    const rows = pianistState.dir === "desc" ? arr.slice().reverse() : arr;
+    return `${label ? `<div class="grouphead">${label} · ${arr.length}</div>` : ""}<div class="rowlist">${rows.map((p,i)=>pieceRowWithSort(p,i,sort)).join("")}</div>`;
+  }).join("");
   wirePieceRows(wrap);
 }
 function pieceRowWithSort(p, idx, sort) {
