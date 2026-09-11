@@ -1391,9 +1391,9 @@ function pieceFullName(p){
 function splitColl(coll){const m=coll.match(/^(.*?),\s*([A-Za-z]{0,4}\.?\s*\d.*)$/);return m?[m[1],catFix(m[2])]:[coll,""];}
 function _dim(s){return `<span class="pn-dim">${s}</span>`;}
 function pieceNameHTML(p){
-  if(isMovement(p)){const[w,cat]=splitColl(p.coll);return `${w}${cat?_dim(`, ${cat}`):""} • ${_dim(`${romanize(movNo(p))}.`)} ${p.title}`;}
-  if(p.coll && p.coll!==p.title){const[w,cat]=splitColl(p.coll);return `${w}${cat?_dim(`, ${cat}`):""} • ${p.title}`;}
-  if(p.sub && /^[A-Za-z]{1,4}\.?\s*\d/.test(p.sub) && !/·|No\./.test(p.sub)) return `${p.title}${_dim(`, ${catFix(p.sub)}`)}`;
+  if(isMovement(p)){const[w,cat]=splitColl(p.coll);return `${w}${cat?`, ${cat}`:""} • ${_dim(`${romanize(movNo(p))}. ${p.title}`)}`;}
+  if(p.coll && p.coll!==p.title){const[w,cat]=splitColl(p.coll);return `${w}${cat?`, ${cat}`:""} • ${_dim(p.title)}`;}
+  if(p.sub && /^[A-Za-z]{1,4}\.?\s*\d/.test(p.sub) && !/·|No\./.test(p.sub)) return `${p.title}, ${catFix(p.sub)}`;
   return p.title;
 }
 function movementLabelHTML(p){return isMovement(p)?`${_dim(`${romanize(movNo(p))}.`)} ${p.title}`:p.title;}
