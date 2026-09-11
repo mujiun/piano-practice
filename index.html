@@ -1688,12 +1688,19 @@ function renderPieceList() {
 }
 function pieceRowWithSort(p, idx, sort) {
   const pct = pctOf(p.id);
+  // right-side tag reflects the current sort dimension
+  let tag;
+  if (sort === "year") tag = p.year;
+  else if (sort === "length") tag = fmtDur(p.dur);
+  else if (sort === "key") tag = p.key;
+  else tag = "Lv " + p.level;   // name, level, coll
   return `<div class="prow" data-piece="${p.id}">
     <div class="prow-body">
       <div class="prow-title">${sort==='coll'?movementLabelHTML(p):pieceNameHTML(p)}</div>
       <div class="prow-meta"><span>Lv ${p.level}</span><span class="dot-sep">${p.year}</span><span class="dot-sep">${fmtDur(p.dur)}</span><span class="dot-sep">${p.key}</span></div>
     </div>
     <div class="prow-right">
+      <span class="lvpill">${tag}</span>
       ${pct>0?`<span class="prow-pct">${pct}%</span>`:""}
     </div>
   </div>`;
