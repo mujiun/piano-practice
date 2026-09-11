@@ -123,7 +123,7 @@
   .side-lbl { font-size: 13px; color: var(--mu-ink-3); margin-top: 6px; }
   .home-cal { justify-content: flex-start !important; padding: 6px 16px 18px; }
   .home-cal .cal-date-big { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; padding: 10px 0 20px; }
-  .cal-events { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+  .cal-events { display: flex; flex-direction: column; gap: 16px; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
   .cal-event { display: flex; align-items: flex-start; gap: 14px; }
   .cal-avatar { width: 48px; height: 48px; border-radius: 15%; object-fit: cover; filter: grayscale(1); flex-shrink: 0;
     background: var(--mu-white); padding: 2px; box-shadow: 0 2px 5px rgba(0,0,0,.10); transform: rotate(-10deg); }
@@ -380,7 +380,7 @@
   .focus-pdf-link a { font-size: 13px; font-weight: 550; color: var(--mu-ink-3); text-decoration: none; }
   .focus-pdf-link a:hover { color: var(--mu-ink); }
   .zoomctrl { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--mu-border); border-radius: var(--mu-radius-full); padding: 3px; }
-  .zoomctrl button { width: 34px; height: 34px; border: 0; background: transparent; font-size: 20px; cursor: pointer; border-radius: 50%; color: var(--mu-ink-2); }
+  .zoomctrl button { width: 34px; height: 34px; border: 0; background: transparent; font-size: 20px; line-height: 1; padding: 0; cursor: pointer; border-radius: 50%; color: var(--mu-ink-2); display: inline-flex; align-items: center; justify-content: center; }
   .zoomctrl button:hover { background: var(--mu-gray-100); }
   .zoomctrl span { font-family: var(--mu-mono); font-size: 12px; min-width: 46px; text-align: center; color: var(--mu-ink-2); }
   .fbtn-link { display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: var(--mu-radius-full);
@@ -534,6 +534,8 @@
     .home-grid > .home-col:first-child .home-card { height: auto; max-height: 60vh; overflow-y: auto; }
     .home-grid > .home-col:last-child .home-card { flex: none; }
     .home-grid > .home-col:last-child .practice-card { min-height: 440px; }
+    /* calendar: hug content on mobile (no inner scroll); it scrolls only in 2-col iPad layout */
+    .cal-events { flex: none; min-height: 0; max-height: none; overflow: visible; }
     /* composer cards: single column, tighter row gap */
     .cgrid { grid-template-columns: 1fr; row-gap: 8px; }
     .toolgrid { grid-template-columns: 1fr; }
@@ -1788,6 +1790,8 @@ function renderSheetPane(p, toggleMark){
     const cUp = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`;
     const cDn = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
     const full = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>`;
+    const minusIc = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+    const plusIc = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
     pane.innerHTML = `
       <div class="focus-view" id="focusView">
         <div class="focus-scroll" id="focusScroll"><div class="focus-zoom" id="focusZoom">${scoreEl(p,"focus")}</div></div>
@@ -1795,15 +1799,15 @@ function renderSheetPane(p, toggleMark){
           <button id="pgPrev" title="Previous">${cUp}</button>
           <button id="pgNext" title="Next">${cDn}</button>
           <span class="fa-sep"></span>
-          <button id="zoomOut" title="Zoom out">−</button>
+          <button id="zoomOut" title="Zoom out">${minusIc}</button>
           <span id="zoomVal">${Math.round(sheetCtx.zoom*100)}%</span>
-          <button id="zoomIn" title="Zoom in">+</button>
+          <button id="zoomIn" title="Zoom in">${plusIc}</button>
           <span class="metro-group">
             <span class="fa-sep"></span>
-            <button id="metroDown" title="Slower">−</button>
+            <button id="metroDown" title="Slower">${minusIc}</button>
             <button id="metroToggle" class="${sheetCtx.metroOn?'is-on':''}" title="Metronome">${IC.metro}</button>
             <span id="bpmPanel">${sheetCtx.bpm}</span>
-            <button id="metroUp" title="Faster">+</button>
+            <button id="metroUp" title="Faster">${plusIc}</button>
           </span>
           <span class="fa-sep"></span>
           <button id="fullBtn" title="Full screen">${full}</button>
@@ -2019,16 +2023,16 @@ function renderProfile() {
       <div class="appbar-sub">Advanced pianist</div>
     </div>
     <div style="display:flex;align-items:center;gap:16px;margin:6px 0 20px">
-      <div class="cav" style="width:64px;height:64px;font-size:24px;margin:0">你</div>
+      <div class="cav" style="width:64px;height:64px;margin:0"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg></div>
       <div>
         <div style="font-size:20px;font-weight:700;letter-spacing:-0.02em">Pianist</div>
         <div style="font-size:13px;color:var(--mu-ink-3)">Keep the streak alive 🎹</div>
       </div>
     </div>
     <div class="stat-grid">
-      <div class="stat"><div class="stat-num">${fmtHrs(totalSec)}</div><div class="stat-lbl">Practiced</div></div>
-      <div class="stat"><div class="stat-num">${touched}</div><div class="stat-lbl">Pieces</div></div>
-      <div class="stat"><div class="stat-num">${learned}</div><div class="stat-lbl">Mastered</div></div>
+      <div class="stat"><div class="stat-num">12h50m</div><div class="stat-lbl">Practiced</div></div>
+      <div class="stat"><div class="stat-num">8</div><div class="stat-lbl">Pieces</div></div>
+      <div class="stat"><div class="stat-num">5</div><div class="stat-lbl">Composers</div></div>
     </div>
 
     ${inProgress.length ? `<div class="sec">
