@@ -1691,7 +1691,7 @@ function renderPianist() {
     </div>
 
     <div class="sortchips" id="sortChips">
-      <span class="sort-ic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h5"/></svg></span>
+      <span class="sort-ic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/></svg></span>
       ${Object.entries(SORT_LABELS).map(([k,l])=>`<button data-sort="${k}" class="${k===pianistState.sort?'is-active':''}">${t(l)}</button>`).join("")}
       <span class="grow"></span>
       <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="pieceSearch" type="search" placeholder="${t('Search')}" autocomplete="off" value="${pianistState.q||''}"></label>
