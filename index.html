@@ -2030,10 +2030,10 @@ function renderSheet() {
 // --- score element: OSMD (if we have MusicXML) > real PDF scan > placeholder SVG
 function scoreEl(p, variant){
   const h = variant==="focus" ? "min-height:60vh" : "height:300px";
-  if (SCORE_SVG[p.id]) return SCORE_SVG[p.id].map(src=>`<img class="score-svg-page" src="${src}" alt="${p.title} score">`).join("");
-  // MVP: public-domain PDF page-strips take precedence over live XML engraving wherever we have them
-  if (window.SCORE_IMG && window.SCORE_IMG[p.id]) return pdfViewer(p, variant);
   const osmdTitle = variant==='focus' ? `<div class="osmd-title"><span class="osmd-title-name">${pieceNameHTML(p)}</span><span class="osmd-title-by">${COMPOSERS[p.c].name}</span></div>` : "";
+  if (SCORE_SVG[p.id]) return osmdTitle + SCORE_SVG[p.id].map(src=>`<img class="score-svg-page" src="${src}" alt="${p.title} score">`).join("");
+  // MVP: public-domain PDF page-strips take precedence over live XML engraving wherever we have them
+  if (window.SCORE_IMG && window.SCORE_IMG[p.id]) return osmdTitle + pdfViewer(p, variant);
   if (PIECE_XML[p.id]) return osmdTitle + `<div class="osmd-host" id="pieceOsmd" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
   if (SCORE_FILES[p.id]) return osmdTitle + `<div class="osmd-host" id="pieceOsmd" data-src="${SCORE_FILES[p.id]}" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
   return `<div class="score-empty">
@@ -2120,13 +2120,19 @@ function renderSheetPane(p, toggleMark){
     applyZoom(pane);
     const scroll = pane.querySelector("#focusScroll"), fv = pane.querySelector("#focusView");
     if (isPdf) {
-      // page-strip images fit width; up/down jumps exactly one page (page height = width × aspect)
-      const ar = (window.SCORE_PAGE_AR && window.SCORE_PAGE_AR[p.id]) || 1.3;
+      // page-strip images: up/down flips one strip, anchored to the actual image tops
+      // (page 1 = the very top, so the on-sheet title shows before the first page)
       const jumpPage = dir => {
-        const cw = (scroll.querySelector(".pdf-img")||scroll).clientWidth || scroll.clientWidth;
-        const ph = cw * ar; if (ph <= 0) { scroll.scrollBy({top: dir*scroll.clientHeight*0.85, behavior:"smooth"}); return; }
-        const cur = Math.round(scroll.scrollTop / ph);
-        scroll.scrollTo({ top: Math.max(0, (cur + dir) * ph), behavior:"smooth" });
+        const imgs = [...scroll.querySelectorAll(".pdf-img")];
+        const step = scroll.clientHeight * 0.9;
+        if (imgs.length < 2) { scroll.scrollBy({top: dir*step, behavior:"smooth"}); return; }
+        const sTop = scroll.getBoundingClientRect().top;
+        const tops = imgs.map(im => im.getBoundingClientRect().top - sTop + scroll.scrollTop);
+        tops[0] = 0;   // page 1 = top (title + first strip)
+        const cur = scroll.scrollTop;
+        const target = dir > 0 ? tops.find(t => t > cur + 8) : tops.filter(t => t < cur - 8).pop();
+        if (target == null) { scroll.scrollBy({top: dir*step, behavior:"smooth"}); return; }
+        scroll.scrollTo({ top: Math.max(0, target), behavior:"smooth" });
       };
       pane.querySelector("#pgNext").addEventListener("click", ()=> jumpPage(1));
       pane.querySelector("#pgPrev").addEventListener("click", ()=> jumpPage(-1));
