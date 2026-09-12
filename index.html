@@ -264,8 +264,9 @@
   .psearch-ic svg { width: 16px; height: 16px; }
   .psearch input { border: none; background: transparent; outline: none; font-size: 13px; color: var(--mu-ink); width: 130px; }
   .sortchips .filter-count { align-self: center; }
-  .sort-lead { display: inline-flex; align-items: center; justify-content: center; align-self: center; height: 36px; width: 36px; padding: 0; border: none; background: transparent; border-radius: var(--mu-radius-md); cursor: pointer; color: var(--mu-ink-2); margin-right: 2px; }
-  .sort-lead:hover { background: var(--mu-gray-100); }
+  /* desktop/iPad: pill with border + "Sort" text */
+  .sort-lead { display: inline-flex; align-items: center; justify-content: center; gap: 5px; align-self: center; height: 36px; padding: 0 12px; border: 1px solid var(--mu-border); background: var(--mu-white); border-radius: var(--mu-radius-full); cursor: pointer; color: var(--mu-ink-2); font-size: 13px; font-weight: 500; margin-right: 2px; }
+  .sort-lead:hover { border-color: var(--mu-gray-400); }
   .sort-lead svg { flex-shrink: 0; }
   .sort-lead .sd-up, .sort-lead .sd-dn { stroke: var(--mu-gray-400); }
   .sort-lead[data-dir="asc"] .sd-up { stroke: var(--mu-ink); }
@@ -599,7 +600,10 @@
     .sortchips .grow { display: none; }
     .sortchips > button[data-sort] { display: none; }   /* hide chips, NOT the dropdown's menu items */
     .sortdd { display: inline-block; order: 2; }
-    .sortchips .sort-lead { order: 1; }
+    /* mobile: sort toggle is icon-only, borderless */
+    .sortchips .sort-lead { order: 1; width: 36px; padding: 0; border: none; background: transparent; }
+    .sortchips .sort-lead:hover { background: var(--mu-gray-100); }
+    .sort-lead-txt { display: none; }
     .sortchips .psearch { order: 3; flex: 1 1 120px; min-width: 0; margin-bottom: 0; }
     .sortchips .filter-count { order: 4; flex: 1 0 100%; margin-top: 2px; }
     /* pianist hero: avatar above name */
@@ -1626,7 +1630,7 @@ function renderGroups(wrap, groups, sort, dir) {
 // shared: the Sort button + field chips + search bar markup
 function sortBarHTML(state, searchId, labels) {
   labels = labels || SORT_LABELS;
-  return `<button class="sort-lead" data-role="dir" data-dir="${state.dir}" title="Ascending / descending" aria-label="Sort direction"><svg width="26" height="21" viewBox="0 0 20 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path class="sd-up" d="M5 12V2M2.5 4.5L5 2l2.5 2.5"/><path class="sd-dn" d="M13 4v10M10.5 11.5L13 14l2.5-2.5"/></svg></button>
+  return `<button class="sort-lead" data-role="dir" data-dir="${state.dir}" title="Ascending / descending" aria-label="Sort direction"><svg width="22" height="18" viewBox="0 0 20 16" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path class="sd-up" d="M5 12V2M2.5 4.5L5 2l2.5 2.5"/><path class="sd-dn" d="M13 4v10M10.5 11.5L13 14l2.5-2.5"/></svg><span class="sort-lead-txt">${t("Sort")}</span></button>
       ${Object.entries(labels).map(([k,l])=>`<button data-sort="${k}" class="${k===state.sort?'is-active':''}">${t(l)}</button>`).join("")}
       <div class="dropdown sortdd">
         <button type="button" class="input sort-trigger" data-role="sortsel-trigger" aria-haspopup="menu" aria-expanded="false"><span>${t("List by")}: ${t(labels[state.sort]||labels.name)}</span><svg class="lang-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
