@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
 <title>Piano Practice</title>
 <link rel="stylesheet" href="mu-system/mu.css">
 <script src="vendor/opensheetmusicdisplay.min.js"></script>
@@ -17,6 +17,7 @@
 <script src="library/scores-notes-brahms.js"></script>
 <script src="library/scores-notes-mendelssohn.js"></script>
 <script src="library/score-files.js"></script>
+<script src="library/pdf-pages.js"></script>
 <script src="library/piano-samples.js"></script>
 <script src="library/calendar-data.js"></script>
 <style>
@@ -399,9 +400,10 @@
   .score-svg-page + .score-svg-page { margin-top: 8px; }
   .focus-zoom { transform-origin: top left; transition: transform .12s var(--mu-ease); width: 100%; min-height: 100%; }
   .focus-zoom iframe { width: 100%; min-height: 60vh; border: 0; display: block; background: #fff; }
-  /* PDF fills the container (its own scroll handles paging) — no reserved toolbar padding */
-  .focus-scroll.is-pdf { padding-bottom: 0; }
-  .focus-scroll.is-pdf .focus-zoom, .focus-scroll.is-pdf .focus-zoom iframe { height: 100%; min-height: 100%; }
+  /* PDF pages rendered as images — fit width on every device; pinch to zoom */
+  .pdf-imgwrap { width: 100%; }
+  .pdf-img { width: 100%; display: block; background: #fff; }
+  .pdf-img-prev { max-height: 320px; object-fit: contain; object-position: top center; }
   .focus-view:fullscreen { background: var(--mu-bg); padding: 16px; box-sizing: border-box; }
   .focus-view:fullscreen .focus-scroll { max-height: none; height: calc(100vh - 32px); }
   .focus-view:-webkit-full-screen { background: var(--mu-bg); padding: 16px; box-sizing: border-box; }
@@ -1083,6 +1085,17 @@ function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
   return SCORES[id] + "?v=" + SCORE_VER + (q ? "#" + q : "");
+}
+// PDF is shown as pre-rendered page IMAGES (reliable fit-width on every device incl. iOS; pinch to zoom)
+function pdfBase(id){ const p = SCORES[id]; return p ? p.replace(/^.*\//,"").replace(/\.pdf$/,"") : null; }
+function pdfImgSrc(base, page){ return `library/ravel/pages/${base}/p${String(page).padStart(2,"0")}.webp?v=${SCORE_VER}`; }
+function pdfViewer(p, variant){
+  const base = pdfBase(p.id);
+  const count = (window.PDF_PAGES && window.PDF_PAGES[base]) || 1;
+  const start = SCORE_PAGE[p.id] || 1;
+  if (variant === "focus")
+    return `<div class="pdf-imgwrap" id="pdfWrap" data-base="${base}" data-page="${start}" data-count="${count}"><img class="pdf-img" src="${pdfImgSrc(base,start)}" alt="${p.title} score" draggable="false"></div>`;
+  return `<img class="pdf-img pdf-img-prev" src="${pdfImgSrc(base,start)}" alt="${p.title} score">`;
 }
 let S = load();
 function load() {
@@ -1831,6 +1844,16 @@ const SPOTIFY = {
   "bach-inv-8": "track/77gvSrZrnOToOrPkLFDoJA",
   "bach-inv-13": "track/3toVObSUQVccOn11FWC5Om",
   "bach-sinf-15": "track/11AXV97k6GWHCEB1uryk69",
+
+  "sat-gym1": "track/1Irpyb6Fk2s5XNy3P2B8xW",
+  "satie-g118": "track/0COgvfr6ibuaSd6c8xzUo9",
+  "satie-g119": "track/3kEBsd9U6MdpbdQu5WiXlG",
+  "sat-gnoss1": "track/73hsjSLvbpvgkBa8SzkM4Y",
+  "satie-g120": "track/77kV55hVh6BHmhiBRB7aXu",
+  "satie-g121": "track/60QA8BcP0fTCySCgZw0S0n",
+  "satie-g125": "track/1Oz6Yltm9o3dIMEE7Sk1ll",
+  "schumann-g16": "track/4SbAXtlOJ0eCL0XwFVi0Ij",
+  "liszt-g97": "track/4HMQeGZP4YCQPuRGBmqg3n",
 };
 
 function renderSheet() {
@@ -1887,11 +1910,11 @@ function renderSheet() {
 function scoreEl(p, variant){
   const h = variant==="focus" ? "min-height:60vh" : "height:300px";
   if (SCORE_SVG[p.id]) return SCORE_SVG[p.id].map(src=>`<img class="score-svg-page" src="${src}" alt="${p.title} score">`).join("");
-  if (SCORES[p.id] && FORCE_PDF.has(p.id)) return `<iframe src="${pdfSrc(p.id,'view=FitH&toolbar=0&navpanes=0')}" title="${p.title} score" style="width:100%;${h};border:0;border-radius:8px;background:#fff"></iframe>`;
+  if (SCORES[p.id] && FORCE_PDF.has(p.id)) return pdfViewer(p, variant);
   const osmdTitle = variant==='focus' ? `<div class="osmd-title"><span class="osmd-title-name">${pieceNameHTML(p)}</span><span class="osmd-title-by">${COMPOSERS[p.c].name}</span></div>` : "";
   if (PIECE_XML[p.id]) return osmdTitle + `<div class="osmd-host" id="pieceOsmd" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
   if (SCORE_FILES[p.id]) return osmdTitle + `<div class="osmd-host" id="pieceOsmd" data-src="${SCORE_FILES[p.id]}" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
-  if (SCORES[p.id]) return `<iframe src="${pdfSrc(p.id,'view=FitH&toolbar=0&navpanes=0')}" title="${p.title} score" style="width:100%;${h};border:0;border-radius:8px;background:#fff"></iframe>`;
+  if (SCORES[p.id]) return pdfViewer(p, variant);
   return `<div class="score-empty">
     <div class="score-empty-ic">${IC.music}</div>
     <div class="score-empty-t">No score added for this piece yet</div>
@@ -1973,14 +1996,16 @@ function renderSheetPane(p, toggleMark){
     applyZoom(pane);
     const scroll = pane.querySelector("#focusScroll"), fv = pane.querySelector("#focusView");
     if (isPdf) {
-      // up/down buttons page the embedded PDF (reload iframe at the target page)
-      const frame = scroll.querySelector("iframe");
-      const base = SCORES[p.id] + "?v=" + SCORE_VER;
-      let pdfPage = SCORE_PAGE[p.id] || 1;
+      // up/down buttons flip the page image (instant, fits width on every device incl. iOS)
+      const wrap = scroll.querySelector("#pdfWrap");
+      const img = wrap.querySelector(".pdf-img");
+      const base = wrap.dataset.base, count = +wrap.dataset.count;
+      let pdfPage = +wrap.dataset.page;
       const goPdf = d => {
-        pdfPage = Math.max(1, pdfPage + d);
-        // changing the query (&pg=) forces a real navigation so the viewer honors #page (a fragment-only change won't reload)
-        frame.src = base + "&pg=" + pdfPage + "#page=" + pdfPage + "&view=FitH&toolbar=0&navpanes=0";
+        pdfPage = Math.min(count, Math.max(1, pdfPage + d));
+        wrap.dataset.page = pdfPage;
+        img.src = pdfImgSrc(base, pdfPage);
+        scroll.scrollTop = 0;
       };
       pane.querySelector("#pgNext").addEventListener("click", ()=> goPdf(1));
       pane.querySelector("#pgPrev").addEventListener("click", ()=> goPdf(-1));
