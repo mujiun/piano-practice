@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="mu-system/mu.css">
 <script src="vendor/opensheetmusicdisplay.min.js"></script>
 <script src="library/scores-xml.js"></script>
+<script src="library/score-files.js"></script>
 <script src="library/piano-samples.js"></script>
 <script src="library/calendar-data.js"></script>
 <style>
@@ -1645,6 +1646,7 @@ function defaultBpm(id){ const p=pieceById(id); return p.level>=8?72:(p.level>=5
 // piece MusicXML — structured notation rendered consistently by OSMD (like
 // MuseScore), loaded from library/scores-xml.js. Preferred over any PDF scan.
 const PIECE_XML = window.SCORE_XML || {};
+const SCORE_FILES = window.SCORE_FILES || {};
 
 // Pre-engraved score images (clean editions, e.g. LilyPond SVG) — display only.
 // pieceId -> [page1, page2, ...]. Takes priority for DISPLAY; playback still uses SCORE_NOTES.
@@ -1713,6 +1715,7 @@ function scoreEl(p, variant){
   const h = variant==="focus" ? "min-height:60vh" : "height:300px";
   if (SCORE_SVG[p.id]) return SCORE_SVG[p.id].map(src=>`<img class="score-svg-page" src="${src}" alt="${p.title} score">`).join("");
   if (PIECE_XML[p.id]) return `<div class="osmd-host" id="pieceOsmd" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
+  if (SCORE_FILES[p.id]) return `<div class="osmd-host" id="pieceOsmd" data-src="${SCORE_FILES[p.id]}" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
   if (SCORES[p.id]) return `<iframe src="${SCORES[p.id]}#view=FitH&toolbar=0&navpanes=0" title="${p.title} score" style="width:100%;${h};border:0;border-radius:8px;background:#fff"></iframe>`;
   return `<div class="score-empty">
     <div class="score-empty-ic">${IC.music}</div>
@@ -1784,7 +1787,16 @@ function renderSheetPane(p, toggleMark){
       </div>
       ${SCORES[p.id] ? `<div class="focus-pdf-link"><a href="${SCORES[p.id]}" target="_blank" rel="noopener">Open full PDF ↗</a></div>` : ""}
       ${SPOTIFY[p.id] ? `<div class="spotify-embed"><iframe style="border-radius:12px" src="https://open.spotify.com/embed/${SPOTIFY[p.id]}?utm_source=generator" width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>` : ""}`;
-    const oh = pane.querySelector("#pieceOsmd"); if (oh) renderNotation(oh, PIECE_XML[p.id]);
+    const oh = pane.querySelector("#pieceOsmd");
+    if (oh) {
+      if (PIECE_XML[p.id]) renderNotation(oh, PIECE_XML[p.id]);
+      else if (oh.dataset.src) {
+        oh.innerHTML = `<div class="score-note">Loading score…</div>`;
+        fetch(oh.dataset.src).then(r=>{ if(!r.ok) throw 0; return r.text(); })
+          .then(xml=>renderNotation(oh, xml))
+          .catch(()=>{ oh.innerHTML = `<div class="score-note">Score can't load from a local file — open the published site (https://mujiun.github.io/piano-practice/) to view it.</div>`; });
+      }
+    }
     applyZoom(pane);
     const scroll = pane.querySelector("#focusScroll"), fv = pane.querySelector("#focusView");
     pane.querySelector("#pgNext").addEventListener("click", ()=> scroll.scrollBy({top: scroll.clientHeight*0.85, behavior:"smooth"}));
