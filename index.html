@@ -370,7 +370,7 @@
   .focus-actions button:hover { background: var(--mu-gray-100); }
   .focus-actions button.is-on, .focus-actions button.is-marked { background: var(--mu-gray-900); color: #fff; }
   .focus-actions #metroToggle svg, .focus-actions #fMark svg { width: 17px; height: 17px; }
-  .focus-actions #zoomVal, .focus-actions #bpmPanel { font-family: var(--mu-mono); font-size: 11.5px; color: var(--mu-ink-2); min-width: 34px; text-align: center; }
+  .focus-actions #zoomVal { font-family: var(--mu-mono); font-size: 13.5px; color: var(--mu-ink-2); min-width: 42px; text-align: center; }
   .fa-sep { width: 1px; height: 20px; background: var(--mu-border); margin: 0 3px; }
   .metro-group { display: contents; }
   .focus-scroll { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg);
@@ -1822,13 +1822,6 @@ function renderSheetPane(p, toggleMark){
           <button id="zoomOut" title="Zoom out">${minusIc}</button>
           <span id="zoomVal">${Math.round(sheetCtx.zoom*100)}%</span>
           <button id="zoomIn" title="Zoom in">${plusIc}</button>
-          <span class="metro-group">
-            <span class="fa-sep"></span>
-            <button id="metroDown" title="Slower">${minusIc}</button>
-            <button id="metroToggle" class="${sheetCtx.metroOn?'is-on':''}" title="Metronome">${IC.metro}</button>
-            <span id="bpmPanel">${sheetCtx.bpm}</span>
-            <button id="metroUp" title="Faster">${plusIc}</button>
-          </span>
           <span class="fa-sep"></span>
           <button id="fullBtn" title="Full screen">${full}</button>
         </div>
@@ -1847,18 +1840,6 @@ function renderSheetPane(p, toggleMark){
       document.body.classList.toggle("fs-active", on);      // hide header while enlarged
       const sc = pane.querySelector("#focusScroll"); if (sc) sc.scrollTop = 0;   // show the top of the sheet
     });
-    // metronome (moved here from Practice) — BPM shown in the hero tag
-    const mt = pane.querySelector("#metroToggle");
-    mt.addEventListener("click", ()=>{
-      sheetCtx.metroOn = !sheetCtx.metroOn; mt.classList.toggle("is-on", sheetCtx.metroOn);
-      if (sheetCtx.metroOn) startMetro(document.querySelectorAll("#metroDots i")); else stopMetro(document.querySelectorAll("#metroDots i"));
-    });
-    const bumpBpm = d => { sheetCtx.bpm = Math.max(40, Math.min(208, sheetCtx.bpm+d));
-      const t = document.querySelector("#bpmTag"); if (t) t.textContent = "♩ "+sheetCtx.bpm;
-      const bp = document.querySelector("#bpmPanel"); if (bp) bp.textContent = sheetCtx.bpm;
-      if (sheetCtx.metroOn) restartMetro(); };
-    pane.querySelector("#metroDown").addEventListener("click", ()=>bumpBpm(-4));
-    pane.querySelector("#metroUp").addEventListener("click", ()=>bumpBpm(4));
   }
 }
 
