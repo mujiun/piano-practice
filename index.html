@@ -697,7 +697,7 @@
       </button>
       <button class="tabbtn" data-tab="profile">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg>
-        <span class="tb-lbl" data-k="Profile">Profile</span>
+        <span class="tb-lbl" data-k="You">You</span>
       </button>
     </nav>
   </div>
@@ -1002,7 +1002,7 @@ const LANGS = { "en":"English", "zh-Hant":"繁體中文", "zh-Hans":"简体中�
 // UI-chrome translations (keyed by English string; musical titles/bios stay original)
 const TL = {
   "zh-Hant": {
-    "Home":"首頁","Library":"曲庫","Playlist":"播放清單","Profile":"個人檔案",
+    "Home":"首頁","Library":"曲庫","Playlist":"播放清單","You":"我的",
     "Your playlist":"我的播放清單","Your practice":"練習概況","Practiced in 2026":"2026 年練習","days":"天",
     "On this day":"歷史上的今天","View composer":"查看作曲家","Sort":"排序","Composer":"作曲家","Jump into the library":"進入曲庫","See all":"查看全部","Nothing played yet.":"尚無彈奏紀錄",
     "Search":"搜尋","Composers":"作曲家","Pieces":"樂曲","pieces":"首","piece":"首",
@@ -1016,7 +1016,7 @@ const TL = {
     "Search composers or pieces":"搜尋作曲家或樂曲"
   },
   "zh-Hans": {
-    "Home":"首页","Library":"曲库","Playlist":"播放列表","Profile":"个人资料",
+    "Home":"首页","Library":"曲库","Playlist":"播放列表","You":"我的",
     "Your playlist":"我的播放列表","Your practice":"练习概况","Practiced in 2026":"2026 年练习","days":"天",
     "On this day":"历史上的今天","View composer":"查看作曲家","Sort":"排序","Composer":"作曲家","Jump into the library":"进入曲库","See all":"查看全部","Nothing played yet.":"尚无弹奏记录",
     "Search":"搜索","Composers":"作曲家","Pieces":"乐曲","pieces":"首","piece":"首",
@@ -2365,7 +2365,7 @@ function renderProfile() {
   const inProgress = PIECES.filter(p=>pctOf(p.id)>0 && pctOf(p.id)<100).sort((a,b)=>pctOf(b.id)-pctOf(a.id));
   v.innerHTML = `
     <div class="appbar" style="flex-direction:column;align-items:stretch;gap:2px">
-      <div class="appbar-title">${t("Profile")}</div>
+      <div class="appbar-title">${t("You")}</div>
       <div class="appbar-sub">${t("Your account and settings")}</div>
     </div>
     <div style="display:flex;align-items:center;gap:16px;margin:6px 0 20px">
