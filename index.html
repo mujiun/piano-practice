@@ -277,7 +277,7 @@
   .sort-lead { display: inline-flex; align-items: center; justify-content: center; gap: 5px; align-self: center; height: 36px; padding: 0 12px; border: 1px solid var(--mu-border); background: var(--mu-white); border-radius: var(--mu-radius-full); cursor: pointer; color: var(--mu-ink-2); font-size: 13px; font-weight: 500; margin-right: 2px; }
   .sort-lead:hover { border-color: var(--mu-gray-400); }
   .sort-divider { align-self: center; width: 1px; height: 22px; background: var(--mu-border); margin: 0 6px; flex-shrink: 0; }
-  .sort-by-label { align-self: center; font-size: 13px; font-weight: 500; color: var(--mu-ink-3); margin-right: 8px; white-space: nowrap; }
+  .sort-by-label { align-self: center; font-size: 13px; font-weight: 500; color: var(--mu-ink-3); margin-right: 6px; white-space: nowrap; }
   .sort-lead svg { flex-shrink: 0; }
   .sort-lead .sd-up, .sort-lead .sd-dn { stroke: var(--mu-gray-400); }
   .sort-lead[data-dir="asc"] .sd-up { stroke: var(--mu-ink); }
@@ -2036,18 +2036,22 @@ function renderSheetPane(p, toggleMark){
       pane.querySelector("#pgNext").addEventListener("click", ()=> jumpPage(1));
       pane.querySelector("#pgPrev").addEventListener("click", ()=> jumpPage(-1));
     } else {
-      // OSMD notation renders as A4 pages (separate SVGs) → up/down snaps page-to-page
+      // OSMD notation = A4 pages. Snap to real page tops if multiple SVGs; else jump one A4-page height.
       const snapPage = dir => {
+        const host = scroll.querySelector(".osmd-host");
         const pages = Array.from(scroll.querySelectorAll(".osmd-host svg, .score-svg-page"));
-        if (!pages.length) { scroll.scrollBy({top: dir*scroll.clientHeight*0.85, behavior:"smooth"}); return; }
-        const base = scroll.getBoundingClientRect().top - scroll.scrollTop;
-        const tops = pages.map(el => Math.round(el.getBoundingClientRect().top - base));
-        const cur = scroll.scrollTop;
-        let target;
-        if (dir > 0) target = tops.find(t => t > cur + 6);
-        else { const before = tops.filter(t => t < cur - 6); target = before.length ? before[before.length-1] : 0; }
-        if (target == null) scroll.scrollBy({top: scroll.clientHeight*0.85, behavior:"smooth"});
-        else scroll.scrollTo({top: Math.max(0, target - 6), behavior:"smooth"});
+        if (pages.length > 1) {
+          const base = scroll.getBoundingClientRect().top - scroll.scrollTop;
+          const tops = pages.map(el => Math.round(el.getBoundingClientRect().top - base)).sort((a,b)=>a-b);
+          const cur = scroll.scrollTop;
+          let target = dir > 0 ? tops.find(t => t > cur + 6) : tops.filter(t => t < cur - 6).pop();
+          if (target == null) { scroll.scrollBy({top: dir*scroll.clientHeight*0.85, behavior:"smooth"}); return; }
+          scroll.scrollTo({top: Math.max(0, target - 6), behavior:"smooth"}); return;
+        }
+        const cw = (host || scroll).clientWidth || scroll.clientWidth;   // one tall SVG → jump by A4 page height
+        const ph = cw * 1.414; if (ph <= 0) return;
+        const cur = Math.round(scroll.scrollTop / ph);
+        scroll.scrollTo({top: Math.max(0, (cur + dir) * ph), behavior:"smooth"});
       };
       pane.querySelector("#pgNext").addEventListener("click", ()=> snapPage(1));
       pane.querySelector("#pgPrev").addEventListener("click", ()=> snapPage(-1));
