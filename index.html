@@ -389,6 +389,10 @@
   .metro-group { display: contents; }
   .focus-scroll { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg);
     background: var(--mu-white); overflow-x: hidden; overflow-y: auto; max-height: 72vh; min-height: 320px; padding-bottom: 76px; }
+  .osmd-title { text-align: center; margin: 4px 0 16px; }
+  .osmd-title-name { display: block; font-size: 18px; font-weight: 650; color: var(--mu-ink); letter-spacing: -0.01em; }
+  .osmd-title-name .pn-dim { color: var(--mu-ink-3); font-weight: 650; }
+  .osmd-title-by { display: block; font-size: 13px; color: var(--mu-ink-3); margin-top: 3px; }
   .osmd-host { overflow-x: hidden; }
   .osmd-host svg { max-width: 100%; }
   .score-svg-page { width: 100%; display: block; background: #fff; }
@@ -408,8 +412,8 @@
   .focus-view.fake-fs .focus-scroll { max-height: none; height: 100%; }
   .focus-view.fake-fs .focus-actions { bottom: calc(env(safe-area-inset-bottom) + 26px); }
   .fs-close { display: none; }
-  .focus-view.fake-fs .fs-close { display: inline-flex; align-items: center; justify-content: center; position: fixed; top: calc(env(safe-area-inset-top) + 20px); left: 28px; z-index: 320; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--mu-border); background: rgba(255,255,255,0.8); -webkit-backdrop-filter: saturate(180%) blur(12px); backdrop-filter: saturate(180%) blur(12px); box-shadow: var(--mu-shadow-md); color: var(--mu-ink-2); cursor: pointer; }
-  html[data-theme="dark"] .focus-view.fake-fs .fs-close { background: rgba(42,42,50,.8); }
+  /* enlarge view: exit via the shrink icon in the toolbar (no separate go-back button) */
+  .focus-view.fake-fs .fs-close { display: none; }
   body.fs-active #view-sheet .appbar, body.fs-active #view-sheet .sheet-hero, body.fs-active #view-sheet .sheet-tabs { display: none; }
   .focus-pdf-link { text-align: center; margin-top: 12px; }
   .focus-pdf-link a { font-size: 13px; font-weight: 550; color: var(--mu-ink-3); text-decoration: none; }
@@ -1785,6 +1789,48 @@ const SPOTIFY = {
   "cho-pre286": "track/4SHvTU3SfhGlGc6gNeFaYQ",
   "cho-pre287": "track/6JlhtEpub7Zi5SbDIQpWs1",
   "cho-rev": "track/4AmKwTnUVSZqKHuGKouVZc",
+
+  // — pianist-specific (Scarlatti/Horowitz, Grieg/Andsnes, Debussy/Cho, Mozart/Uchida, Bach/Schiff, Beethoven/Barenboim)
+  "scar-k146": "track/2PH3uKFyLAA2ppvY1B9U4a",
+  "scar-k25": "track/4emFjGXW8FztVkizWhduUN",
+  "grieg-g34": "track/0TGanqK43LjBsOkQKH2vdO",
+  "grieg-g37": "track/3hobtuiroCFcOH0Oa9R4JN",
+  "grieg-g38": "track/5lF09Xpw08revSYkpwRpVM",
+  "grieg-g39": "track/74M0tufPG2qehuK9an637o",
+  "deb-clair": "track/42uvmjH1X71VVvYnGeud6H",
+  "deb-gradus": "track/4YlrsswQruv3ungSmEeV8U",
+  "debussy-g74": "track/30O8FFPJfhQDll1D1AsXbu",
+  "debussy-g75": "track/5bauwLDr8g5E07Q7Trq97G",
+  "debussy-g76": "track/15eVmVAcFWTR27ZU0rZDk7",
+  "debussy-g81": "track/5yNH8RWt69GZgE80AB5QzI",
+  "debussy-g82": "track/1HSwohDdJBtr2b0LS3aUuM",
+  "debussy-g90": "track/0APeRlI6JQIpbxjpVelyMC",
+  "deb-cc-jimbo": "track/68jH6o038pkJct0DxbptHJ",
+  "deb-cc-serenade": "track/2PVVhx8wJvKudIEBklP3ri",
+  "deb-cc-shepherd": "track/2lM9nR2yguebXiOVccFSGd",
+  "deb-reflets": "track/2BrOiQ2oJeVxbKVgRUHKVC",
+  "deb-poissons": "track/5LW4e4f2t7RZfAuISBCzxY",
+  "moz-k545-1": "track/02Lq7YAM7kevP3wcnaeVPh",
+  "moz-k545-2": "track/2AniKUnxAO9VFlg3Nujmzy",
+  "moz-k545-3": "track/4CNNKE8R8a5QSdvZG5R4RM",
+  "moz-k331-1": "track/3fuE1JfXXRbslrrwvKH9aD",
+  "moz-k331-2": "track/5cHwbI9vMXb3f8DTnK3CFS",
+  "moz-k331-3": "track/3OMYYH0hnPE47emFSX4tzi",
+  "moz-k310-1": "track/7fb8rFrLGNjWXRg29iD868",
+  "moz-k330-1": "track/5M3XXnsRAB1xYja6S2OYKz",
+  "moz-k332-1": "track/6rBglX1yXdRWvwf2CkNVw5",
+  "moz-k457-1": "track/2cOfor1MQKddtjhRhBbu80",
+  "moz-k333-1": "track/2kEZ3Vk3SgVJVXwa4bEt1W",
+  "moz-k576-1": "track/1myzZcCYze6n2SpjpNlLKC",
+  "bach-wtc1-prel-c": "track/5Fl4fdaq4RnVx78WjYc6ay",
+  "bach-wtc1-fugue-c": "track/5Fl4fdaq4RnVx78WjYc6ay",
+  "bach-wtc1-prel-cm": "track/2qfx1fxIeuRE5GJDwKoYKa",
+  "bee-op109-1": "track/77WW66QJ09BxPTBRxpM8iu",
+  "bach-inv-1": "track/0CveWIkCyVgsyOht0CpQkS",
+  "bach-inv-4": "track/2sqzmH46mnbogxLwqjeBC0",
+  "bach-inv-8": "track/77gvSrZrnOToOrPkLFDoJA",
+  "bach-inv-13": "track/3toVObSUQVccOn11FWC5Om",
+  "bach-sinf-15": "track/11AXV97k6GWHCEB1uryk69",
 };
 
 function renderSheet() {
@@ -1842,8 +1888,9 @@ function scoreEl(p, variant){
   const h = variant==="focus" ? "min-height:60vh" : "height:300px";
   if (SCORE_SVG[p.id]) return SCORE_SVG[p.id].map(src=>`<img class="score-svg-page" src="${src}" alt="${p.title} score">`).join("");
   if (SCORES[p.id] && FORCE_PDF.has(p.id)) return `<iframe src="${pdfSrc(p.id,'view=FitH&toolbar=0&navpanes=0')}" title="${p.title} score" style="width:100%;${h};border:0;border-radius:8px;background:#fff"></iframe>`;
-  if (PIECE_XML[p.id]) return `<div class="osmd-host" id="pieceOsmd" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
-  if (SCORE_FILES[p.id]) return `<div class="osmd-host" id="pieceOsmd" data-src="${SCORE_FILES[p.id]}" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
+  const osmdTitle = variant==='focus' ? `<div class="osmd-title"><span class="osmd-title-name">${pieceNameHTML(p)}</span><span class="osmd-title-by">${COMPOSERS[p.c].name}</span></div>` : "";
+  if (PIECE_XML[p.id]) return osmdTitle + `<div class="osmd-host" id="pieceOsmd" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
+  if (SCORE_FILES[p.id]) return osmdTitle + `<div class="osmd-host" id="pieceOsmd" data-src="${SCORE_FILES[p.id]}" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
   if (SCORES[p.id]) return `<iframe src="${pdfSrc(p.id,'view=FitH&toolbar=0&navpanes=0')}" title="${p.title} score" style="width:100%;${h};border:0;border-radius:8px;background:#fff"></iframe>`;
   return `<div class="score-empty">
     <div class="score-empty-ic">${IC.music}</div>
