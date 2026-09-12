@@ -390,7 +390,7 @@
   .metro-group { display: contents; }
   .focus-scroll { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg);
     background: var(--mu-white); overflow-x: hidden; overflow-y: auto; max-height: 72vh; min-height: 320px; padding-bottom: 76px; }
-  .osmd-title { text-align: center; margin: 4px 0 16px; }
+  .osmd-title { text-align: center; margin: 22px 0 16px; }
   .osmd-title-name { display: block; font-size: 18px; font-weight: 650; color: var(--mu-ink); letter-spacing: -0.01em; }
   .osmd-title-name .pn-dim { color: var(--mu-ink-3); font-weight: 650; }
   .osmd-title-by { display: block; font-size: 13px; color: var(--mu-ink-3); margin-top: 3px; }
@@ -1019,64 +1019,29 @@ function cNameShort(id){ if(S.lang==='en'){ const n = COMPOSERS[id]?COMPOSERS[id
 
 // Real score PDFs (public domain, from IMSLP mirrors / Internet Archive)
 const SCORES = {
-  "rav-pavane": "library/ravel/scores/rav-pavane.pdf",
-  "rav-jeux-deau": "library/ravel/scores/rav-jeux-deau.pdf",
-  "rav-menuet-haydn": "library/ravel/scores/rav-menuet-haydn.pdf",
-  "rav-sonatine-1": "library/ravel/scores/rav-sonatine.pdf",
-  "rav-sonatine-2": "library/ravel/scores/rav-sonatine.pdf",
-  "rav-sonatine-3": "library/ravel/scores/rav-sonatine.pdf",
-  "rav-gaspard-1": "library/ravel/scores/rav-gaspard.pdf",
-  "rav-gaspard-2": "library/ravel/scores/rav-gaspard.pdf",
-  "rav-gaspard-3": "library/ravel/scores/rav-gaspard.pdf",
-  "rav-miroirs-1": "library/ravel/scores/ravel-miroirs.pdf",
-  "rav-miroirs-2": "library/ravel/scores/ravel-miroirs.pdf",
-  "rav-miroirs-3": "library/ravel/scores/ravel-miroirs.pdf",
-  "rav-miroirs-4": "library/ravel/scores/ravel-miroirs.pdf",
-  "rav-miroirs-5": "library/ravel/scores/ravel-miroirs.pdf",
-  "rav-valses-1": "library/ravel/scores/rav-valses.pdf",
-  "rav-valses-2": "library/ravel/scores/rav-valses.pdf",
-  "rav-valses-3": "library/ravel/scores/rav-valses.pdf",
-  "rav-valses-4": "library/ravel/scores/rav-valses.pdf",
-  "rav-valses-5": "library/ravel/scores/rav-valses.pdf",
-  "rav-valses-6": "library/ravel/scores/rav-valses.pdf",
-  "rav-valses-7": "library/ravel/scores/rav-valses.pdf",
-  "rav-valses-8": "library/ravel/scores/rav-valses.pdf",
-  "rav-tombeau-1": "library/ravel/scores/rav-tombeau.pdf",
-  "rav-tombeau-2": "library/ravel/scores/rav-tombeau.pdf",
-  "rav-tombeau-3": "library/ravel/scores/rav-tombeau.pdf",
-  "rav-tombeau-4": "library/ravel/scores/rav-tombeau.pdf",
-  "rav-tombeau-5": "library/ravel/scores/rav-tombeau.pdf",
-  "rav-tombeau-6": "library/ravel/scores/rav-tombeau.pdf",
-  "rav-mamere-1": "library/ravel/scores/rav-mamere.pdf",
-  "rav-mamere-2": "library/ravel/scores/rav-mamere.pdf",
-  "rav-mamere-3": "library/ravel/scores/rav-mamere.pdf",
-  "rav-mamere-4": "library/ravel/scores/rav-mamere.pdf",
-  "rav-mamere-5": "library/ravel/scores/rav-mamere.pdf",
+  "rav-pavane": "library/ravel/scores/mv/rav-pavane.pdf",
+  "rav-jeux-deau": "library/ravel/scores/mv/rav-jeux-deau.pdf",
+  "rav-menuet-haydn": "library/ravel/scores/mv/rav-menuet-haydn.pdf",
+  "rav-sonatine-1": "library/ravel/scores/mv/rav-sonatine-1.pdf",
+  "rav-sonatine-2": "library/ravel/scores/mv/rav-sonatine-2.pdf",
+  "rav-sonatine-3": "library/ravel/scores/mv/rav-sonatine-3.pdf",
+  "rav-gaspard-1": "library/ravel/scores/mv/rav-gaspard-1.pdf",
+  "rav-gaspard-2": "library/ravel/scores/mv/rav-gaspard-2.pdf",
+  "rav-gaspard-3": "library/ravel/scores/mv/rav-gaspard-3.pdf",
+  "rav-miroirs-1": "library/ravel/scores/mv/rav-miroirs-1.pdf",
+  "rav-miroirs-2": "library/ravel/scores/mv/rav-miroirs-2.pdf",
+  "rav-miroirs-3": "library/ravel/scores/mv/rav-miroirs-3.pdf",
+  "rav-miroirs-4": "library/ravel/scores/mv/rav-miroirs-4.pdf",
+  "rav-miroirs-5": "library/ravel/scores/mv/rav-miroirs-5.pdf",
+  "rav-tombeau-1": "library/ravel/scores/mv/rav-tombeau-1.pdf",
+  "rav-tombeau-2": "library/ravel/scores/mv/rav-tombeau-2.pdf",
+  "rav-tombeau-3": "library/ravel/scores/mv/rav-tombeau-3.pdf",
+  "rav-tombeau-4": "library/ravel/scores/mv/rav-tombeau-4.pdf",
+  "rav-tombeau-5": "library/ravel/scores/mv/rav-tombeau-5.pdf",
+  "rav-tombeau-6": "library/ravel/scores/mv/rav-tombeau-6.pdf",
 };
 // Start page within a shared multi-movement PDF (movements that share one file)
-const SCORE_PAGE = {
-  "rav-pavane": 3,        // skip title page
-  "rav-jeux-deau": 3,     // skip title page
-  // Sonatine (mvt I is p1)
-  "rav-sonatine-2": 5,    // II. Mouvement de menuet
-  "rav-sonatine-3": 7,    // III. Animé
-  // Miroirs
-  "rav-miroirs-1": 2,     // I. Noctuelles
-  "rav-miroirs-2": 11,    // II. Oiseaux tristes
-  "rav-miroirs-3": 15,    // III. Une barque sur l'océan
-  "rav-miroirs-4": 32,    // IV. Alborada del gracioso
-  "rav-miroirs-5": 45,    // V. La vallée des cloches
-  // Gaspard (mvt I is p1)
-  "rav-gaspard-2": 13,    // Le Gibet
-  "rav-gaspard-3": 17,    // Scarbo
-  // Le Tombeau de Couperin
-  "rav-tombeau-1": 4,     // I. Prélude
-  "rav-tombeau-2": 9,     // II. Fugue
-  "rav-tombeau-3": 12,    // III. Forlane
-  "rav-tombeau-4": 18,    // IV. Rigaudon
-  "rav-tombeau-5": 22,    // V. Menuet
-  "rav-tombeau-6": 26,    // VI. Toccata
-};
+const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
 const SCORE_VER = "20260911";  // bump whenever a PDF is replaced in-place, to bust browser cache
@@ -1236,7 +1201,13 @@ async function renderNotation(host, xml){
     });
     await osmd.load(xml);
     osmd.zoom = window.innerWidth <= 640 ? 0.62 : 1;  // smaller, reflowed notation on mobile (fills width, no gap)
-    osmd.render();
+    const doRender = ()=>{ try { if (host.clientWidth > 0) osmd.render(); } catch(e){} };
+    doRender();
+    requestAnimationFrame(doRender);            // re-render once laid out (iOS settles width late → was blank)
+    if (window.ResizeObserver) {
+      let lastW = 0;
+      new ResizeObserver(()=>{ const w = host.clientWidth; if (w > 0 && Math.abs(w - lastW) > 2) { lastW = w; doRender(); } }).observe(host);
+    }
   } catch(e){ host.innerHTML = `<div class="score-note">Couldn't render notation</div>`; }
 }
 
@@ -2008,10 +1979,13 @@ function renderSheetPane(p, toggleMark){
     if (isPdf) {
       // scale the native-width PDF to fit the container width (fixes iOS); native touch-scroll pages it
       const box = scroll.querySelector(".pdf-scale");
+      const frame = box && box.querySelector(".pdf-frame");
       const doScale = ()=> applyPdfScale(box);
-      requestAnimationFrame(doScale);
+      // ResizeObserver re-fits once the container actually gets its size (iOS settles layout late)
+      if (box && window.ResizeObserver) { new ResizeObserver(doScale).observe(box); }
+      if (frame) frame.addEventListener("load", doScale);
+      requestAnimationFrame(doScale); setTimeout(doScale, 200);
       window.addEventListener("resize", doScale);
-      // up/down scroll the score within its frame's container
       pane.querySelector("#pgNext").addEventListener("click", ()=> scroll.scrollBy({top: scroll.clientHeight*0.85, behavior:"smooth"}));
       pane.querySelector("#pgPrev").addEventListener("click", ()=> scroll.scrollBy({top: -scroll.clientHeight*0.85, behavior:"smooth"}));
     } else {
