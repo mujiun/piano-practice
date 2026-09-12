@@ -594,18 +594,10 @@
     /* declutter toolbar on mobile: hide zoom % and the whole metronome group */
     .focus-actions #zoomVal { display: none; }
     .metro-group { display: none; }
-    /* artist controls: search bar → sort chips → count (stacked) */
-    /* one row: [dir toggle] [sort dropdown] [search]; chips collapse into the dropdown */
-    .sortchips { gap: 8px; flex-wrap: wrap; }
+    /* sort: same chip row as desktop (chips wrap), no dropdown */
+    .sortchips { gap: 6px; flex-wrap: wrap; }
     .sortchips .grow { display: none; }
-    .sortchips > button[data-sort] { display: none; }   /* hide chips, NOT the dropdown's menu items */
-    .sortdd { display: inline-block; order: 2; }
-    /* mobile: sort toggle is icon-only, borderless */
-    .sortchips .sort-lead { order: 1; width: 36px; padding: 0; border: none; background: transparent; }
-    .sortchips .sort-lead:hover { background: var(--mu-gray-100); }
-    .sort-lead-txt { display: none; }
-    .sortchips .psearch { order: 3; flex: 1 1 120px; min-width: 0; margin-bottom: 0; }
-    .sortchips .filter-count { order: 4; flex: 1 0 100%; margin-top: 2px; }
+    .sortchips .filter-count { flex: 1 0 100%; margin-top: 2px; }
     /* pianist hero: avatar above name */
     .phero { flex-direction: column; }
     /* bottom nav: shorter, icons only */
