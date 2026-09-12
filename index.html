@@ -1244,17 +1244,26 @@ async function renderNotation(host, xml){
     } catch(e){}
     await osmd.load(xml);
     osmd.zoom = 1;
-    // paginate into screen-sized reading pages: line-breaks stay fixed (from the 800px width) but the
-    // page HEIGHT is sized to the viewport, so up/down flips one clean page (never cuts/skips a row)
+    // Device-independent engraving: a wide page (in OSMD units) → small notes + ~4-5 measures/row,
+    // and a fixed page HEIGHT of ROWS systems. Same line-breaks & pages on every screen.
+    const PAGE_W = 320;   // page width in units — larger = smaller notes / more measures per row
+    const ROWS   = 5;     // reading rows per page
+    const pxPerUnit = FIXED_W / PAGE_W;
+    const R2 = osmd.EngravingRules || osmd.rules;
+    const topM = (R2 && R2.PageTopMargin) || 7, botM = (R2 && R2.PageBottomMargin) || 5;
     try {
-      const scale0 = Math.min(1.6, (host.clientWidth || FIXED_W) / FIXED_W);
-      const box = host.closest(".focus-scroll");
-      const vh = (box ? box.clientHeight : window.innerHeight) || 700;
-      const pagePx = Math.max(360, (vh * 0.9) / scale0);           // page height in the 800px render
-      const H = Math.max(120, Math.round(210 * pagePx / FIXED_W)); // → OSMD page units (width = 210)
-      osmd.setCustomPageFormat(210, H);
-    } catch(e){}
-    osmd.render();                               // render ONCE at the fixed width (layout now frozen)
+      osmd.setCustomPageFormat(PAGE_W, 2000);    // measuring pass: tall page so rows stack
+      osmd.render();
+      let d = 60;                                // system spacing (units) — fallback
+      try {
+        const p0 = osmd.graphic.musicPages[0];
+        const ss = p0 && (p0.musicSystems || p0.MusicSystems) || [];
+        if (ss.length >= 2) { const y0 = ss[0].boundingBox.absolutePosition.y, y1 = ss[1].boundingBox.absolutePosition.y; if (y1 > y0) d = y1 - y0; }
+      } catch(e){}
+      const H = Math.round(topM + botM + d * (ROWS - 1) + d * 0.9);   // fit ~ROWS systems per page
+      osmd.setCustomPageFormat(PAGE_W, H);
+      osmd.render();                             // final paginated render (layout now frozen)
+    } catch(e){ osmd.render(); }
     clearLoading();
     // CSS-scale the fixed-width render to fit the container (layout never changes, only the scale)
     const fit = ()=>{
@@ -1272,7 +1281,7 @@ async function renderNotation(host, xml){
           const base = pageTops[pi] || 0;
           (pg.musicSystems || pg.MusicSystems || []).forEach(ms => {
             const y = ms && ms.boundingBox && ms.boundingBox.absolutePosition && ms.boundingBox.absolutePosition.y;
-            if (y != null) sys.push(base + y * 10 * scale);   // OSMD: 10px per unit at zoom 1
+            if (y != null) sys.push(base + y * pxPerUnit * scale);   // units → render px
           });
         });
         host._sysTops = sys.length ? sys.sort((a,b)=>a-b) : null;
@@ -1471,7 +1480,7 @@ function renderHome() {
   const v = document.getElementById("view-home");
   v.innerHTML = `
     <div class="appbar" style="flex-direction:column;align-items:stretch;gap:2px">
-      <div class="appbar-title">${t("Practice")}</div>
+      <div class="appbar-title">${t("Home")}</div>
       <div class="appbar-sub">${t("Find your next piece to master")}</div>
     </div>
     <div id="homeBody"></div>`;
@@ -1486,9 +1495,8 @@ function renderHomeBody(q) {
     body.querySelectorAll("[data-composer]").forEach(c => c.addEventListener("click",()=>openPianist(c.dataset.composer)));
     return; }
 
-  // Recent + practice stats + calendar — 2-column layout
-  // Prototype: "recent play" = pieces whose page you stayed on >2 min. Hardcoded for the demo.
-  const recent = ["rav-menuet-haydn","cho-pre284","rav-tombeau-1"].map(pieceById).filter(Boolean);
+  // Your playlist (Home) mirrors whatever is saved in the Playlist tab
+  const recent = S.saved.map(pieceById).filter(Boolean);
   const totalSec = Object.values(S.practiceSec).reduce((a,b)=>a+b,0);
   const played = new Set([...Object.keys(S.practiceSec).filter(k=>S.practiceSec[k]>0), ...S.recent]).size;
   const today = todayCalendar();
@@ -1504,7 +1512,7 @@ function renderHomeBody(q) {
                 <div class="rrow-body"><div class="rrow-title">${pieceNameHTML(p)}</div><div class="rrow-sub">${cName(p.c)}</div></div>
                 ${pct>0?`<span class="rrow-pct">${pct}%</span>`:""}
               </div>`;
-            }).join("") : `<div class="empty-sub" style="padding:8px 2px">${t("Nothing played yet.")}</div>`}
+            }).join("") : `<div class="empty-sub" style="padding:8px 2px">${t("No saved pieces yet")}</div>`}
           </div>
         </div>
       </div>
