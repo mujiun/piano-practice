@@ -17,7 +17,7 @@
 <script src="library/scores-notes-brahms.js"></script>
 <script src="library/scores-notes-mendelssohn.js"></script>
 <script src="library/score-files.js"></script>
-<script src="library/pdf-dims.js"></script>
+<script src="library/ravel/img/manifest.js"></script>
 <script src="library/piano-samples.js"></script>
 <script src="library/calendar-data.js"></script>
 <style>
@@ -400,10 +400,10 @@
   .score-svg-page + .score-svg-page { margin-top: 8px; }
   .focus-zoom { transform-origin: top left; transition: transform .12s var(--mu-ease); width: 100%; min-height: 100%; }
   .focus-zoom iframe { width: 100%; min-height: 60vh; border: 0; display: block; background: #fff; }
-  /* PDF: native-width iframe CSS-scaled to fit the container (fits width on iOS too) */
-  .focus-scroll.is-pdf { height: 72vh; }   /* definite height so the PDF fills (and enlarge fills too) */
-  .pdf-scale { width: 100%; overflow: hidden; border-radius: 8px; background: #fff; }
-  .pdf-frame { border: 0; background: #fff; transform-origin: top left; display: block; }
+  /* PDF scores = pre-rendered page-strip images; fit width on every device incl. iOS */
+  .pdf-imgwrap { width: 100%; }
+  .pdf-img { width: 100%; display: block; background: #fff; }
+  .pdf-img + .pdf-img { margin-top: 4px; }
   .focus-view:fullscreen { background: var(--mu-bg); padding: 16px; box-sizing: border-box; }
   .focus-view:fullscreen .focus-scroll { max-height: none; height: calc(100vh - 32px); }
   .focus-view:-webkit-full-screen { background: var(--mu-bg); padding: 16px; box-sizing: border-box; }
@@ -1054,29 +1054,15 @@ function pdfSrc(id, params){
   const q = [pg, params].filter(Boolean).join("&");
   return SCORES[id] + "?v=" + SCORE_VER + (q ? "#" + q : "");
 }
-// PDF fit: render the PDF at its native page width in the iframe, then CSS-scale it down to the
-// container width. This fits width on every device INCLUDING iOS (which ignores #view=FitH in iframes).
-function pdfBase(id){ const p = SCORES[id]; return p ? p.replace(/^.*\//,"").replace(/\.pdf$/,"") : null; }
+// PDF scores are shown as pre-rendered page-strip images (one or more per movement). Images fit width
+// on EVERY device including iOS (which only ever renders page 1 of a PDF embedded in an iframe).
 function pdfViewer(p, variant){
-  const base = pdfBase(p.id);
-  const dim = (window.PDF_DIMS && window.PDF_DIMS[base]) || {w:640,h:840,count:1};
-  const src = pdfSrc(p.id, 'view=FitH&toolbar=0&navpanes=0');
-  return `<div class="pdf-scale" data-w="${dim.w}"><iframe class="pdf-frame" src="${src}" title="${p.title} score"></iframe></div>`;
-}
-// Render the PDF at native width, CSS-scale to fit the container width; the iframe fills the container
-// height and the PDF's OWN scroll/swipe pages through it (reliable on iOS, shows every page).
-function applyPdfScale(box){
-  if (!box) return;
-  const frame = box.querySelector(".pdf-frame"); if (!frame) return;
-  const W = +box.dataset.w || 640;
-  const sc = box.closest(".focus-scroll");
-  const cw = box.clientWidth, ch = sc ? sc.clientHeight : box.clientHeight;
-  if (!cw || !ch) return;
-  const scale = cw / W;
-  box.style.height = ch + "px";
-  frame.style.width = W + "px";
-  frame.style.height = (ch / scale) + "px";
-  frame.style.transform = `scale(${scale})`;
+  const base = p.id;
+  const n = (window.SCORE_IMG && window.SCORE_IMG[base]) || 1;
+  let imgs = "";
+  for (let i = 1; i <= n; i++)
+    imgs += `<img class="pdf-img" src="library/ravel/img/${base}_${i}.webp?v=${SCORE_VER}" alt="${p.title} score" loading="lazy" draggable="false">`;
+  return `<div class="pdf-imgwrap">${imgs}</div>`;
 }
 let S = load();
 function load() {
@@ -1994,15 +1980,7 @@ function renderSheetPane(p, toggleMark){
     applyZoom(pane);
     const scroll = pane.querySelector("#focusScroll"), fv = pane.querySelector("#focusView");
     if (isPdf) {
-      // scale the native-width PDF to fit the container width (fixes iOS); native touch-scroll pages it
-      const box = scroll.querySelector(".pdf-scale");
-      const frame = box && box.querySelector(".pdf-frame");
-      const doScale = ()=> applyPdfScale(box);
-      // ResizeObserver re-fits once the container actually gets its size (iOS settles layout late)
-      if (box && window.ResizeObserver) { new ResizeObserver(doScale).observe(box); }
-      if (frame) frame.addEventListener("load", doScale);
-      requestAnimationFrame(doScale); setTimeout(doScale, 200);
-      window.addEventListener("resize", doScale);
+      // page-strip images fit width automatically; up/down just scroll through them
       pane.querySelector("#pgNext").addEventListener("click", ()=> scroll.scrollBy({top: scroll.clientHeight*0.85, behavior:"smooth"}));
       pane.querySelector("#pgPrev").addEventListener("click", ()=> scroll.scrollBy({top: -scroll.clientHeight*0.85, behavior:"smooth"}));
     } else {
@@ -2018,7 +1996,6 @@ function renderSheetPane(p, toggleMark){
       fullBtn.innerHTML = on ? shrink : full;               // toggle enlarge ⇄ shrink icon
       fullBtn.title = on ? "Exit full screen" : "Full screen";
       const sc = pane.querySelector("#focusScroll"); if (sc) sc.scrollTop = 0;   // show the top of the sheet
-      requestAnimationFrame(()=> applyPdfScale(pane.querySelector(".pdf-scale")));  // re-fit PDF to new size
     });
     pane.querySelector("#fsClose").addEventListener("click", ()=>{
       fv.classList.remove("fake-fs"); document.body.classList.remove("fs-active");
