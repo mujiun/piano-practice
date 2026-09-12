@@ -1196,7 +1196,8 @@ async function renderNotation(host, xml){
   try {
     const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(host, {
       autoResize:true, drawTitle:false, drawSubtitle:false, drawPartNames:false,
-      drawingParameters:"compacttight", drawMeasureNumbers:true, measureNumberInterval:1
+      drawingParameters:"compacttight", drawMeasureNumbers:true, measureNumberInterval:1,
+      pageFormat:"A4_P", pageBackgroundColor:"#FFFFFF"   // real page breaks → up/down flips pages
     });
     await osmd.load(xml);
     osmd.zoom = window.innerWidth <= 640 ? 0.62 : 1;  // phone smaller, reflowed; desktop/iPad full
@@ -1846,21 +1847,21 @@ const SPOTIFY = {
   "tchaikovsky-g43": "track/5EozPqrH7mtmskHHM1cgvq",
   "mendelssohn-g31": "track/6Ly3JyTph6x3GxImkTGJHb",
 
-  "debussy-g90": "track/1jJuWQ57fgfnourRUn71RJ",
-  "deb-arab1": "track/0K9dEKoNoNpDQ2p0XIgZPg",
-  "deb-reverie": "track/6BsYSR4F24gkr86w1WlzNU",
-  "deb-flaxen": "track/3Hb7LBTic9OkbtEHxXbuHZ",
-  "debussy-g77": "track/0YqkTw4Hj4mlF5bzmz3zN9",
-  "debussy-g78": "track/4jjNXRHFiVyZGks6c5AUpQ",
-  "debussy-g79": "track/08CJz3GzansbYxAkDQG3et",
-  "debussy-g80": "track/7gnslELd5rN1fdIUqKYw9k",
-  "debussy-g83": "track/7C02SPvEHMJKucl1aXWzC6",
-  "debussy-g84": "track/3fG9yxJdPHD6Sg38byloTI",
-  "debussy-g85": "track/4roSdlbYQZY4Ds7CsQqAWx",
-  "debussy-g86": "track/5WXHtMsBSMvZsH8UsSJDak",
-  "debussy-g87": "track/1kC53IDUm0YWB1ACRQgC2P",
-  "debussy-g88": "track/1hJZvwftGYHTcIKRQmwNtK",
-  "deb-feux": "track/2FDjgJDCFGaY3BhCN9opBQ",
+  "debussy-g90": "track/3xcw5fL4eOt97qDYYybfkV",
+  "deb-arab1": "track/2mS2F4fD8rCOdD7uCCUkV3",
+  "deb-reverie": "track/00cSLzSa8nKOXq2jMnXD0t",
+  "deb-flaxen": "track/2xSK9281EgEtT23yqzWAnk",
+  "debussy-g77": "track/44rLWtVf5ZTdREQnFBX8AC",
+  "debussy-g78": "track/6SYzKQcSUOnSdUyEg5cTj1",
+  "debussy-g79": "track/3nrJFwHz4TokFQ2jfHzGvv",
+  "debussy-g80": "track/5YYJGvKNnrJrnYc8lhlnFf",
+  "debussy-g83": "track/7MIZy8oiJXiXtKO5w7leVe",
+  "debussy-g84": "track/5CrniutYOXdGc9BobRnCO1",
+  "debussy-g85": "track/4OId3y2Wyz8zmKYrhOhsyk",
+  "debussy-g86": "track/0T2cdEN20QfVN9pYdJfV2s",
+  "debussy-g87": "track/0CuQiGlLtOyEEM5MgvqCQb",
+  "debussy-g88": "track/0AofbfKQtRwcHHrEKHQwNL",
+  "deb-feux": "track/46f7o8Vv4eIBosNxDYvLh4",
   "clementi-son1-1": "track/5GLFpKQp64aIrLYbkwfFyw",
   "clementi-son1-2": "track/2OhfgKh2oDs6tp1iuTf5KG",
   "clementi-son1-3": "track/6rVzrlNpVPB9dYhNlUUSNA",
@@ -2022,8 +2023,21 @@ function renderSheetPane(p, toggleMark){
       pane.querySelector("#pgNext").addEventListener("click", ()=> scroll.scrollBy({top: scroll.clientHeight*0.85, behavior:"smooth"}));
       pane.querySelector("#pgPrev").addEventListener("click", ()=> scroll.scrollBy({top: -scroll.clientHeight*0.85, behavior:"smooth"}));
     } else {
-      pane.querySelector("#pgNext").addEventListener("click", ()=> scroll.scrollBy({top: scroll.clientHeight*0.85, behavior:"smooth"}));
-      pane.querySelector("#pgPrev").addEventListener("click", ()=> scroll.scrollBy({top: -scroll.clientHeight*0.85, behavior:"smooth"}));
+      // OSMD notation renders as A4 pages (separate SVGs) → up/down snaps page-to-page
+      const snapPage = dir => {
+        const pages = Array.from(scroll.querySelectorAll(".osmd-host svg, .score-svg-page"));
+        if (!pages.length) { scroll.scrollBy({top: dir*scroll.clientHeight*0.85, behavior:"smooth"}); return; }
+        const base = scroll.getBoundingClientRect().top - scroll.scrollTop;
+        const tops = pages.map(el => Math.round(el.getBoundingClientRect().top - base));
+        const cur = scroll.scrollTop;
+        let target;
+        if (dir > 0) target = tops.find(t => t > cur + 6);
+        else { const before = tops.filter(t => t < cur - 6); target = before.length ? before[before.length-1] : 0; }
+        if (target == null) scroll.scrollBy({top: scroll.clientHeight*0.85, behavior:"smooth"});
+        else scroll.scrollTo({top: Math.max(0, target - 6), behavior:"smooth"});
+      };
+      pane.querySelector("#pgNext").addEventListener("click", ()=> snapPage(1));
+      pane.querySelector("#pgPrev").addEventListener("click", ()=> snapPage(-1));
     }
     pane.querySelector("#zoomIn").addEventListener("click", ()=>{ sheetCtx.zoom=Math.min(3, sheetCtx.zoom+0.25); applyZoom(pane); });
     pane.querySelector("#zoomOut").addEventListener("click", ()=>{ sheetCtx.zoom=Math.max(0.5, sheetCtx.zoom-0.25); applyZoom(pane); });
