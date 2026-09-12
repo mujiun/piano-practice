@@ -19,6 +19,7 @@
 <script src="library/score-files.js"></script>
 <script src="library/ravel/img/manifest.js"></script>
 <script src="library/debussy/img/manifest.js"></script>
+<script src="library/score-pages.js"></script>
 <script>try{ if (window.Capacitor || window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) document.documentElement.classList.add('is-native'); }catch(e){}</script>
 <script src="library/piano-samples.js"></script>
 <script src="library/calendar-data.js"></script>
@@ -2029,9 +2030,16 @@ function renderSheetPane(p, toggleMark){
     applyZoom(pane);
     const scroll = pane.querySelector("#focusScroll"), fv = pane.querySelector("#focusView");
     if (isPdf) {
-      // page-strip images fit width automatically; up/down just scroll through them
-      pane.querySelector("#pgNext").addEventListener("click", ()=> scroll.scrollBy({top: scroll.clientHeight*0.85, behavior:"smooth"}));
-      pane.querySelector("#pgPrev").addEventListener("click", ()=> scroll.scrollBy({top: -scroll.clientHeight*0.85, behavior:"smooth"}));
+      // page-strip images fit width; up/down jumps exactly one page (page height = width × aspect)
+      const ar = (window.SCORE_PAGE_AR && window.SCORE_PAGE_AR[p.id]) || 1.3;
+      const jumpPage = dir => {
+        const cw = (scroll.querySelector(".pdf-img")||scroll).clientWidth || scroll.clientWidth;
+        const ph = cw * ar; if (ph <= 0) { scroll.scrollBy({top: dir*scroll.clientHeight*0.85, behavior:"smooth"}); return; }
+        const cur = Math.round(scroll.scrollTop / ph);
+        scroll.scrollTo({ top: Math.max(0, (cur + dir) * ph), behavior:"smooth" });
+      };
+      pane.querySelector("#pgNext").addEventListener("click", ()=> jumpPage(1));
+      pane.querySelector("#pgPrev").addEventListener("click", ()=> jumpPage(-1));
     } else {
       // OSMD notation renders as A4 pages (separate SVGs) → up/down snaps page-to-page
       const snapPage = dir => {
