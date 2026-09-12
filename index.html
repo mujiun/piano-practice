@@ -582,6 +582,8 @@
     /* sheet controls wrap comfortably */
     .sheet-meta { font-size: 12px; }
     .sheet-title { font-size: 23px; white-space: normal; overflow: visible; }
+    /* PDF: go full-bleed so the fit-width page uses the whole screen width */
+    .focus-scroll.is-pdf { margin: 0 -18px; border-radius: 0; border-left: 0; border-right: 0; width: 100vw; }
     /* floating toolbar: hug items, centered (metronome hidden on mobile) */
     .focus-actions { max-width: calc(100vw - 24px); overflow-x: auto; }
     .focus-actions button { flex-shrink: 0; }
@@ -1010,6 +1012,7 @@ function cNameShort(id){ if(S.lang==='en'){ const n = COMPOSERS[id]?COMPOSERS[id
 const SCORES = {
   "rav-pavane": "library/ravel/scores/rav-pavane.pdf",
   "rav-jeux-deau": "library/ravel/scores/rav-jeux-deau.pdf",
+  "rav-menuet-haydn": "library/ravel/scores/rav-menuet-haydn.pdf",
   "rav-sonatine-1": "library/ravel/scores/rav-sonatine.pdf",
   "rav-sonatine-2": "library/ravel/scores/rav-sonatine.pdf",
   "rav-sonatine-3": "library/ravel/scores/rav-sonatine.pdf",
@@ -1065,6 +1068,8 @@ const SCORE_PAGE = {
   "rav-tombeau-5": 22,    // V. Menuet
   "rav-tombeau-6": 26,    // VI. Toccata
 };
+// Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
+const FORCE_PDF = new Set(["rav-menuet-haydn"]);
 const SCORE_VER = "20260911";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
@@ -1818,6 +1823,7 @@ function renderSheet() {
 function scoreEl(p, variant){
   const h = variant==="focus" ? "min-height:60vh" : "height:300px";
   if (SCORE_SVG[p.id]) return SCORE_SVG[p.id].map(src=>`<img class="score-svg-page" src="${src}" alt="${p.title} score">`).join("");
+  if (SCORES[p.id] && FORCE_PDF.has(p.id)) return `<iframe src="${pdfSrc(p.id,'view=FitH&toolbar=0&navpanes=0')}" title="${p.title} score" style="width:100%;${h};border:0;border-radius:8px;background:#fff"></iframe>`;
   if (PIECE_XML[p.id]) return `<div class="osmd-host" id="pieceOsmd" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
   if (SCORE_FILES[p.id]) return `<div class="osmd-host" id="pieceOsmd" data-src="${SCORE_FILES[p.id]}" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
   if (SCORES[p.id]) return `<iframe src="${pdfSrc(p.id,'view=FitH&toolbar=0&navpanes=0')}" title="${p.title} score" style="width:100%;${h};border:0;border-radius:8px;background:#fff"></iframe>`;
@@ -1871,7 +1877,7 @@ function renderSheetPane(p, toggleMark){
     const full = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>`;
     const minusIc = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
     const plusIc = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
-    const isPdf = !SCORE_SVG[p.id] && !PIECE_XML[p.id] && !SCORE_FILES[p.id] && !!SCORES[p.id];
+    const isPdf = !SCORE_SVG[p.id] && !!SCORES[p.id] && (FORCE_PDF.has(p.id) || (!PIECE_XML[p.id] && !SCORE_FILES[p.id]));
     pane.innerHTML = `
       <div class="focus-view" id="focusView">
         <button class="fs-close" id="fsClose" title="Exit full screen" aria-label="Exit full screen">${IC.back}</button>
@@ -1907,9 +1913,8 @@ function renderSheetPane(p, toggleMark){
       let pdfPage = SCORE_PAGE[p.id] || 1;
       const goPdf = d => {
         pdfPage = Math.max(1, pdfPage + d);
-        const url = base + "#page=" + pdfPage + "&view=FitH&toolbar=0&navpanes=0";
-        frame.src = "about:blank";                       // force a real reload so the viewer honors #page
-        requestAnimationFrame(()=>{ frame.src = url; });
+        // changing the query (&pg=) forces a real navigation so the viewer honors #page (a fragment-only change won't reload)
+        frame.src = base + "&pg=" + pdfPage + "#page=" + pdfPage + "&view=FitH&toolbar=0&navpanes=0";
       };
       pane.querySelector("#pgNext").addEventListener("click", ()=> goPdf(1));
       pane.querySelector("#pgPrev").addEventListener("click", ()=> goPdf(-1));
