@@ -1,0 +1,16 @@
+{
+  "name": "piano-practice",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Piano practice — sheet library + player (iPad/iPhone)",
+  "scripts": {
+    "sync-web": "rm -rf www && mkdir -p www && cp index.html www/ && cp -R library mu-system images vendor www/",
+    "ios:copy": "npm run sync-web && npx cap copy ios",
+    "ios:open": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/cli": "^6.2.2",
+    "@capacitor/core": "^6.2.2",
+    "@capacitor/ios": "^6.2.2"
+  }
+}

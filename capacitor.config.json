@@ -1,0 +1,6 @@
+{
+  "appId": "com.mujiun.pianopractice",
+  "appName": "Piano Practice",
+  "webDir": "www",
+  "ios": { "contentInset": "always" }
+}
