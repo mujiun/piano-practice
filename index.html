@@ -1411,13 +1411,9 @@ function renderHome() {
       <div class="appbar-title">Practice</div>
       <div class="appbar-sub">Find your next piece to master</div>
     </div>
-    <div class="search">
-      ${IC.search}
-      <input id="homeSearch" type="search" placeholder="${t('Search')}" autocomplete="off">
-    </div>
     <div id="homeBody"></div>`;
   const input = v.querySelector("#homeSearch");
-  input.addEventListener("input", () => renderHomeBody(input.value.trim()));
+  if (input) input.addEventListener("input", () => renderHomeBody(input.value.trim()));
   renderHomeBody("");
 }
 
