@@ -116,6 +116,7 @@
   .sec-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
   .sec-title { font-size: 19px; font-weight: 650; letter-spacing: -0.015em; }
   .sec-title span { font-weight: 600; }
+  .sec-title .sec-title-count { font-size: 13px; font-weight: 500; color: var(--mu-ink-3); letter-spacing: 0; margin-left: 6px; }
   .sec-link { font-size: 13px; font-weight: 500; color: var(--mu-ink-3); cursor: pointer; }
   .sec-link:hover { color: var(--mu-ink); }
 
@@ -2053,8 +2054,9 @@ function renderSheetPane(p, toggleMark){
     const yt = "https://www.youtube.com/results?search_query=" + encodeURIComponent(`${c.name} ${p.title} ${p.sub||""} piano`);
     // full work/collection this piece belongs to (all its movements/pieces, in order)
     const collList = p.coll ? PIECES.filter(x=>x.c===p.c && x.coll===p.coll) : [];
+    const collCount = S.lang==='en' ? `${collList.length} pieces` : `${collList.length} 首`;
     const workSec = (collList.length > 1)
-      ? `<div class="sec" style="margin-top:54px"><div class="sec-head"><div class="sec-title">${p.coll}</div></div>
+      ? `<div class="sec" style="margin-top:54px"><div class="sec-head"><div class="sec-title">${p.coll} <span class="sec-title-count">${collCount}</span></div></div>
            <div class="rowlist">${collList.map((x,i)=>pieceRow(x,i)).join("")}</div>
          </div>`
       : "";
