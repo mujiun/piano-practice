@@ -1588,7 +1588,9 @@ function renderPianist() {
     <div class="credits">Scores engraved from public-domain editions · data: NIFC &amp; craigsapp Humdrum (CC-BY) · piano samples: Salamander Grand (CC-BY)</div>`;
 
   v.querySelector("#pBack").addEventListener("click", ()=>{ renderLibrary(); show("library","library"); });
-  v.querySelector("#pieceSearch").addEventListener("input", e=>{ pianistState.q = e.target.value.trim(); renderPieceList(); });
+  pianistState.q = "";
+  const pieceSearchEl = v.querySelector("#pieceSearch");
+  if (pieceSearchEl) pieceSearchEl.addEventListener("input", e=>{ pianistState.q = e.target.value.trim(); renderPieceList(); });
   wireSortBar(v.querySelector("#sortChips"), pianistState, renderPieceList);
   renderPieceList();
 }
@@ -1635,9 +1637,7 @@ function sortBarHTML(state, searchId, labels) {
       <div class="dropdown sortdd">
         <button type="button" class="input sort-trigger" data-role="sortsel-trigger" aria-haspopup="menu" aria-expanded="false"><span>${t("List by")}: ${t(labels[state.sort]||labels.name)}</span><svg class="lang-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
         <div class="menu" role="menu">${Object.entries(labels).map(([k,l])=>`<button type="button" class="menu-item${k===state.sort?' is-selected':''}" role="menuitem" data-sort="${k}">${t(l)}</button>`).join("")}</div>
-      </div>
-      <span class="grow"></span>
-      <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="${searchId}" type="search" placeholder="${t('Search')}" autocomplete="off" value="${state.q||''}"></label>`;
+      </div>`;
 }
 // shared: wire a sort bar's dir button + chips to a state object + rerender callback
 function wireSortBar(container, state, rerender) {
@@ -2133,7 +2133,9 @@ function renderSaved() {
         <div class="empty-sub">${t("Tap the bookmark on any piece to keep it here.")}</div>
       </div>`}`;
   if (total) {
-    v.querySelector("#savedSearch").addEventListener("input", e=>{ savedState.q = e.target.value.trim(); renderSavedList(); });
+    savedState.q = "";
+    const savedSearchEl = v.querySelector("#savedSearch");
+    if (savedSearchEl) savedSearchEl.addEventListener("input", e=>{ savedState.q = e.target.value.trim(); renderSavedList(); });
     wireSortBar(v.querySelector("#savedSort"), savedState, renderSavedList);
     renderSavedList();
   }
