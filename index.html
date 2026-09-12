@@ -468,6 +468,11 @@
   }
   .score svg { width: 100%; height: auto; display: block; }
   .score-note { font-size: 11.5px; color: var(--mu-gray-400); text-align: center; margin-top: 8px; }
+  /* prominent, animated "loading score" state */
+  .score-loading { text-align: center; padding: 56px 16px; color: var(--mu-ink); font-size: 18px; font-weight: 650; letter-spacing: -0.01em; }
+  .score-loading .dots { display: inline-block; width: 1.4em; text-align: left; }
+  .score-loading .dots::after { content: ""; animation: sl-dots 1.1s steps(1,end) infinite; }
+  @keyframes sl-dots { 0%{content:"."} 33%{content:".."} 66%,100%{content:"..."} }
 
   /* player transport */
   .player {
@@ -1214,8 +1219,13 @@ function exercisesFor(p){
 // render a MusicXML string into host via OSMD (consistent staff/notes)
 async function renderNotation(host, xml){
   if (!window.opensheetmusicdisplay){ host.innerHTML = `<div class="score-note">Notation engine not loaded</div>`; return; }
+  // prominent loading state while OSMD parses + lays out (renders into a separate inner div)
+  host.innerHTML = `<div class="score-loading">Loading score<span class="dots"></span></div><div class="osmd-inner"></div>`;
+  const inner = host.querySelector(".osmd-inner");
+  const clearLoading = ()=>{ const l = host.querySelector(".score-loading"); if (l) l.remove(); };
   try {
-    const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(host, {
+    await new Promise(r=>requestAnimationFrame(r));   // let the loading state paint first
+    const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(inner, {
       autoResize:true, drawTitle:false, drawSubtitle:false, drawPartNames:false,
       drawingParameters:"compacttight", drawMeasureNumbers:true, measureNumberInterval:1,
       pageFormat:"A4_P", pageBackgroundColor:"#FFFFFF"   // real page breaks → up/down flips pages
@@ -1224,20 +1234,21 @@ async function renderNotation(host, xml){
     // fit the fixed A4 page to the container width so the whole page shows (nothing cropped)
     const doRender = ()=>{
       try {
-        const cw = host.clientWidth; if (cw <= 0) return;
+        const cw = inner.clientWidth; if (cw <= 0) return;
         osmd.zoom = 1; osmd.render();
-        const svg = host.querySelector("svg");
+        const svg = inner.querySelector("svg");
         if (svg) {
           const pw = svg.getBoundingClientRect().width;
           if (pw > 4) { osmd.zoom = Math.min(1.4, (cw - 2) / pw); osmd.render(); }
         }
+        clearLoading();
       } catch(e){}
     };
     doRender();
     requestAnimationFrame(doRender);            // re-render once laid out (iOS settles width late)
     if (window.ResizeObserver) {
       let lastW = 0;
-      new ResizeObserver(()=>{ const w = host.clientWidth; if (w > 0 && Math.abs(w - lastW) > 2) { lastW = w; doRender(); } }).observe(host);
+      new ResizeObserver(()=>{ const w = inner.clientWidth; if (w > 0 && Math.abs(w - lastW) > 2) { lastW = w; doRender(); } }).observe(inner);
     }
   } catch(e){ host.innerHTML = `<div class="score-note">Couldn't render notation</div>`; }
 }
@@ -2051,7 +2062,7 @@ function renderSheetPane(p, toggleMark){
     if (oh) {
       if (PIECE_XML[p.id]) renderNotation(oh, PIECE_XML[p.id]);
       else if (oh.dataset.src) {
-        oh.innerHTML = `<div class="score-note">Loading score…</div>`;
+        oh.innerHTML = `<div class="score-loading">Loading score<span class="dots"></span></div>`;
         fetch(oh.dataset.src).then(r=>{ if(!r.ok) throw 0; return r.text(); })
           .then(xml=>renderNotation(oh, xml))
           .catch(()=>{ oh.innerHTML = `<div class="score-note">Score can't load from a local file — open the published site (https://mujiun.github.io/piano-practice/) to view it.</div>`; });
