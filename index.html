@@ -1542,7 +1542,8 @@ function renderPianist() {
     </div>
 
     <div class="sortchips" id="sortChips">${sortBarHTML(pianistState, "pieceSearch")}</div>
-    <div id="pieceListWrap"></div>`;
+    <div id="pieceListWrap"></div>
+    <div class="credits">Scores engraved from public-domain editions · data: NIFC &amp; craigsapp Humdrum (CC-BY) · piano samples: Salamander Grand (CC-BY)</div>`;
 
   v.querySelector("#pBack").addEventListener("click", ()=>{ renderLibrary(); show("library","library"); });
   v.querySelector("#pieceSearch").addEventListener("input", e=>{ pianistState.q = e.target.value.trim(); renderPieceList(); });
@@ -2051,8 +2052,7 @@ function renderProfile() {
           </div>
         </div>
       </div>
-    </div>
-    <div class="credits">Notation from public-domain editions. Score data: NIFC Chopin First Editions &amp; craigsapp Humdrum encodings (CC-BY). Piano samples: Salamander Grand Piano (CC-BY).</div>`;
+    </div>`;
   wirePieceRows(v);
   v.querySelector("#themeSwitch").addEventListener("click", e=>{
     S.theme = S.theme==='dark' ? 'light' : 'dark'; save(); applyTheme();
