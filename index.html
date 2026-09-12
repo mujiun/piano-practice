@@ -1049,10 +1049,11 @@ const SCORE_PAGE = {
   // NOTE: pavane / jeux-deau / sonatine / miroirs / tombeau PDFs were replaced —
   // each has a title page; music-start pages to be filled once verified.
 };
+const SCORE_VER = "20260911";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
-  return SCORES[id] + (q ? "#" + q : "");
+  return SCORES[id] + "?v=" + SCORE_VER + (q ? "#" + q : "");
 }
 let S = load();
 function load() {
