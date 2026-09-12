@@ -1168,7 +1168,7 @@ async function renderNotation(host, xml){
   try {
     const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(host, {
       autoResize:true, drawTitle:false, drawSubtitle:false, drawPartNames:false,
-      drawingParameters:"compacttight", drawMeasureNumbers:false
+      drawingParameters:"compacttight", drawMeasureNumbers:true, measureNumberInterval:1
     });
     await osmd.load(xml);
     osmd.zoom = window.innerWidth <= 640 ? 0.62 : 1;  // smaller, reflowed notation on mobile (fills width, no gap)
