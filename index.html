@@ -10,6 +10,7 @@
 <script src="library/scores-notes-chopin.js"></script>
 <script src="library/scores-notes-beethoven.js"></script>
 <script src="library/scores-notes-mozart.js"></script>
+<script src="library/scores-notes-scarlatti.js"></script>
 <script src="library/score-files.js"></script>
 <script src="library/piano-samples.js"></script>
 <script src="library/calendar-data.js"></script>
@@ -823,13 +824,6 @@ const PIECES = [
   {"id":"tchaikovsky-g43","c":"tchaikovsky","coll":"The Seasons","title":"October: Autumn Song","sub":"Op. 37b","key":"D minor","level":5,"year":1876,"dur":4},
   {"id":"tchaikovsky-g44","c":"tchaikovsky","title":"Nocturne in C♯ minor","sub":"Op. 19 No. 4","key":"C♯ minor","level":5,"year":1873,"dur":4},
   {"id":"tchaikovsky-g45","c":"tchaikovsky","title":"Dumka","sub":"Op. 59","key":"C minor","level":8,"year":1886,"dur":9},
-  {"id":"scarlatti-g58","c":"scarlatti","coll":"Keyboard Sonatas","title":"Sonata in D minor 'Pastorale'","sub":"K. 9","key":"D minor","level":6,"year":1738,"dur":4},
-  {"id":"scarlatti-g59","c":"scarlatti","coll":"Keyboard Sonatas","title":"Sonata in E major","sub":"K. 380","key":"E major","level":6,"year":1754,"dur":4},
-  {"id":"scarlatti-g60","c":"scarlatti","coll":"Keyboard Sonatas","title":"Sonata in C major","sub":"K. 159","key":"C major","level":5,"year":1750,"dur":2},
-  {"id":"scarlatti-g61","c":"scarlatti","coll":"Keyboard Sonatas","title":"Sonata in D minor","sub":"K. 141","key":"D minor","level":9,"year":1750,"dur":4},
-  {"id":"scarlatti-g62","c":"scarlatti","coll":"Keyboard Sonatas","title":"Sonata in G major","sub":"K. 455","key":"G major","level":7,"year":1750,"dur":3},
-  {"id":"scarlatti-g63","c":"scarlatti","coll":"Keyboard Sonatas","title":"Sonata in F minor","sub":"K. 466","key":"F minor","level":6,"year":1750,"dur":5},
-  {"id":"scarlatti-g64","c":"scarlatti","coll":"Keyboard Sonatas","title":"Sonata in A major","sub":"K. 113","key":"A major","level":7,"year":1750,"dur":4},
   {"id":"debussy-g74","c":"debussy","coll":"Suite bergamasque","title":"Prélude","sub":"Suite bergamasque","key":"F major","level":6,"year":1905,"dur":4},
   {"id":"debussy-g75","c":"debussy","coll":"Suite bergamasque","title":"Menuet","sub":"Suite bergamasque","key":"A minor","level":5,"year":1905,"dur":4},
   {"id":"debussy-g76","c":"debussy","coll":"Suite bergamasque","title":"Passepied","sub":"Suite bergamasque","key":"F♯ minor","level":6,"year":1905,"dur":3},
@@ -931,7 +925,14 @@ const PIECES = [
   {"id":"deb-cc-shepherd","c":"debussy","coll":"Children's Corner","title":"The Little Shepherd","key":"A major","level":4,"year":1908,"dur":2,"story":"A wistful pastoral tune answering its own playful dance."},
   {"id":"deb-reflets","c":"debussy","coll":"Images, Book I","title":"Reflets dans l'eau","key":"D♭ major","level":8,"year":1905,"dur":5,"story":"Light shimmering on water — Impressionism distilled to the keyboard."},
   {"id":"deb-poissons","c":"debussy","coll":"Images, Book II","title":"Poissons d'or","key":"F♯ major","level":9,"year":1907,"dur":4,"story":"'Goldfish' darting in glittering figuration, inspired by a Japanese lacquer panel."},
-  {"id":"deb-feux","c":"debussy","coll":"Préludes, Book II","title":"Feux d'artifice","key":"D♭ major","level":10,"year":1913,"dur":5,"story":"Bastille-Day fireworks over Paris, closing Book II with a distant Marseillaise."}
+  {"id":"deb-feux","c":"debussy","coll":"Préludes, Book II","title":"Feux d'artifice","key":"D♭ major","level":10,"year":1913,"dur":5,"story":"Bastille-Day fireworks over Paris, closing Book II with a distant Marseillaise."},
+  {"id":"scar-k1","c":"scarlatti","title":"Sonata in D minor","sub":"K. 1 (L. 366)","key":"D minor","level":5,"year":1738,"dur":3,"story":"The very first of Scarlatti's 555 sonatas — restless, with hand-crossings and a driving Iberian pulse."},
+  {"id":"scar-k113","c":"scarlatti","title":"Sonata in A major","sub":"K. 113 (L. 345)","key":"A major","level":7,"year":1738,"dur":4,"story":"Guitar-like repeated notes and dazzling leaps, full of Spanish colour."},
+  {"id":"scar-k492","c":"scarlatti","title":"Sonata in D major","sub":"K. 492 (L. 14)","key":"D major","level":7,"year":1756,"dur":4,"story":"A brilliant, festive sonata bristling with fanfares and rapid runs."},
+  {"id":"scar-k158","c":"scarlatti","title":"Sonata in C minor","sub":"K. 158 (L. 4)","key":"C minor","level":5,"year":1750,"dur":3.5,"story":"A darker, contrapuntal sonata of quiet intensity."},
+  {"id":"scar-k238","c":"scarlatti","title":"Sonata in F minor","sub":"K. 238 (L. 27)","key":"F minor","level":6,"year":1750,"dur":4,"story":"Songful and melancholy — one of his most expressive slow sonatas."},
+  {"id":"scar-k25","c":"scarlatti","title":"Sonata in F♯ minor","sub":"K. 25 (L. 481)","key":"F♯ minor","level":7,"year":1738,"dur":4,"story":"A striking early sonata in a rare key, with bold harmonic turns."},
+  {"id":"scar-k146","c":"scarlatti","title":"Sonata in G major","sub":"K. 146 (L. 349)","key":"G major","level":6,"year":1750,"dur":3,"story":"Bright and dancing, sparkling with ornaments."}
 ];
 
 /* ================================================================
