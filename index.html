@@ -1088,7 +1088,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260911";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260912b";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
@@ -2032,9 +2032,12 @@ function renderSheet() {
 function scoreEl(p, variant){
   const h = variant==="focus" ? "min-height:60vh" : "height:300px";
   const osmdTitle = variant==='focus' ? `<div class="osmd-title"><span class="osmd-title-name">${pieceNameHTML(p)}</span><span class="osmd-title-by">${COMPOSERS[p.c].name}</span></div>` : "";
-  if (SCORE_SVG[p.id]) return osmdTitle + SCORE_SVG[p.id].map(src=>`<img class="score-svg-page" src="${src}" alt="${p.title} score">`).join("");
+  // some scans already print the work title+composer on the page → don't add our own (avoid duplicate)
+  const SCAN_HAS_TITLE = new Set(["ravel","debussy"]);
+  const pdfTitle = SCAN_HAS_TITLE.has(p.c) ? "" : osmdTitle;
+  if (SCORE_SVG[p.id]) return pdfTitle + SCORE_SVG[p.id].map(src=>`<img class="score-svg-page" src="${src}" alt="${p.title} score">`).join("");
   // MVP: public-domain PDF page-strips take precedence over live XML engraving wherever we have them
-  if (window.SCORE_IMG && window.SCORE_IMG[p.id]) return osmdTitle + pdfViewer(p, variant);
+  if (window.SCORE_IMG && window.SCORE_IMG[p.id]) return pdfTitle + pdfViewer(p, variant);
   if (PIECE_XML[p.id]) return osmdTitle + `<div class="osmd-host" id="pieceOsmd" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
   if (SCORE_FILES[p.id]) return osmdTitle + `<div class="osmd-host" id="pieceOsmd" data-src="${SCORE_FILES[p.id]}" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
   return `<div class="score-empty">
