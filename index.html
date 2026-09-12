@@ -1200,7 +1200,7 @@ async function renderNotation(host, xml){
       drawingParameters:"compacttight", drawMeasureNumbers:true, measureNumberInterval:1
     });
     await osmd.load(xml);
-    osmd.zoom = window.innerWidth <= 640 ? 0.62 : (window.innerWidth <= 900 ? 0.7 : 1.15);  // phone 62% · iPad 70% · iPad Pro/desktop 115%
+    osmd.zoom = window.innerWidth <= 640 ? 0.62 : 1.25;  // phone 62% · iPad + desktop 125%
     const doRender = ()=>{ try { if (host.clientWidth > 0) osmd.render(); } catch(e){} };
     doRender();
     requestAnimationFrame(doRender);            // re-render once laid out (iOS settles width late → was blank)
