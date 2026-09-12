@@ -1,0 +1,2 @@
+// Chopin page-strip counts (public-domain PDF scans, sliced at staff gaps)
+window.SCORE_IMG = Object.assign(window.SCORE_IMG||{}, {"cho-028-002":1,"cho-028-003":3,"cho-pre284":1,"cho-028-005":1,"cho-pre286":1,"cho-pre287":1,"cho-028-008":6,"cho-028-009":2,"cho-028-010":1,"cho-028-011":1,"cho-028-012":3,"cho-028-013":3,"cho-028-014":1,"cho-pre2815":4,"cho-028-016":4,"cho-028-017":4,"cho-028-018":2,"cho-028-019":3,"cho-pre2820":1,"cho-028-021":2,"cho-028-022":2,"cho-028-023":2,"cho-028-024":4});

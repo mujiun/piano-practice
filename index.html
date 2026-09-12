@@ -19,6 +19,7 @@
 <script src="library/score-files.js"></script>
 <script src="library/ravel/img/manifest.js"></script>
 <script src="library/debussy/img/manifest.js"></script>
+<script src="library/chopin/img/manifest.js"></script>
 <script src="library/score-pages.js"></script>
 <script>try{ if (window.Capacitor || window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) document.documentElement.classList.add('is-native'); }catch(e){}</script>
 <script src="library/piano-samples.js"></script>
@@ -2029,11 +2030,11 @@ function renderSheet() {
 function scoreEl(p, variant){
   const h = variant==="focus" ? "min-height:60vh" : "height:300px";
   if (SCORE_SVG[p.id]) return SCORE_SVG[p.id].map(src=>`<img class="score-svg-page" src="${src}" alt="${p.title} score">`).join("");
-  if (window.SCORE_IMG && window.SCORE_IMG[p.id] && FORCE_PDF.has(p.id)) return pdfViewer(p, variant);
+  // MVP: public-domain PDF page-strips take precedence over live XML engraving wherever we have them
+  if (window.SCORE_IMG && window.SCORE_IMG[p.id]) return pdfViewer(p, variant);
   const osmdTitle = variant==='focus' ? `<div class="osmd-title"><span class="osmd-title-name">${pieceNameHTML(p)}</span><span class="osmd-title-by">${COMPOSERS[p.c].name}</span></div>` : "";
   if (PIECE_XML[p.id]) return osmdTitle + `<div class="osmd-host" id="pieceOsmd" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
   if (SCORE_FILES[p.id]) return osmdTitle + `<div class="osmd-host" id="pieceOsmd" data-src="${SCORE_FILES[p.id]}" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
-  if (window.SCORE_IMG && window.SCORE_IMG[p.id]) return pdfViewer(p, variant);
   return `<div class="score-empty">
     <div class="score-empty-ic">${IC.music}</div>
     <div class="score-empty-t">No score added for this piece yet</div>
@@ -2087,7 +2088,7 @@ function renderSheetPane(p, toggleMark){
     const shrink = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/></svg>`;
     const minusIc = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
     const plusIc = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
-    const isPdf = !SCORE_SVG[p.id] && !!(window.SCORE_IMG && window.SCORE_IMG[p.id]) && (FORCE_PDF.has(p.id) || (!PIECE_XML[p.id] && !SCORE_FILES[p.id]));
+    const isPdf = !SCORE_SVG[p.id] && !!(window.SCORE_IMG && window.SCORE_IMG[p.id]);   // page-strips render as PDF
     pane.innerHTML = `
       <div class="focus-view" id="focusView">
         <button class="fs-close" id="fsClose" title="Exit full screen" aria-label="Exit full screen">${IC.back}</button>
