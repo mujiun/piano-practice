@@ -19,6 +19,7 @@
 <script src="library/score-files.js"></script>
 <script src="library/ravel/img/manifest.js"></script>
 <script src="library/debussy/img/manifest.js"></script>
+<script>try{ if (window.Capacitor || window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) document.documentElement.classList.add('is-native'); }catch(e){}</script>
 <script src="library/piano-samples.js"></script>
 <script src="library/calendar-data.js"></script>
 <style>
@@ -43,6 +44,9 @@
     position: relative;
     display: flex; flex-direction: column;
   }
+  /* native app (Capacitor) / installed PWA: always full-bleed, no desktop mockup frame */
+  html.is-native .stage { padding: 0; min-height: 100vh; min-height: 100dvh; align-items: stretch; }
+  html.is-native .device { width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; border-radius: 0; box-shadow: none; }
   @media (max-width: 1024px) {
     .stage { padding: 0; min-height: 100vh; min-height: 100dvh; align-items: stretch; }
     .device { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; }
