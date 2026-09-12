@@ -506,6 +506,7 @@
   .lang-caret { color: var(--mu-ink-3); flex-shrink: 0; transition: transform .15s ease; }
   .dropdown.is-open .lang-caret { transform: rotate(180deg); }
   .stat-lbl { font-size: 12px; color: var(--mu-ink-3); }
+  .credits { font-size: 11.5px; line-height: 1.6; color: var(--mu-ink-3); margin-top: 28px; padding: 0 2px; }
   .settrow { display: flex; align-items: center; gap: 12px; padding: 15px 4px; border-bottom: 1px solid var(--mu-gray-100); }
   .settrow-ic { width: 34px; height: 34px; border-radius: 9px; background: var(--mu-gray-100); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .settrow-txt { flex: 1; font-size: 15px; font-weight: 500; }
@@ -2049,7 +2050,8 @@ function renderProfile() {
           </div>
         </div>
       </div>
-    </div>`;
+    </div>
+    <div class="credits">Notation from public-domain editions. Score data: NIFC Chopin First Editions &amp; craigsapp Humdrum encodings (CC-BY). Piano samples: Salamander Grand Piano (CC-BY).</div>`;
   wirePieceRows(v);
   v.querySelector("#themeSwitch").addEventListener("click", e=>{
     S.theme = S.theme==='dark' ? 'light' : 'dark'; save(); applyTheme();
