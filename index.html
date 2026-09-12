@@ -2032,9 +2032,10 @@ function renderSheet() {
 function scoreEl(p, variant){
   const h = variant==="focus" ? "min-height:60vh" : "height:300px";
   const osmdTitle = variant==='focus' ? `<div class="osmd-title"><span class="osmd-title-name">${pieceNameHTML(p)}</span><span class="osmd-title-by">${COMPOSERS[p.c].name}</span></div>` : "";
-  // some scans already print the work title+composer on the page → don't add our own (avoid duplicate)
-  const SCAN_HAS_TITLE = new Set(["ravel","debussy"]);
-  const pdfTitle = SCAN_HAS_TITLE.has(p.c) ? "" : osmdTitle;
+  // PD scans normally print their own title+composer → don't add ours (avoid duplicate).
+  // Only these collections use a typeset that shows just "No. N" and needs our title header.
+  const SCAN_NO_TITLE = new Set(["24 Préludes, Op. 28"]);
+  const pdfTitle = SCAN_NO_TITLE.has(p.coll) ? osmdTitle : "";
   if (SCORE_SVG[p.id]) return pdfTitle + SCORE_SVG[p.id].map(src=>`<img class="score-svg-page" src="${src}" alt="${p.title} score">`).join("");
   // MVP: public-domain PDF page-strips take precedence over live XML engraving wherever we have them
   if (window.SCORE_IMG && window.SCORE_IMG[p.id]) return pdfTitle + pdfViewer(p, variant);
