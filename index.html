@@ -401,6 +401,7 @@
   .focus-zoom { transform-origin: top left; transition: transform .12s var(--mu-ease); width: 100%; min-height: 100%; }
   .focus-zoom iframe { width: 100%; min-height: 60vh; border: 0; display: block; background: #fff; }
   /* PDF: native-width iframe CSS-scaled to fit the container (fits width on iOS too) */
+  .focus-scroll.is-pdf { height: 72vh; }   /* definite height so the PDF fills (and enlarge fills too) */
   .pdf-scale { width: 100%; overflow: hidden; border-radius: 8px; background: #fff; }
   .pdf-frame { border: 0; background: #fff; transform-origin: top left; display: block; }
   .focus-view:fullscreen { background: var(--mu-bg); padding: 16px; box-sizing: border-box; }
@@ -1060,22 +1061,22 @@ function pdfViewer(p, variant){
   const base = pdfBase(p.id);
   const dim = (window.PDF_DIMS && window.PDF_DIMS[base]) || {w:640,h:840,count:1};
   const src = pdfSrc(p.id, 'view=FitH&toolbar=0&navpanes=0');
-  return `<div class="pdf-scale" data-w="${dim.w}" data-ph="${dim.h}" data-count="${dim.count||1}"><iframe class="pdf-frame" src="${src}" title="${p.title} score" scrolling="no"></iframe></div>`;
+  return `<div class="pdf-scale" data-w="${dim.w}"><iframe class="pdf-frame" src="${src}" title="${p.title} score"></iframe></div>`;
 }
-// Render all the movement's pages at native size in the iframe, then CSS-scale to fit the container
-// width; size the box to exactly wrap the scaled content (no fixed height → no white gap / fills enlarge).
+// Render the PDF at native width, CSS-scale to fit the container width; the iframe fills the container
+// height and the PDF's OWN scroll/swipe pages through it (reliable on iOS, shows every page).
 function applyPdfScale(box){
   if (!box) return;
   const frame = box.querySelector(".pdf-frame"); if (!frame) return;
-  const W = +box.dataset.w || 640, PH = +box.dataset.ph || 840, count = +box.dataset.count || 1;
-  const cw = box.clientWidth;
-  if (!cw) return;
+  const W = +box.dataset.w || 640;
+  const sc = box.closest(".focus-scroll");
+  const cw = box.clientWidth, ch = sc ? sc.clientHeight : box.clientHeight;
+  if (!cw || !ch) return;
   const scale = cw / W;
-  const totalH = (PH + 8) * count;              // +8px/page for the viewer's inter-page gap
+  box.style.height = ch + "px";
   frame.style.width = W + "px";
-  frame.style.height = totalH + "px";
+  frame.style.height = (ch / scale) + "px";
   frame.style.transform = `scale(${scale})`;
-  box.style.height = (totalH * scale) + "px";   // box wraps the scaled pages; outer .focus-scroll scrolls
 }
 let S = load();
 function load() {
