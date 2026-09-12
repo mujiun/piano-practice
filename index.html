@@ -1250,8 +1250,21 @@ async function renderNotation(host, xml){
       const scale = Math.min(1.6, cw / FIXED_W);
       inner.style.transform = `scale(${scale})`;
       host.style.height = (inner.offsetHeight * scale) + "px";
-      const svgs = [...inner.querySelectorAll("svg")];   // each A4 page = one svg → page-turn anchors
-      host._pageTops = svgs.map(s => s.offsetTop * scale);
+      const svgs = [...inner.querySelectorAll("svg")];   // each A4 page = one svg
+      const pageTops = svgs.map(s => s.offsetTop * scale);
+      host._pageTops = pageTops;
+      // each staff-row (system) top, in scaled px from the host origin → up/down never cuts a line
+      try {
+        const sys = [];
+        (osmd.graphic && osmd.graphic.musicPages || []).forEach((pg, pi) => {
+          const base = pageTops[pi] || 0;
+          (pg.musicSystems || pg.MusicSystems || []).forEach(ms => {
+            const y = ms && ms.boundingBox && ms.boundingBox.absolutePosition && ms.boundingBox.absolutePosition.y;
+            if (y != null) sys.push(base + y * 10 * scale);   // OSMD: 10px per unit at zoom 1
+          });
+        });
+        host._sysTops = sys.length ? sys.sort((a,b)=>a-b) : null;
+      } catch(e){ host._sysTops = null; }
     };
     fit();
     requestAnimationFrame(fit);
@@ -2093,18 +2106,26 @@ function renderSheetPane(p, toggleMark){
       pane.querySelector("#pgNext").addEventListener("click", ()=> jumpPage(1));
       pane.querySelector("#pgPrev").addEventListener("click", ()=> jumpPage(-1));
     } else {
-      // OSMD notation: fixed A4 pages → up/down flips to the next/prev page top (clean anchor)
+      // OSMD notation: page down/up by ~a screenful, but SNAP the new top to a staff-row (system)
+      // boundary so a system is never cut in half at the top of the view
       const jumpXml = dir => {
         const oh = scroll.querySelector(".osmd-host");
-        const tops = oh && oh._pageTops;
-        const step = scroll.clientHeight * 0.92;
+        const tops = oh && oh._sysTops;
+        const step = scroll.clientHeight * 0.9;
         if (!tops || tops.length < 2) { scroll.scrollBy({top: dir*step, behavior:"smooth"}); return; }
         const ohTop = oh.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop;
         const abs = tops.map(t => t + ohTop);
         const cur = scroll.scrollTop;
-        let target = dir > 0 ? abs.find(t => t > cur + 8) : abs.filter(t => t < cur - 8).pop();
-        if (target == null) { scroll.scrollBy({top: dir*step, behavior:"smooth"}); return; }
-        scroll.scrollTo({ top: Math.max(0, target - 4), behavior:"smooth" });
+        let snap;
+        if (dir > 0) {                                    // largest system-top within a screenful below
+          snap = abs.filter(y => y > cur + 8 && y <= cur + step + 8).pop();
+          if (snap == null) snap = abs.find(y => y > cur + 8);
+        } else {                                          // smallest system-top a screenful above
+          snap = abs.filter(y => y >= cur - step - 8 && y < cur - 8).shift();
+          if (snap == null) { const p = abs.filter(y => y < cur - 8); snap = p.length ? p[0] : 0; }
+        }
+        if (snap == null) { scroll.scrollBy({top: dir*step, behavior:"smooth"}); return; }
+        scroll.scrollTo({ top: Math.max(0, snap - 6), behavior:"smooth" });
       };
       pane.querySelector("#pgNext").addEventListener("click", ()=> jumpXml(1));
       pane.querySelector("#pgPrev").addEventListener("click", ()=> jumpXml(-1));
