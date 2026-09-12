@@ -606,6 +606,8 @@
   @media (pointer: coarse) {
     .focus-actions { gap: 4px; }
     .focus-actions button { width: 44px; height: 44px; }
+    /* touch: pinch-zoom instead of +/- buttons */
+    .focus-actions #zoomOut, .focus-actions #zoomIn, .focus-actions #zoomVal, .focus-actions .fa-sep { display: none; }
     .zoomctrl button { width: 44px; height: 44px; }
     .appbar-back { width: 44px; height: 44px; }
     .sortchips button { height: 36px; }
