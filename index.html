@@ -414,7 +414,8 @@
   .metro-group { display: contents; }
   .focus-scroll { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg);
     background: var(--mu-white); overflow-x: hidden; overflow-y: auto; max-height: 72vh; min-height: 320px; padding-bottom: 76px; }
-  .osmd-title { text-align: center; margin: 22px 0 16px; }
+  .osmd-title { display: none; text-align: center; margin: 8px 0 16px; }   /* hero already shows title+composer; only needed in enlarge */
+  .focus-view.fake-fs .osmd-title { display: block; }
   .osmd-title-name { display: block; font-size: 23px; font-weight: 650; color: var(--mu-ink); letter-spacing: -0.01em; }
   .osmd-title-name .pn-dim { color: var(--mu-ink-3); font-weight: 650; }
   .osmd-title-by { display: block; font-size: 15px; color: var(--mu-ink-3); margin-top: 4px; }
@@ -1232,9 +1233,10 @@ async function renderNotation(host, xml){
       drawingParameters:"default", drawMeasureNumbers:true, measureNumberInterval:1,
       pageFormat:"A4_P", pageBackgroundColor:"#FFFFFF"
     });
-    try {   // airier layout: fewer systems per page, more space between staves/systems
+    try {   // don't let OSMD draw its own title/composer (the hero already shows them); modest spacing
       const R = osmd.EngravingRules || osmd.rules;
-      if (R) { R.MinimumDistanceBetweenSystems = 18; R.MinSkyBottomDistBetweenSystems = 10; R.BetweenStaffDistance = 8; R.StaffDistance = 9; R.PageTopMargin = 3; R.PageBottomMargin = 3; }
+      if (R) { R.RenderComposer = false; R.RenderTitle = false; R.RenderSubtitle = false; R.RenderLyricist = false; R.RenderPartNames = false;
+        R.MinimumDistanceBetweenSystems = 8; R.PageTopMargin = 2; R.PageBottomMargin = 2; }
     } catch(e){}
     await osmd.load(xml);
     // fit the fixed A4 page to the container width so the whole page shows (nothing cropped)
@@ -2020,9 +2022,13 @@ function renderSheetPane(p, toggleMark){
 
   if (sheetCtx.tab === "explore") {
     const yt = "https://www.youtube.com/results?search_query=" + encodeURIComponent(`${c.name} ${p.title} ${p.sub||""} piano`);
-    const similar = PIECES.filter(x=>x.id!==p.id)
-      .map(x=>({x, s:(x.c===p.c?0:6)+Math.abs(x.level-p.level)}))
-      .sort((a,b)=>a.s-b.s).slice(0,4).map(o=>o.x);
+    // full work/collection this piece belongs to (all its movements/pieces, in order)
+    const collList = p.coll ? PIECES.filter(x=>x.c===p.c && x.coll===p.coll) : [];
+    const workSec = (collList.length > 1)
+      ? `<div class="sec" style="margin-top:54px"><div class="sec-head"><div class="sec-title">${p.coll}</div></div>
+           <div class="rowlist">${collList.map((x,i)=>pieceRow(x,i)).join("")}</div>
+         </div>`
+      : "";
     const aboutHTML = p.about
       ? `<p class="story-p">${p.story}</p>
          <div class="about-block"><div class="about-label">Series</div><p>${p.about.series}</p></div>
@@ -2031,9 +2037,7 @@ function renderSheetPane(p, toggleMark){
       : `<p class="story-p">${p.story}</p>`;
     pane.innerHTML = `
       <div class="sec"><div class="sec-head"><div class="sec-title">The story</div></div>${aboutHTML}</div>
-      <div class="sec" style="margin-top:54px"><div class="sec-head"><div class="sec-title">Similar pieces</div></div>
-        <div class="rowlist">${similar.map((x,i)=>pieceRow(x,i)).join("")}</div>
-      </div>
+      ${workSec}
       <div class="actionbtn-row"><button class="btn btn-secondary" id="composerBtn">More by ${lastName}</button></div>`;
     wirePieceRows(pane);
     pane.querySelector("#composerBtn").addEventListener("click", ()=>{ stopAllPractice(); openPianist(p.c); });
