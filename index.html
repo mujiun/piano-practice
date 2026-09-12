@@ -391,6 +391,9 @@
   .score-svg-page + .score-svg-page { margin-top: 8px; }
   .focus-zoom { transform-origin: top left; transition: transform .12s var(--mu-ease); width: 100%; min-height: 100%; }
   .focus-zoom iframe { width: 100%; min-height: 60vh; border: 0; display: block; background: #fff; }
+  /* PDF fills the container (its own scroll handles paging) — no reserved toolbar padding */
+  .focus-scroll.is-pdf { padding-bottom: 0; }
+  .focus-scroll.is-pdf .focus-zoom, .focus-scroll.is-pdf .focus-zoom iframe { height: 100%; min-height: 100%; }
   .focus-view:fullscreen { background: var(--mu-bg); padding: 16px; box-sizing: border-box; }
   .focus-view:fullscreen .focus-scroll { max-height: none; height: calc(100vh - 32px); }
   .focus-view:-webkit-full-screen { background: var(--mu-bg); padding: 16px; box-sizing: border-box; }
@@ -1033,6 +1036,17 @@ const SCORES = {
   "rav-mamere-4": "library/ravel/scores/rav-mamere.pdf",
   "rav-mamere-5": "library/ravel/scores/rav-mamere.pdf",
 };
+// Start page within a shared multi-movement PDF (movements that share one file)
+const SCORE_PAGE = {
+  "rav-jeux-deau": 7,    // skip cover/front matter
+  "rav-gaspard-2": 13,   // Le Gibet
+  "rav-gaspard-3": 17,   // Scarbo
+};
+function pdfSrc(id, params){
+  const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
+  const q = [pg, params].filter(Boolean).join("&");
+  return SCORES[id] + (q ? "#" + q : "");
+}
 let S = load();
 function load() {
   try { return Object.assign({}, DEFAULT_STATE, JSON.parse(localStorage.getItem(LS_KEY) || "{}")); }
@@ -1649,7 +1663,27 @@ const SCORE_SVG = {
 // Spotify recordings — pieceId -> "track/<id>" | "album/<id>" (needs internet).
 // Add by pasting a Spotify share link's id here.
 const SPOTIFY = {
-  "rav-menuet-haydn": "track/7f0jFRqjpp8hhDUzp8fjRr",  // Seong-Jin Cho
+  // Ravel: Complete Solo Piano Works (Seong-Jin Cho) — per-track
+  "rav-pavane": "track/2IDo6WzaIJ6hDh4i0fEmzJ",
+  "rav-jeux-deau": "track/22M8OkY0FrVRx6wqxS3eQW",
+  "rav-sonatine-1": "track/1P0SVYQQHAe0QICIUECjSS",
+  "rav-sonatine-2": "track/1EACpvQ4eymq2hotlKtbgj",
+  "rav-sonatine-3": "track/0TW9CzMvLRMwyONEHbHGAp",
+  "rav-miroirs-1": "track/1oifg3fNuoqE2Q3DWT6qzf",
+  "rav-miroirs-2": "track/4FbgLZKEWD2jrDI2emru9R",
+  "rav-miroirs-3": "track/7tqqjaAAS8K1Stnz5EpGVl",
+  "rav-miroirs-4": "track/6Qyos3HjlgMFCGDLna8IAU",
+  "rav-miroirs-5": "track/145ryGBD7zJQWP7ygwDyPo",
+  "rav-gaspard-1": "track/0SpvEGsrmEbuOIaP5FQFTK",
+  "rav-gaspard-2": "track/2kA2Re9l7vMiQXw5OxCyGu",
+  "rav-gaspard-3": "track/6yylYgktLcZCVLYC38iUKi",
+  "rav-menuet-haydn": "track/7f0jFRqjpp8hhDUzp8fjRr",
+  "rav-tombeau-1": "track/3V4u61gx6ElkbRzkjpFvLq",
+  "rav-tombeau-2": "track/5lEwVSGDdyrv96Gxu5u2LG",
+  "rav-tombeau-3": "track/1OupYovsmSzkoSCnuqNzMN",
+  "rav-tombeau-4": "track/4PHZOHA8jXRox2A7e6z9bS",
+  "rav-tombeau-5": "track/62nchcGXxzKr7u0hdVexry",
+  "rav-tombeau-6": "track/2km2gsmSaFu9RdhagBHklc",
 };
 
 function renderSheet() {
@@ -1708,7 +1742,7 @@ function scoreEl(p, variant){
   if (SCORE_SVG[p.id]) return SCORE_SVG[p.id].map(src=>`<img class="score-svg-page" src="${src}" alt="${p.title} score">`).join("");
   if (PIECE_XML[p.id]) return `<div class="osmd-host" id="pieceOsmd" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
   if (SCORE_FILES[p.id]) return `<div class="osmd-host" id="pieceOsmd" data-src="${SCORE_FILES[p.id]}" style="${variant==='focus'?'':'max-height:320px;overflow:hidden'}"></div>`;
-  if (SCORES[p.id]) return `<iframe src="${SCORES[p.id]}#view=FitH&toolbar=0&navpanes=0" title="${p.title} score" style="width:100%;${h};border:0;border-radius:8px;background:#fff"></iframe>`;
+  if (SCORES[p.id]) return `<iframe src="${pdfSrc(p.id,'view=FitH&toolbar=0&navpanes=0')}" title="${p.title} score" style="width:100%;${h};border:0;border-radius:8px;background:#fff"></iframe>`;
   return `<div class="score-empty">
     <div class="score-empty-ic">${IC.music}</div>
     <div class="score-empty-t">No score added for this piece yet</div>
@@ -1736,9 +1770,6 @@ function renderSheetPane(p, toggleMark){
       : `<p class="story-p">${p.story}</p>`;
     pane.innerHTML = `
       <div class="sec"><div class="sec-head"><div class="sec-title">The story</div></div>${aboutHTML}</div>
-      ${SCORES[p.id] ? `<div class="explore-links">
-        <a class="explore-link" href="${SCORES[p.id]}" target="_blank" rel="noopener">${IC.music}<span>Full score (PDF)</span><span class="explore-arrow">↗</span></a>
-      </div>` : ""}
       <div class="sec" style="margin-top:54px"><div class="sec-head"><div class="sec-title">Similar pieces</div></div>
         <div class="rowlist">${similar.map((x,i)=>pieceRow(x,i)).join("")}</div>
       </div>
@@ -1762,10 +1793,11 @@ function renderSheetPane(p, toggleMark){
     const full = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>`;
     const minusIc = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
     const plusIc = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+    const isPdf = !SCORE_SVG[p.id] && !PIECE_XML[p.id] && !SCORE_FILES[p.id] && !!SCORES[p.id];
     pane.innerHTML = `
       <div class="focus-view" id="focusView">
         <button class="fs-close" id="fsClose" title="Exit full screen" aria-label="Exit full screen">${IC.back}</button>
-        <div class="focus-scroll" id="focusScroll"><div class="focus-zoom" id="focusZoom">${scoreEl(p,"focus")}</div></div>
+        <div class="focus-scroll${isPdf?' is-pdf':''}" id="focusScroll"><div class="focus-zoom" id="focusZoom">${scoreEl(p,"focus")}</div></div>
         <div class="focus-actions">
           <button id="pgPrev" title="Previous">${cUp}</button>
           <button id="pgNext" title="Next">${cDn}</button>
@@ -1777,7 +1809,6 @@ function renderSheetPane(p, toggleMark){
           <button id="fullBtn" title="Full screen">${full}</button>
         </div>
       </div>
-      ${SCORES[p.id] ? `<div class="focus-pdf-link"><a href="${SCORES[p.id]}" target="_blank" rel="noopener">Open full PDF ↗</a></div>` : ""}
       ${SPOTIFY[p.id] ? `<div class="spotify-embed"><iframe style="border-radius:12px" src="https://open.spotify.com/embed/${SPOTIFY[p.id]}?utm_source=generator" width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>` : ""}`;
     const oh = pane.querySelector("#pieceOsmd");
     if (oh) {
