@@ -414,7 +414,7 @@
   .metro-group { display: contents; }
   .focus-scroll { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg);
     background: var(--mu-white); overflow-x: hidden; overflow-y: auto; max-height: 72vh; min-height: 320px; padding-bottom: 76px; }
-  .osmd-title { text-align: center; margin: 8px 0 18px; }   /* the one title+composer shown inside the score (OSMD's own is off) */
+  .osmd-title { text-align: center; margin: 24px 0 18px; }   /* the one title+composer shown inside the score (OSMD's own is off) */
   .osmd-title-name { display: block; font-size: 23px; font-weight: 650; color: var(--mu-ink); letter-spacing: -0.01em; }
   .osmd-title-name .pn-dim { color: var(--mu-ink-3); font-weight: 650; }
   .osmd-title-by { display: block; font-size: 15px; color: var(--mu-ink-3); margin-top: 4px; }
@@ -2350,6 +2350,11 @@ function renderProfile() {
         <div style="font-size:20px;font-weight:700;letter-spacing:-0.02em">Pianist</div>
         <div style="font-size:13px;color:var(--mu-ink-3)">Keep the streak alive 🎹</div>
       </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-num">8 ${t("days")}</div><div class="stat-lbl">${t("Practiced in 2026")}</div></div>
+      <div class="stat"><div class="stat-num">8</div><div class="stat-lbl">${t("Pieces")}</div></div>
+      <div class="stat"><div class="stat-num">5</div><div class="stat-lbl">${t("Composers")}</div></div>
     </div>
 
     ${inProgress.length ? `<div class="sec">
