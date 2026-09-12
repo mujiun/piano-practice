@@ -390,6 +390,9 @@
     padding: max(14px, env(safe-area-inset-top)) 12px calc(env(safe-area-inset-bottom) + 12px); }
   .focus-view.fake-fs .focus-scroll { max-height: none; height: 100%; }
   .focus-view.fake-fs .focus-actions { bottom: calc(env(safe-area-inset-bottom) + 26px); }
+  .fs-close { display: none; }
+  .focus-view.fake-fs .fs-close { display: inline-flex; align-items: center; justify-content: center; position: fixed; top: calc(env(safe-area-inset-top) + 12px); left: 14px; z-index: 320; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--mu-border); background: rgba(255,255,255,0.9); -webkit-backdrop-filter: saturate(180%) blur(12px); backdrop-filter: saturate(180%) blur(12px); box-shadow: var(--mu-shadow-md); color: var(--mu-ink-2); cursor: pointer; }
+  html[data-theme="dark"] .focus-view.fake-fs .fs-close { background: rgba(42,42,50,.9); }
   body.fs-active #view-sheet .appbar, body.fs-active #view-sheet .sheet-hero, body.fs-active #view-sheet .sheet-tabs { display: none; }
   .focus-pdf-link { text-align: center; margin-top: 12px; }
   .focus-pdf-link a { font-size: 13px; font-weight: 550; color: var(--mu-ink-3); text-decoration: none; }
@@ -1815,6 +1818,7 @@ function renderSheetPane(p, toggleMark){
     const plusIc = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
     pane.innerHTML = `
       <div class="focus-view" id="focusView">
+        <button class="fs-close" id="fsClose" title="Exit full screen" aria-label="Exit full screen">${IC.back}</button>
         <div class="focus-scroll" id="focusScroll"><div class="focus-zoom" id="focusZoom">${scoreEl(p,"focus")}</div></div>
         <div class="focus-actions">
           <button id="pgPrev" title="Previous">${cUp}</button>
@@ -1840,6 +1844,9 @@ function renderSheetPane(p, toggleMark){
       const on = fv.classList.toggle("fake-fs");            // consistent CSS overlay everywhere
       document.body.classList.toggle("fs-active", on);      // hide header while enlarged
       const sc = pane.querySelector("#focusScroll"); if (sc) sc.scrollTop = 0;   // show the top of the sheet
+    });
+    pane.querySelector("#fsClose").addEventListener("click", ()=>{
+      fv.classList.remove("fake-fs"); document.body.classList.remove("fs-active");
     });
   }
 }
