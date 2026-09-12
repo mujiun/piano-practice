@@ -1058,22 +1058,24 @@ function pdfSrc(id, params){
 function pdfBase(id){ const p = SCORES[id]; return p ? p.replace(/^.*\//,"").replace(/\.pdf$/,"") : null; }
 function pdfViewer(p, variant){
   const base = pdfBase(p.id);
-  const dim = (window.PDF_DIMS && window.PDF_DIMS[base]) || {w:640,h:840};
+  const dim = (window.PDF_DIMS && window.PDF_DIMS[base]) || {w:640,h:840,count:1};
   const src = pdfSrc(p.id, 'view=FitH&toolbar=0&navpanes=0');
-  const h = variant==="focus" ? "60vh" : "300px";
-  return `<div class="pdf-scale" data-w="${dim.w}" data-ph="${dim.h}" style="height:${h}"><iframe class="pdf-frame" src="${src}" title="${p.title} score"></iframe></div>`;
+  return `<div class="pdf-scale" data-w="${dim.w}" data-ph="${dim.h}" data-count="${dim.count||1}"><iframe class="pdf-frame" src="${src}" title="${p.title} score" scrolling="no"></iframe></div>`;
 }
-// scale the native-width PDF iframe down to fit its container (called after render + on resize)
+// Render all the movement's pages at native size in the iframe, then CSS-scale to fit the container
+// width; size the box to exactly wrap the scaled content (no fixed height → no white gap / fills enlarge).
 function applyPdfScale(box){
   if (!box) return;
   const frame = box.querySelector(".pdf-frame"); if (!frame) return;
-  const W = +box.dataset.w || 640;
-  const cw = box.clientWidth, ch = box.clientHeight;
+  const W = +box.dataset.w || 640, PH = +box.dataset.ph || 840, count = +box.dataset.count || 1;
+  const cw = box.clientWidth;
   if (!cw) return;
   const scale = cw / W;
+  const totalH = (PH + 8) * count;              // +8px/page for the viewer's inter-page gap
   frame.style.width = W + "px";
-  frame.style.height = (ch / scale) + "px";
+  frame.style.height = totalH + "px";
   frame.style.transform = `scale(${scale})`;
+  box.style.height = (totalH * scale) + "px";   // box wraps the scaled pages; outer .focus-scroll scrolls
 }
 let S = load();
 function load() {
