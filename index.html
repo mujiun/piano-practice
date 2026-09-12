@@ -1240,30 +1240,32 @@ async function renderNotation(host, xml){
     try {   // don't let OSMD draw its own title/composer (the hero already shows them); modest spacing
       const R = osmd.EngravingRules || osmd.rules;
       if (R) { R.RenderComposer = false; R.RenderTitle = false; R.RenderSubtitle = false; R.RenderLyricist = false; R.RenderPartNames = false;
-        R.MinimumDistanceBetweenSystems = 8; R.PageTopMargin = 7; R.PageBottomMargin = 5; }
+        R.MinimumDistanceBetweenSystems = 8; R.PageTopMargin = 12; R.PageBottomMargin = 6; }
     } catch(e){}
-    await osmd.load(xml);
-    osmd.zoom = 1;
-    // Device-independent engraving: a wide page (in OSMD units) → small notes + ~4-5 measures/row,
-    // and a fixed page HEIGHT of ROWS systems. Same line-breaks & pages on every screen.
-    const PAGE_W = 320;   // page width in units — larger = smaller notes / more measures per row
-    const ROWS   = 5;     // reading rows per page
+    // Device-independent engraving: a wide page (in OSMD units) → small notes + more measures/row.
+    // OSMD auto-breaks before a row would be cut → no crop, no stretch gaps. Same pages on every screen.
+    const PAGE_W = 440;   // page width in units — larger = smaller notes / more measures per row
+    const ROWS   = 5;     // target rows per page (OSMD auto-fits 4-5 depending on row heights)
     const pxPerUnit = FIXED_W / PAGE_W;
     const R2 = osmd.EngravingRules || osmd.rules;
-    const topM = (R2 && R2.PageTopMargin) || 7, botM = (R2 && R2.PageBottomMargin) || 5;
+    const topM = (R2 && R2.PageTopMargin) || 12, botM = (R2 && R2.PageBottomMargin) || 6;
+    await osmd.load(xml);
+    osmd.zoom = 1;
     try {
-      osmd.setCustomPageFormat(PAGE_W, 2000);    // measuring pass: tall page so rows stack
+      osmd.setCustomPageFormat(PAGE_W, 4000);    // measuring pass: one tall page so all rows stack
       osmd.render();
-      let d = 60;                                // system spacing (units) — fallback
+      let d = 60;                                // median row height (units)
       try {
         const p0 = osmd.graphic.musicPages[0];
         const ss = p0 && (p0.musicSystems || p0.MusicSystems) || [];
-        if (ss.length >= 2) { const y0 = ss[0].boundingBox.absolutePosition.y, y1 = ss[1].boundingBox.absolutePosition.y; if (y1 > y0) d = y1 - y0; }
+        const gaps = [];
+        for (let i = 1; i < ss.length; i++) { const g = ss[i].boundingBox.absolutePosition.y - ss[i-1].boundingBox.absolutePosition.y; if (g > 0) gaps.push(g); }
+        if (gaps.length) { gaps.sort((a,b)=>a-b); d = gaps[Math.floor(gaps.length/2)]; }
       } catch(e){}
-      const H = Math.round(topM + botM + d * (ROWS - 1) + d * 0.9);   // fit ~ROWS systems per page
+      const H = Math.round(topM + botM + d * ROWS);   // fixed page height ~ROWS rows; OSMD auto-breaks (no crop)
       osmd.setCustomPageFormat(PAGE_W, H);
       osmd.render();                             // final paginated render (layout now frozen)
-    } catch(e){ osmd.render(); }
+    } catch(e){ try { osmd.render(); } catch(_){} }
     clearLoading();
     // CSS-scale the fixed-width render to fit the container (layout never changes, only the scale)
     const fit = ()=>{
@@ -2136,6 +2138,7 @@ function renderSheetPane(p, toggleMark){
         const cur = scroll.scrollTop;
         if (pages && pages.length > 1) {
           const abs = pages.map(t => t + ohTop());
+          abs[0] = 0;   // page 1 view = the very top (on-sheet title + first rows), so ▼ advances to page 2
           const target = dir > 0 ? abs.find(t => t > cur + 8) : abs.filter(t => t < cur - 8).pop();
           if (target != null) { scroll.scrollTo({ top: Math.max(0, target), behavior:"smooth" }); return; }
         }
