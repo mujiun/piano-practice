@@ -414,7 +414,9 @@
   .metro-group { display: contents; }
   .focus-scroll { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg);
     background: var(--mu-white); overflow-x: hidden; overflow-y: auto; max-height: 72vh; min-height: 320px; padding-bottom: 76px; }
-  .osmd-title { text-align: center; margin: 24px 0 18px; }   /* the one title+composer shown inside the score (OSMD's own is off) */
+  .osmd-title { text-align: center; margin: 36px 0 8px; }   /* the one title+composer shown inside the score (OSMD's own is off) */
+  .osmd-inner svg { display: block; }
+  .osmd-inner svg + svg { margin-top: 20px; }   /* visible gap between reading pages */
   .osmd-title-name { display: block; font-size: 23px; font-weight: 650; color: var(--mu-ink); letter-spacing: -0.01em; }
   .osmd-title-name .pn-dim { color: var(--mu-ink-3); font-weight: 650; }
   .osmd-title-by { display: block; font-size: 15px; color: var(--mu-ink-3); margin-top: 4px; }
@@ -1238,10 +1240,20 @@ async function renderNotation(host, xml){
     try {   // don't let OSMD draw its own title/composer (the hero already shows them); modest spacing
       const R = osmd.EngravingRules || osmd.rules;
       if (R) { R.RenderComposer = false; R.RenderTitle = false; R.RenderSubtitle = false; R.RenderLyricist = false; R.RenderPartNames = false;
-        R.MinimumDistanceBetweenSystems = 8; R.PageTopMargin = 2; R.PageBottomMargin = 2; }
+        R.MinimumDistanceBetweenSystems = 8; R.PageTopMargin = 7; R.PageBottomMargin = 5; }
     } catch(e){}
     await osmd.load(xml);
     osmd.zoom = 1;
+    // paginate into screen-sized reading pages: line-breaks stay fixed (from the 800px width) but the
+    // page HEIGHT is sized to the viewport, so up/down flips one clean page (never cuts/skips a row)
+    try {
+      const scale0 = Math.min(1.6, (host.clientWidth || FIXED_W) / FIXED_W);
+      const box = host.closest(".focus-scroll");
+      const vh = (box ? box.clientHeight : window.innerHeight) || 700;
+      const pagePx = Math.max(360, (vh * 0.9) / scale0);           // page height in the 800px render
+      const H = Math.max(120, Math.round(210 * pagePx / FIXED_W)); // → OSMD page units (width = 210)
+      osmd.setCustomPageFormat(210, H);
+    } catch(e){}
     osmd.render();                               // render ONCE at the fixed width (layout now frozen)
     clearLoading();
     // CSS-scale the fixed-width render to fit the container (layout never changes, only the scale)
@@ -2106,26 +2118,27 @@ function renderSheetPane(p, toggleMark){
       pane.querySelector("#pgNext").addEventListener("click", ()=> jumpPage(1));
       pane.querySelector("#pgPrev").addEventListener("click", ()=> jumpPage(-1));
     } else {
-      // OSMD notation: page down/up by ~a screenful, but SNAP the new top to a staff-row (system)
-      // boundary so a system is never cut in half at the top of the view
+      // OSMD notation: each page fits the screen → up/down flips exactly one reading page.
+      // Fall back to a system-snap (never cut a row) if there's only a single page.
       const jumpXml = dir => {
         const oh = scroll.querySelector(".osmd-host");
-        const tops = oh && oh._sysTops;
+        const pages = oh && oh._pageTops, sys = oh && oh._sysTops;
         const step = scroll.clientHeight * 0.9;
-        if (!tops || tops.length < 2) { scroll.scrollBy({top: dir*step, behavior:"smooth"}); return; }
-        const ohTop = oh.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop;
-        const abs = tops.map(t => t + ohTop);
+        const ohTop = () => oh.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop;
         const cur = scroll.scrollTop;
-        let snap;
-        if (dir > 0) {                                    // largest system-top within a screenful below
-          snap = abs.filter(y => y > cur + 8 && y <= cur + step + 8).pop();
-          if (snap == null) snap = abs.find(y => y > cur + 8);
-        } else {                                          // smallest system-top a screenful above
-          snap = abs.filter(y => y >= cur - step - 8 && y < cur - 8).shift();
-          if (snap == null) { const p = abs.filter(y => y < cur - 8); snap = p.length ? p[0] : 0; }
+        if (pages && pages.length > 1) {
+          const abs = pages.map(t => t + ohTop());
+          const target = dir > 0 ? abs.find(t => t > cur + 8) : abs.filter(t => t < cur - 8).pop();
+          if (target != null) { scroll.scrollTo({ top: Math.max(0, target), behavior:"smooth" }); return; }
         }
-        if (snap == null) { scroll.scrollBy({top: dir*step, behavior:"smooth"}); return; }
-        scroll.scrollTo({ top: Math.max(0, snap - 6), behavior:"smooth" });
+        if (sys && sys.length > 1) {
+          const abs = sys.map(t => t + ohTop());
+          let snap = dir > 0
+            ? (abs.filter(y => y > cur + 8 && y <= cur + step + 8).pop() ?? abs.find(y => y > cur + 8))
+            : (abs.filter(y => y >= cur - step - 8 && y < cur - 8).shift() ?? (abs.filter(y => y < cur - 8)[0] ?? 0));
+          if (snap != null) { scroll.scrollTo({ top: Math.max(0, snap - 6), behavior:"smooth" }); return; }
+        }
+        scroll.scrollBy({top: dir*step, behavior:"smooth"});
       };
       pane.querySelector("#pgNext").addEventListener("click", ()=> jumpXml(1));
       pane.querySelector("#pgPrev").addEventListener("click", ()=> jumpXml(-1));
