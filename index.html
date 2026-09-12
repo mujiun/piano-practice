@@ -275,6 +275,9 @@
     transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease); }
   .sortchips button:hover { border-color: var(--mu-gray-400); }
   .sortchips button.is-active { background: var(--mu-gray-900); color: #fff; border-color: var(--mu-gray-900); }
+  /* compact sort dropdown — mobile only (chips shown on desktop/iPad) */
+  .sortsel { display: none; height: 36px; padding: 0 30px 0 12px; border: 1px solid var(--mu-border); background: var(--mu-white) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat right 10px center; border-radius: var(--mu-radius-full); font-size: 13px; font-weight: 500; color: var(--mu-ink-2); -webkit-appearance: none; appearance: none; cursor: pointer; }
+  html[data-theme="dark"] .sortsel { background-color: var(--mu-white); }
   /* custom sort dropdown (native select panels can't be styled) */
   .sortdd { position: relative; }
   .sortdd-btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px;
@@ -591,11 +594,14 @@
     .focus-actions #zoomVal { display: none; }
     .metro-group { display: none; }
     /* artist controls: search bar → sort chips → count (stacked) */
-    .sortchips { gap: 6px; }
+    /* one row: [dir toggle] [sort dropdown] [search]; chips collapse into the dropdown */
+    .sortchips { gap: 8px; flex-wrap: wrap; }
     .sortchips .grow { display: none; }
-    .sortchips .psearch { order: -1; flex: 1 0 100%; margin-bottom: 8px; }
-    .sortchips button { order: 1; min-width: 44px; padding: 0 16px; font-size: 13px; }
-    .sortchips .filter-count { order: 2; flex: 1 0 100%; margin-top: 2px; }
+    .sortchips button[data-sort] { display: none; }
+    .sortsel { display: inline-block; order: 2; }
+    .sortchips .sort-lead { order: 1; }
+    .sortchips .psearch { order: 3; flex: 1 1 120px; min-width: 0; margin-bottom: 0; }
+    .sortchips .filter-count { order: 4; flex: 1 0 100%; margin-top: 2px; }
     /* pianist hero: avatar above name */
     .phero { flex-direction: column; }
     /* bottom nav: shorter, icons only */
@@ -1622,6 +1628,7 @@ function sortBarHTML(state, searchId, labels) {
   labels = labels || SORT_LABELS;
   return `<button class="sort-lead" data-role="dir" data-dir="${state.dir}" title="Ascending / descending"><svg width="11" height="16" viewBox="0 0 12 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="sd-up" d="M2 6l4-4 4 4"/><path class="sd-dn" d="M2 10l4 4 4-4"/></svg>${t("Sort")}</button>
       ${Object.entries(labels).map(([k,l])=>`<button data-sort="${k}" class="${k===state.sort?'is-active':''}">${t(l)}</button>`).join("")}
+      <select class="sortsel" data-role="sortsel" aria-label="${t('Sort')}">${Object.entries(labels).map(([k,l])=>`<option value="${k}" ${k===state.sort?'selected':''}>${t(l)}</option>`).join("")}</select>
       <span class="grow"></span>
       <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="${searchId}" type="search" placeholder="${t('Search')}" autocomplete="off" value="${state.q||''}"></label>`;
 }
@@ -1634,6 +1641,10 @@ function wireSortBar(container, state, rerender) {
     state.sort = b.dataset.sort;
     container.querySelectorAll("button[data-sort]").forEach(x=>x.classList.toggle("is-active", x===b));
     rerender();
+  });
+  container.addEventListener("change", e=>{                 // mobile: sort dropdown
+    const sel = e.target.closest('[data-role="sortsel"]');
+    if (sel) { state.sort = sel.value; rerender(); }
   });
 }
 function renderPieceList() {
