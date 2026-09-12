@@ -1043,11 +1043,27 @@ const SCORES = {
 };
 // Start page within a shared multi-movement PDF (movements that share one file)
 const SCORE_PAGE = {
-  // rav-gaspard.pdf unchanged — these still valid:
-  "rav-gaspard-2": 13,   // Le Gibet
-  "rav-gaspard-3": 17,   // Scarbo
-  // NOTE: pavane / jeux-deau / sonatine / miroirs / tombeau PDFs were replaced —
-  // each has a title page; music-start pages to be filled once verified.
+  "rav-pavane": 3,        // skip title page
+  "rav-jeux-deau": 3,     // skip title page
+  // Sonatine (mvt I is p1)
+  "rav-sonatine-2": 5,    // II. Mouvement de menuet
+  "rav-sonatine-3": 7,    // III. Animé
+  // Miroirs
+  "rav-miroirs-1": 2,     // I. Noctuelles
+  "rav-miroirs-2": 11,    // II. Oiseaux tristes
+  "rav-miroirs-3": 15,    // III. Une barque sur l'océan
+  "rav-miroirs-4": 32,    // IV. Alborada del gracioso
+  "rav-miroirs-5": 45,    // V. La vallée des cloches
+  // Gaspard (mvt I is p1)
+  "rav-gaspard-2": 13,    // Le Gibet
+  "rav-gaspard-3": 17,    // Scarbo
+  // Le Tombeau de Couperin
+  "rav-tombeau-1": 4,     // I. Prélude
+  "rav-tombeau-2": 9,     // II. Fugue
+  "rav-tombeau-3": 12,    // III. Forlane
+  "rav-tombeau-4": 18,    // IV. Rigaudon
+  "rav-tombeau-5": 22,    // V. Menuet
+  "rav-tombeau-6": 26,    // VI. Toccata
 };
 const SCORE_VER = "20260911";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
@@ -1884,8 +1900,23 @@ function renderSheetPane(p, toggleMark){
     }
     applyZoom(pane);
     const scroll = pane.querySelector("#focusScroll"), fv = pane.querySelector("#focusView");
-    pane.querySelector("#pgNext").addEventListener("click", ()=> scroll.scrollBy({top: scroll.clientHeight*0.85, behavior:"smooth"}));
-    pane.querySelector("#pgPrev").addEventListener("click", ()=> scroll.scrollBy({top: -scroll.clientHeight*0.85, behavior:"smooth"}));
+    if (isPdf) {
+      // up/down buttons page the embedded PDF (reload iframe at the target page)
+      const frame = scroll.querySelector("iframe");
+      const base = SCORES[p.id] + "?v=" + SCORE_VER;
+      let pdfPage = SCORE_PAGE[p.id] || 1;
+      const goPdf = d => {
+        pdfPage = Math.max(1, pdfPage + d);
+        const url = base + "#page=" + pdfPage + "&view=FitH&toolbar=0&navpanes=0";
+        frame.src = "about:blank";                       // force a real reload so the viewer honors #page
+        requestAnimationFrame(()=>{ frame.src = url; });
+      };
+      pane.querySelector("#pgNext").addEventListener("click", ()=> goPdf(1));
+      pane.querySelector("#pgPrev").addEventListener("click", ()=> goPdf(-1));
+    } else {
+      pane.querySelector("#pgNext").addEventListener("click", ()=> scroll.scrollBy({top: scroll.clientHeight*0.85, behavior:"smooth"}));
+      pane.querySelector("#pgPrev").addEventListener("click", ()=> scroll.scrollBy({top: -scroll.clientHeight*0.85, behavior:"smooth"}));
+    }
     pane.querySelector("#zoomIn").addEventListener("click", ()=>{ sheetCtx.zoom=Math.min(3, sheetCtx.zoom+0.25); applyZoom(pane); });
     pane.querySelector("#zoomOut").addEventListener("click", ()=>{ sheetCtx.zoom=Math.max(0.5, sheetCtx.zoom-0.25); applyZoom(pane); });
     pane.querySelector("#fullBtn").addEventListener("click", ()=>{
