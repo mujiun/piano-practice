@@ -275,9 +275,9 @@
     transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease); }
   .sortchips button:hover { border-color: var(--mu-gray-400); }
   .sortchips button.is-active { background: var(--mu-gray-900); color: #fff; border-color: var(--mu-gray-900); }
-  /* compact sort dropdown — mobile only (chips shown on desktop/iPad) */
-  .sortsel { display: none; height: 36px; padding: 0 30px 0 12px; border: 1px solid var(--mu-border); background: var(--mu-white) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat right 10px center; border-radius: var(--mu-radius-full); font-size: 13px; font-weight: 500; color: var(--mu-ink-2); -webkit-appearance: none; appearance: none; cursor: pointer; }
-  html[data-theme="dark"] .sortsel { background-color: var(--mu-white); }
+  /* compact sort dropdown — mobile only (chips shown on desktop/iPad); mu-system dropdown style */
+  .sortdd { display: none; position: relative; }
+  .sort-trigger { width: auto; height: 36px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 13px; font-weight: 500; border-radius: var(--mu-radius-full); white-space: nowrap; }
   /* custom sort dropdown (native select panels can't be styled) */
   .sortdd { position: relative; }
   .sortdd-btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px;
@@ -597,8 +597,8 @@
     /* one row: [dir toggle] [sort dropdown] [search]; chips collapse into the dropdown */
     .sortchips { gap: 8px; flex-wrap: wrap; }
     .sortchips .grow { display: none; }
-    .sortchips button[data-sort] { display: none; }
-    .sortsel { display: inline-block; order: 2; }
+    .sortchips > button[data-sort] { display: none; }   /* hide chips, NOT the dropdown's menu items */
+    .sortdd { display: inline-block; order: 2; }
     .sortchips .sort-lead { order: 1; }
     .sortchips .psearch { order: 3; flex: 1 1 120px; min-width: 0; margin-bottom: 0; }
     .sortchips .filter-count { order: 4; flex: 1 0 100%; margin-top: 2px; }
@@ -1628,7 +1628,10 @@ function sortBarHTML(state, searchId, labels) {
   labels = labels || SORT_LABELS;
   return `<button class="sort-lead" data-role="dir" data-dir="${state.dir}" title="Ascending / descending"><svg width="11" height="16" viewBox="0 0 12 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="sd-up" d="M2 6l4-4 4 4"/><path class="sd-dn" d="M2 10l4 4 4-4"/></svg>${t("Sort")}</button>
       ${Object.entries(labels).map(([k,l])=>`<button data-sort="${k}" class="${k===state.sort?'is-active':''}">${t(l)}</button>`).join("")}
-      <select class="sortsel" data-role="sortsel" aria-label="${t('Sort')}">${Object.entries(labels).map(([k,l])=>`<option value="${k}" ${k===state.sort?'selected':''}>${t(l)}</option>`).join("")}</select>
+      <div class="dropdown sortdd">
+        <button type="button" class="input sort-trigger" data-role="sortsel-trigger" aria-haspopup="menu" aria-expanded="false"><span>${t(labels[state.sort]||labels.name)}</span><svg class="lang-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="menu" role="menu">${Object.entries(labels).map(([k,l])=>`<button type="button" class="menu-item${k===state.sort?' is-selected':''}" role="menuitem" data-sort="${k}">${t(l)}</button>`).join("")}</div>
+      </div>
       <span class="grow"></span>
       <label class="psearch"><span class="psearch-ic">${IC.search}</span><input id="${searchId}" type="search" placeholder="${t('Search')}" autocomplete="off" value="${state.q||''}"></label>`;
 }
@@ -1637,15 +1640,17 @@ function wireSortBar(container, state, rerender) {
   container.addEventListener("click", e=>{
     const dirBtn = e.target.closest('[data-role="dir"]');
     if (dirBtn) { state.dir = state.dir==="asc" ? "desc" : "asc"; dirBtn.dataset.dir = state.dir; rerender(); return; }
+    const trig = e.target.closest('[data-role="sortsel-trigger"]');   // mobile: open/close the sort dropdown
+    if (trig) { const dd = trig.closest(".dropdown"); const open = dd.classList.toggle("is-open"); trig.setAttribute("aria-expanded", open); e.stopPropagation(); return; }
     const b = e.target.closest("button[data-sort]"); if (!b) return;
     state.sort = b.dataset.sort;
     container.querySelectorAll("button[data-sort]").forEach(x=>x.classList.toggle("is-active", x===b));
     rerender();
   });
-  container.addEventListener("change", e=>{                 // mobile: sort dropdown
-    const sel = e.target.closest('[data-role="sortsel"]');
-    if (sel) { state.sort = sel.value; rerender(); }
-  });
+  if (!window.__sortDDClose) {   // close any open sort dropdown on outside click (once)
+    window.__sortDDClose = true;
+    document.addEventListener("click", e=>{ document.querySelectorAll(".sortdd.is-open").forEach(dd=>{ if(!dd.contains(e.target)) dd.classList.remove("is-open"); }); });
+  }
 }
 function renderPieceList() {
   const { id, sort, tonality, q, dir } = pianistState;
