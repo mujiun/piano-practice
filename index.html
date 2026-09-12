@@ -1227,8 +1227,11 @@ async function renderNotation(host, xml){
   const clearLoading = ()=>{ const l = host.querySelector(".score-loading"); if (l) l.remove(); };
   try {
     await new Promise(r=>requestAnimationFrame(r));   // let the loading state paint first
+    const FIXED_W = 800;   // render at a FIXED width → identical line-breaks/pages on every device
+    inner.style.width = FIXED_W + "px";
+    inner.style.transformOrigin = "top left";
     const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(inner, {
-      autoResize:true, drawTitle:false, drawSubtitle:false, drawPartNames:false,
+      autoResize:false, drawTitle:false, drawSubtitle:false, drawPartNames:false,
       drawingParameters:"default", drawMeasureNumbers:true, measureNumberInterval:1,
       pageFormat:"A4_P", pageBackgroundColor:"#FFFFFF"
     });
@@ -1238,32 +1241,23 @@ async function renderNotation(host, xml){
         R.MinimumDistanceBetweenSystems = 8; R.PageTopMargin = 2; R.PageBottomMargin = 2; }
     } catch(e){}
     await osmd.load(xml);
-    // fit the fixed A4 page to the container width so the whole page shows (nothing cropped)
-    const doRender = ()=>{
-      try {
-        const cw = inner.clientWidth; if (cw <= 0) return;
-        osmd.zoom = 1; osmd.render();
-        const svg = inner.querySelector("svg");
-        if (svg) {
-          const pw = svg.getBoundingClientRect().width;
-          if (pw > 4) { osmd.zoom = Math.min(1.4, (cw - 2) / pw); osmd.render(); }
-        }
-        clearLoading();
-        try {   // record each system's top (in px from the svg origin) so up/down snaps to staff lines
-          const uip = 10 * osmd.zoom, tops = [];
-          (osmd.graphic && osmd.graphic.musicPages || []).forEach(pg => (pg.musicSystems || pg.MusicSystems || []).forEach(ms => {
-            const y = ms && ms.boundingBox && ms.boundingBox.absolutePosition && ms.boundingBox.absolutePosition.y;
-            if (y != null) tops.push(y * uip);
-          }));
-          host._sysTops = tops.length ? tops.sort((a,b)=>a-b) : null;
-        } catch(e){ host._sysTops = null; }
-      } catch(e){}
+    osmd.zoom = 1;
+    osmd.render();                               // render ONCE at the fixed width (layout now frozen)
+    clearLoading();
+    // CSS-scale the fixed-width render to fit the container (layout never changes, only the scale)
+    const fit = ()=>{
+      const cw = host.clientWidth; if (cw <= 0) return;
+      const scale = Math.min(1.6, cw / FIXED_W);
+      inner.style.transform = `scale(${scale})`;
+      host.style.height = (inner.offsetHeight * scale) + "px";
+      const svgs = [...inner.querySelectorAll("svg")];   // each A4 page = one svg → page-turn anchors
+      host._pageTops = svgs.map(s => s.offsetTop * scale);
     };
-    doRender();
-    requestAnimationFrame(doRender);            // re-render once laid out (iOS settles width late)
+    fit();
+    requestAnimationFrame(fit);
     if (window.ResizeObserver) {
       let lastW = 0;
-      new ResizeObserver(()=>{ const w = inner.clientWidth; if (w > 0 && Math.abs(w - lastW) > 2) { lastW = w; doRender(); } }).observe(inner);
+      new ResizeObserver(()=>{ const w = host.clientWidth; if (w > 0 && Math.abs(w - lastW) > 2) { lastW = w; fit(); } }).observe(host.parentElement || host);
     }
   } catch(e){ host.innerHTML = `<div class="score-note">Couldn't render notation</div>`; }
 }
@@ -2099,25 +2093,21 @@ function renderSheetPane(p, toggleMark){
       pane.querySelector("#pgNext").addEventListener("click", ()=> jumpPage(1));
       pane.querySelector("#pgPrev").addEventListener("click", ()=> jumpPage(-1));
     } else {
-      // OSMD notation: advance ~a screenful but SNAP the new top to a staff-line (system) boundary
-      // so a system is never cut in half at the top ("stuck in between")
-      const snapScroll = dir => {
+      // OSMD notation: fixed A4 pages → up/down flips to the next/prev page top (clean anchor)
+      const jumpXml = dir => {
         const oh = scroll.querySelector(".osmd-host");
-        const svg = oh && oh.querySelector("svg");
-        const tops = oh && oh._sysTops;
-        const step = scroll.clientHeight * 0.9;
-        if (!svg || !tops || tops.length < 2) { scroll.scrollBy({top: dir*step, behavior:"smooth"}); return; }
-        const svgTop = svg.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop;
-        const abs = tops.map(y => y + svgTop);
+        const tops = oh && oh._pageTops;
+        const step = scroll.clientHeight * 0.92;
+        if (!tops || tops.length < 2) { scroll.scrollBy({top: dir*step, behavior:"smooth"}); return; }
+        const ohTop = oh.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop;
+        const abs = tops.map(t => t + ohTop);
         const cur = scroll.scrollTop;
-        let snap;
-        if (dir > 0) { const target = cur + step; snap = abs.filter(y => y > cur + 8 && y <= target + 6).pop(); if (snap == null) snap = abs.find(y => y > cur + 8); }
-        else { const target = cur - step; snap = abs.filter(y => y >= target - 6 && y < cur - 8).shift(); if (snap == null) { const p = abs.filter(y => y < cur - 8); snap = p.length ? p[0] : 0; } }
-        if (snap == null) { scroll.scrollBy({top: dir*step, behavior:"smooth"}); return; }
-        scroll.scrollTo({ top: Math.max(0, snap - 6), behavior:"smooth" });
+        let target = dir > 0 ? abs.find(t => t > cur + 8) : abs.filter(t => t < cur - 8).pop();
+        if (target == null) { scroll.scrollBy({top: dir*step, behavior:"smooth"}); return; }
+        scroll.scrollTo({ top: Math.max(0, target - 4), behavior:"smooth" });
       };
-      pane.querySelector("#pgNext").addEventListener("click", ()=> snapScroll(1));
-      pane.querySelector("#pgPrev").addEventListener("click", ()=> snapScroll(-1));
+      pane.querySelector("#pgNext").addEventListener("click", ()=> jumpXml(1));
+      pane.querySelector("#pgPrev").addEventListener("click", ()=> jumpXml(-1));
     }
     pane.querySelector("#zoomIn").addEventListener("click", ()=>{ sheetCtx.zoom=Math.min(3, sheetCtx.zoom+0.25); applyZoom(pane); });
     pane.querySelector("#zoomOut").addEventListener("click", ()=>{ sheetCtx.zoom=Math.max(0.5, sheetCtx.zoom-0.25); applyZoom(pane); });
