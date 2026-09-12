@@ -1231,7 +1231,7 @@ async function renderNotation(host, xml){
     inner.style.width = FIXED_W + "px";
     inner.style.transformOrigin = "top left";
     const osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(inner, {
-      autoResize:false, drawTitle:false, drawSubtitle:false, drawPartNames:false,
+      autoResize:true, drawTitle:false, drawSubtitle:false, drawPartNames:false,
       drawingParameters:"default", drawMeasureNumbers:true, measureNumberInterval:1,
       pageFormat:"A4_P", pageBackgroundColor:"#FFFFFF"
     });
