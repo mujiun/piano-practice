@@ -2120,7 +2120,10 @@ function stopAllPractice() {
 
 /* ---- real playback: sampled grand piano (Salamander) driven by MusicXML notes ---- */
 let playback = null;
+let playStarting = false, playCancel = false;
 let sampler = null; // { ctx, buffers:{midi:AudioBuffer}, midis:[], ready:Promise }
+// pre-decode piano samples on the first user gesture so the first Play is instant (no decode delay)
+window.addEventListener("pointerdown", function warm(){ try{ getSampler(); }catch(e){} window.removeEventListener("pointerdown", warm); }, { once:true });
 function isPlayable(id){ return !!(window.SCORE_NOTES && window.SCORE_NOTES[id]); }
 function getSampler(){
   if (sampler) return sampler;
@@ -2136,6 +2139,7 @@ function getSampler(){
   return sampler;
 }
 function stopPlayback(){
+  if (playStarting) playCancel = true;   // abort an in-flight start too
   if (!playback) return;
   clearInterval(playback.tick);
   playback.nodes.forEach(n=>{ try{ n.stop(); }catch(e){} });
@@ -2150,8 +2154,10 @@ async function playPiece(id, onProgress, onEnd){
   if (!data || !data.notes.length) return false;
   const S = getSampler();
   await S.ready;
+  if (playCancel) { playCancel = false; return false; }   // user tapped stop during startup
   const ctx = S.ctx;
   if (ctx.state === "suspended") await ctx.resume();
+  if (playCancel) { playCancel = false; return false; }
   const spb = 60/(sheetCtx.bpm || data.bpm || 72);   // seconds per quarter, follows the tempo tag
   const t0 = ctx.currentTime + 0.25;
   const master = ctx.createGain(); master.gain.value = 0.85; master.connect(ctx.destination);
@@ -2181,11 +2187,13 @@ async function playPiece(id, onProgress, onEnd){
 }
 function togglePlay(id){
   if (playback) { stopPlayback(); return; }
+  if (playStarting) { playCancel = true; return; }   // still decoding/scheduling → cancel this start
+  playStarting = true; playCancel = false;
   const hp = document.querySelector("#hdrPlay"); if (hp) hp.innerHTML = IC.pause;
   const fill = document.querySelector("#trackFill"), tCur = document.querySelector("#tCur");
   playPiece(id,
     (frac,el)=>{ if(fill) fill.style.width=(frac*100)+"%"; if(tCur) tCur.textContent=fmtClock(Math.floor(el)); },
-    ()=>{}).then(ok=>{ if(!ok && hp) hp.innerHTML = IC.play; });
+    ()=>{}).then(ok=>{ playStarting = false; if(!ok && hp) hp.innerHTML = IC.play; });
 }
 
 /* ================================================================
