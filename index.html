@@ -86,7 +86,7 @@
   .search {
     position: relative; margin: 2px 0 8px;
   }
-  .search svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--mu-gray-500); pointer-events: none; }
+  .search > svg { position: absolute; left: 16px; top: 25px; transform: translateY(-50%); color: var(--mu-gray-500); pointer-events: none; }
   .search input {
     width: 100%; height: 50px; padding: 0 16px 0 46px;
     background: var(--mu-gray-100); border: 1px solid transparent; border-radius: var(--mu-radius-md);
@@ -95,6 +95,20 @@
   }
   .search input::placeholder { color: var(--mu-gray-500); }
   .search input:focus { background: var(--mu-white); border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
+  /* typeahead suggestions dropdown */
+  .search-sugg { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 60;
+    background: var(--mu-white); border: 1px solid var(--mu-border); border-radius: var(--mu-radius-md);
+    box-shadow: var(--mu-shadow-md); overflow: hidden auto; max-height: 60vh; }
+  .search-sugg[hidden] { display: none; }
+  .sugg-item { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+    padding: 11px 14px; border: none; background: transparent; cursor: pointer; }
+  .sugg-item:hover { background: var(--mu-gray-100); }
+  .sugg-item + .sugg-item { border-top: 1px solid var(--mu-gray-100); }
+  .sugg-ic { display: inline-flex; color: var(--mu-gray-500); flex-shrink: 0; }
+  .sugg-ic svg { width: 18px; height: 18px; }
+  .sugg-txt { display: flex; flex-direction: column; min-width: 0; }
+  .sugg-txt b { font-size: 14.5px; font-weight: 600; color: var(--mu-ink); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sugg-txt small { font-size: 12px; color: var(--mu-ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   /* ---- section header ---- */
   .sec { margin-top: 26px; }
@@ -524,7 +538,7 @@
   .empty-sub { font-size: 14px; margin-top: 4px; }
 
   /* profile */
-  .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 6px; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 6px; }
   .stat { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-md); padding: 16px 14px; text-align: center; }
   .stat-num { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2em; font-variant-numeric: tabular-nums; }
   .tgl { position: relative; width: 46px; height: 26px; flex-shrink: 0; margin-left: auto; padding: 0; border: 0; border-radius: 999px; background: var(--mu-gray-300); cursor: pointer; transition: background .15s ease; }
@@ -988,7 +1002,9 @@ const TL = {
     "Name":"名稱","Level":"程度","Year":"年份","Length":"長度","Key":"調性","Work":"作品",
     "Music":"樂譜","Warm-Up":"暖身","Explore":"探索",
     "Intermediate":"中階","Advanced":"進階","Early-virtuoso":"準演奏級","Virtuoso":"演奏級",
-    "marked":"已收藏"
+    "marked":"已收藏","saved":"已收藏","Practice":"練習","Find your next piece to master":"尋找你想精通的下一首樂曲",
+    "composers":"位作曲家","Your account and settings":"你的帳戶與設定","Sort by":"排序方式","Asc":"升序","Desc":"降序",
+    "Search composers or pieces":"搜尋作曲家或樂曲"
   },
   "zh-Hans": {
     "Home":"首页","Library":"曲库","Playlist":"播放列表","Profile":"个人资料",
@@ -1000,7 +1016,9 @@ const TL = {
     "Name":"名称","Level":"难度","Year":"年份","Length":"时长","Key":"调性","Work":"作品",
     "Music":"乐谱","Warm-Up":"热身","Explore":"探索",
     "Intermediate":"中阶","Advanced":"进阶","Early-virtuoso":"准演奏级","Virtuoso":"演奏级",
-    "marked":"已收藏"
+    "marked":"已收藏","saved":"已收藏","Practice":"练习","Find your next piece to master":"寻找你想精通的下一首乐曲",
+    "composers":"位作曲家","Your account and settings":"你的账户与设置","Sort by":"排序方式","Asc":"升序","Desc":"降序",
+    "Search composers or pieces":"搜索作曲家或乐曲"
   }
 };
 function t(s){ const m = TL[S.lang]; return (m && m[s]) || s; }
@@ -1408,8 +1426,8 @@ function renderHome() {
   const v = document.getElementById("view-home");
   v.innerHTML = `
     <div class="appbar" style="flex-direction:column;align-items:stretch;gap:2px">
-      <div class="appbar-title">Practice</div>
-      <div class="appbar-sub">Find your next piece to master</div>
+      <div class="appbar-title">${t("Practice")}</div>
+      <div class="appbar-sub">${t("Find your next piece to master")}</div>
     </div>
     <div id="homeBody"></div>`;
   const input = v.querySelector("#homeSearch");
@@ -1534,16 +1552,37 @@ function renderLibrary() {
   const ids = Object.keys(COMPOSERS);
   v.innerHTML = `
     <div class="appbar" style="flex-direction:column;align-items:stretch;gap:2px">
-      <div class="appbar-title">Library</div>
-      <div class="appbar-sub">${PIECES.length} pieces · ${ids.length} composers</div>
+      <div class="appbar-title">${t("Library")}</div>
+      <div class="appbar-sub">${ids.length} ${t("composers")} · ${PIECES.length} ${t("pieces")}</div>
     </div>
     <div class="search">
       ${IC.search}
-      <input id="libSearch" type="search" placeholder="${t('Search')}" autocomplete="off">
+      <input id="libSearch" type="search" placeholder="${t('Search composers or pieces')}" autocomplete="off">
+      <div class="search-sugg" id="libSugg" hidden></div>
     </div>
     <div id="libBody" style="margin-top:18px"></div>`;
   const input = v.querySelector("#libSearch");
-  input.addEventListener("input", () => renderLibraryBody(input.value.trim()));
+  const sugg = v.querySelector("#libSugg");
+  const buildSugg = () => {
+    const ql = input.value.trim().toLowerCase();
+    if (!ql) { sugg.hidden = true; sugg.innerHTML = ""; return; }
+    const comps = Object.keys(COMPOSERS).filter(id => COMPOSERS[id].name.toLowerCase().includes(ql) || cName(id).toLowerCase().includes(ql)).slice(0,4);
+    const pcs = PIECES.filter(p => p.title.toLowerCase().includes(ql) || (p.sub||"").toLowerCase().includes(ql) || (p.coll||"").toLowerCase().includes(ql)).slice(0,8);
+    if (!comps.length && !pcs.length) { sugg.hidden = true; sugg.innerHTML = ""; return; }
+    sugg.innerHTML =
+      comps.map(id=>`<button class="sugg-item" data-composer="${id}"><span class="sugg-ic">${IC.search}</span><span class="sugg-txt"><b>${cName(id)}</b><small>${t("Composer")} · ${piecesOf(id).length} ${t("pieces")}</small></span></button>`).join("") +
+      pcs.map(p=>`<button class="sugg-item" data-piece="${p.id}"><span class="sugg-ic">${IC.music}</span><span class="sugg-txt"><b>${p.title}</b><small>${cName(p.c)}${p.coll?" · "+p.coll:""}</small></span></button>`).join("");
+    sugg.hidden = false;
+  };
+  input.addEventListener("input", () => { buildSugg(); renderLibraryBody(input.value.trim()); });
+  input.addEventListener("focus", buildSugg);
+  input.addEventListener("blur", () => setTimeout(()=>{ sugg.hidden = true; }, 180));
+  sugg.addEventListener("pointerdown", e => {
+    const b = e.target.closest("[data-composer],[data-piece]"); if (!b) return;
+    e.preventDefault();
+    if (b.dataset.composer) openPianist(b.dataset.composer);
+    else openSheet(b.dataset.piece);
+  });
   renderLibraryBody("");
 }
 function renderLibraryBody(q) {
@@ -2233,7 +2272,7 @@ function renderSaved() {
   v.innerHTML = `
     <div class="appbar" style="flex-direction:column;align-items:stretch;gap:2px">
       <div class="appbar-title">${t("Playlist")}</div>
-      <div class="appbar-sub">${S.lang==='en' ? `${total} marked ${total===1?"piece":"pieces"}` : `已收藏 ${total} 首`}</div>
+      <div class="appbar-sub">${S.lang==='en' ? `${total} saved ${total===1?"piece":"pieces"}` : `已收藏 ${total} 首`}</div>
     </div>
     ${total ? `
       <div class="sortchips" id="savedSort">${sortBarHTML(savedState, "savedSearch", SORT_LABELS_SAVED)}</div>
@@ -2275,7 +2314,7 @@ function renderProfile() {
   v.innerHTML = `
     <div class="appbar" style="flex-direction:column;align-items:stretch;gap:2px">
       <div class="appbar-title">${t("Profile")}</div>
-      <div class="appbar-sub">${t("Advanced pianist")}</div>
+      <div class="appbar-sub">${t("Your account and settings")}</div>
     </div>
     <div style="display:flex;align-items:center;gap:16px;margin:6px 0 20px">
       <div class="cav" style="width:64px;height:64px;margin:0"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg></div>
