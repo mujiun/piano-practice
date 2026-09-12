@@ -1200,10 +1200,20 @@ async function renderNotation(host, xml){
       pageFormat:"A4_P", pageBackgroundColor:"#FFFFFF"   // real page breaks → up/down flips pages
     });
     await osmd.load(xml);
-    osmd.zoom = window.innerWidth <= 640 ? 0.62 : 1;  // phone smaller, reflowed; desktop/iPad full
-    const doRender = ()=>{ try { if (host.clientWidth > 0) osmd.render(); } catch(e){} };
+    // fit the fixed A4 page to the container width so the whole page shows (nothing cropped)
+    const doRender = ()=>{
+      try {
+        const cw = host.clientWidth; if (cw <= 0) return;
+        osmd.zoom = 1; osmd.render();
+        const svg = host.querySelector("svg");
+        if (svg) {
+          const pw = svg.getBoundingClientRect().width;
+          if (pw > 4) { osmd.zoom = Math.min(1.4, (cw - 2) / pw); osmd.render(); }
+        }
+      } catch(e){}
+    };
     doRender();
-    requestAnimationFrame(doRender);            // re-render once laid out (iOS settles width late → was blank)
+    requestAnimationFrame(doRender);            // re-render once laid out (iOS settles width late)
     if (window.ResizeObserver) {
       let lastW = 0;
       new ResizeObserver(()=>{ const w = host.clientWidth; if (w > 0 && Math.abs(w - lastW) > 2) { lastW = w; doRender(); } }).observe(host);
