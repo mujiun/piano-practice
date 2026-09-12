@@ -1016,6 +1016,11 @@ const SCORES = {
   "rav-gaspard-1": "library/ravel/scores/rav-gaspard.pdf",
   "rav-gaspard-2": "library/ravel/scores/rav-gaspard.pdf",
   "rav-gaspard-3": "library/ravel/scores/rav-gaspard.pdf",
+  "rav-miroirs-1": "library/ravel/scores/ravel-miroirs.pdf",
+  "rav-miroirs-2": "library/ravel/scores/ravel-miroirs.pdf",
+  "rav-miroirs-3": "library/ravel/scores/ravel-miroirs.pdf",
+  "rav-miroirs-4": "library/ravel/scores/ravel-miroirs.pdf",
+  "rav-miroirs-5": "library/ravel/scores/ravel-miroirs.pdf",
   "rav-valses-1": "library/ravel/scores/rav-valses.pdf",
   "rav-valses-2": "library/ravel/scores/rav-valses.pdf",
   "rav-valses-3": "library/ravel/scores/rav-valses.pdf",
@@ -1038,9 +1043,11 @@ const SCORES = {
 };
 // Start page within a shared multi-movement PDF (movements that share one file)
 const SCORE_PAGE = {
-  "rav-jeux-deau": 7,    // skip cover/front matter
+  // rav-gaspard.pdf unchanged — these still valid:
   "rav-gaspard-2": 13,   // Le Gibet
   "rav-gaspard-3": 17,   // Scarbo
+  // NOTE: pavane / jeux-deau / sonatine / miroirs / tombeau PDFs were replaced —
+  // each has a title page; music-start pages to be filled once verified.
 };
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
