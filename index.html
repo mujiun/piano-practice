@@ -2126,12 +2126,15 @@ function renderSheetPane(p, toggleMark){
         const imgs = [...scroll.querySelectorAll(".pdf-img")];
         const step = scroll.clientHeight * 0.9;
         if (imgs.length < 2) { scroll.scrollBy({top: dir*step, behavior:"smooth"}); return; }
-        const sTop = scroll.getBoundingClientRect().top;
-        const tops = imgs.map(im => im.getBoundingClientRect().top - sTop + scroll.scrollTop);
-        tops[0] = 0;   // page 1 = top (title + first strip)
+        // stable layout offset of each strip (unaffected by an in-flight smooth scroll)
+        const topIn = el => { let y = 0; while (el && el !== scroll) { y += el.offsetTop; el = el.offsetParent; } return y; };
+        const tops = imgs.map(topIn); tops[0] = 0;   // page 1 = top (title + first strip)
         const cur = scroll.scrollTop;
-        const target = dir > 0 ? tops.find(t => t > cur + 8) : tops.filter(t => t < cur - 8).pop();
-        if (target == null) { scroll.scrollBy({top: dir*step, behavior:"smooth"}); return; }
+        // snap to the next/prev page top if it's within a screenful; otherwise scroll a screenful
+        // (so a full page taller than the viewport is revealed in parts, never skipped)
+        let target;
+        if (dir > 0) { const np = tops.find(t => t > cur + 8); target = (np != null && np <= cur + step) ? np : cur + step; }
+        else         { const pp = tops.filter(t => t < cur - 8).pop(); target = (pp != null && pp >= cur - step) ? pp : cur - step; }
         scroll.scrollTo({ top: Math.max(0, target), behavior:"smooth" });
       };
       pane.querySelector("#pgNext").addEventListener("click", ()=> jumpPage(1));
