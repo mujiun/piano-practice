@@ -469,10 +469,12 @@
   .score svg { width: 100%; height: auto; display: block; }
   .score-note { font-size: 11.5px; color: var(--mu-gray-400); text-align: center; margin-top: 8px; }
   /* prominent, animated "loading score" state */
-  .score-loading { text-align: center; padding: 56px 16px; color: var(--mu-ink); font-size: 18px; font-weight: 650; letter-spacing: -0.01em; }
-  .score-loading .dots { display: inline-block; width: 1.4em; text-align: left; }
-  .score-loading .dots::after { content: ""; animation: sl-dots 1.1s steps(1,end) infinite; }
-  @keyframes sl-dots { 0%{content:"."} 33%{content:".."} 66%,100%{content:"..."} }
+  .score-loading { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 56px 16px; color: var(--mu-ink-2); font-size: 18px; font-weight: 400; letter-spacing: 0.01em; }
+  .score-loading .ld { display: inline-flex; gap: 5px; }
+  .score-loading .ld i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; animation: ld-bounce 1.2s infinite ease-in-out both; }
+  .score-loading .ld i:nth-child(1) { animation-delay: -0.32s; }
+  .score-loading .ld i:nth-child(2) { animation-delay: -0.16s; }
+  @keyframes ld-bounce { 0%,80%,100%{ transform: scale(0.4); opacity: 0.35; } 40%{ transform: scale(1); opacity: 1; } }
 
   /* player transport */
   .player {
@@ -753,25 +755,25 @@ const PIECES = [
   {"id":"rav-tombeau-6","c":"ravel","coll":"Le tombeau de Couperin, M.68","title":"Toccata","sub":"Tombeau · No. 6","key":"E minor","level":10,"year":1917,"dur":4,"story":"A relentless, brilliant finale — repeated notes building to a blazing close."},
   {"id":"cho-noc92","c":"chopin","coll":"Nocturnes","title":"Nocturne in E♭ major","sub":"Op. 9 No. 2","key":"E♭ major","level":5,"year":1832,"dur":4.5,"story":"Chopin's most beloved nocturne, written when he was barely twenty. Its singing right-hand line is meant to imitate the bel canto opera he adored — every return of the theme is decorated a little differently, as a great singer would ornament a repeat."},
   {"id":"cho-fantimp","c":"chopin","coll":"Impromptus","title":"Fantaisie-Impromptu","sub":"Op. 66","key":"C♯ minor","level":8,"year":1834,"dur":5,"story":"Chopin never published this piece and asked for it to be destroyed after his death; his friend Julian Fontana printed it anyway. The famous cross-rhythm — four notes against three — is its central technical puzzle."},
-  {"id":"cho-bal1","c":"chopin","coll":"Ballades","title":"Ballade No. 1","sub":"Op. 23","key":"G minor","level":9,"year":1836,"dur":9,"story":"The first of Chopin's four ballades and possibly the single most iconic Romantic piano work. Schumann admired it deeply, and its coda is one of the most terrifying páginas in the repertoire."},
-  {"id":"cho-minute","c":"chopin","coll":"Waltzes","title":"Waltz 'Minute'","sub":"Op. 64 No. 1","key":"D♭ major","level":7,"year":1847,"dur":2,"story":"Nicknamed the 'Minute Waltz' — though it was never meant to be played in sixty seconds. Chopin's own title, 'Valse du petit chien', refers to a little dog chasing its tail, which the whirling figures depict."},
-  {"id":"cho-et103","c":"chopin","coll":"Études, Op. 10","title":"Étude 'Tristesse'","sub":"Op. 10 No. 3","key":"E major","level":7,"year":1832,"dur":4,"story":"Chopin reportedly said he had 'never written such a beautiful melody' as this one. The tender outer sections frame a stormy middle built from painful stretched intervals."},
-  {"id":"cho-pre284","c":"chopin","coll":"24 Préludes, Op. 28","title":"Prelude in E minor","sub":"Op. 28 No. 4","key":"E minor","level":3,"year":1839,"dur":2,"story":"One of the 24 Préludes, Op. 28 — Chopin's homage to Bach's Well-Tempered Clavier, with one prélude in every key. He drafted much of the set during a bleak, illness-plagued winter on Majorca with George Sand in 1838–39. Over a slowly sinking chromatic left hand, the right hand grieves in tiny sighs — a study in harmony doing the most with the least. It was played on the organ at Chopin's own funeral, and its chromatic voice-leading pointed the way toward Wagner and the late Romantics."},
-  {"id":"cho-rev","c":"chopin","coll":"Études, Op. 10","title":"Revolutionary Étude","sub":"Op. 10 No. 12","key":"C minor","level":9,"year":1831,"dur":3,"story":"Legend links it to the fall of Warsaw to Russia while Chopin was abroad. The tempest of left-hand semiquavers under a defiant right-hand anthem makes it a benchmark of the left hand."},
+  {"id":"cho-bal1","c":"chopin","coll":"Ballades","title":"Ballade No. 1 in G minor","sub":"Op. 23","key":"G minor","level":9,"year":1836,"dur":9,"story":"The first of Chopin's four ballades and possibly the single most iconic Romantic piano work. Schumann admired it deeply, and its coda is one of the most terrifying páginas in the repertoire."},
+  {"id":"cho-minute","c":"chopin","coll":"Waltzes","title":"Waltz in D♭ major (Minute)","sub":"Op. 64 No. 1","key":"D♭ major","level":7,"year":1847,"dur":2,"story":"Nicknamed the 'Minute Waltz' — though it was never meant to be played in sixty seconds. Chopin's own title, 'Valse du petit chien', refers to a little dog chasing its tail, which the whirling figures depict."},
+  {"id":"cho-et103","c":"chopin","coll":"Études, Op. 10","title":"Étude in E major (Tristesse)","sub":"Op. 10 No. 3","key":"E major","level":7,"year":1832,"dur":4,"story":"Chopin reportedly said he had 'never written such a beautiful melody' as this one. The tender outer sections frame a stormy middle built from painful stretched intervals."},
+  {"id":"cho-pre284","c":"chopin","coll":"24 Préludes, Op. 28","title":"Prélude in E minor","sub":"Op. 28 No. 4","key":"E minor","level":3,"year":1839,"dur":2,"story":"One of the 24 Préludes, Op. 28 — Chopin's homage to Bach's Well-Tempered Clavier, with one prélude in every key. He drafted much of the set during a bleak, illness-plagued winter on Majorca with George Sand in 1838–39. Over a slowly sinking chromatic left hand, the right hand grieves in tiny sighs — a study in harmony doing the most with the least. It was played on the organ at Chopin's own funeral, and its chromatic voice-leading pointed the way toward Wagner and the late Romantics."},
+  {"id":"cho-rev","c":"chopin","coll":"Études, Op. 10","title":"Étude in C minor (Revolutionary)","sub":"Op. 10 No. 12","key":"C minor","level":9,"year":1831,"dur":3,"story":"Legend links it to the fall of Warsaw to Russia while Chopin was abroad. The tempest of left-hand semiquavers under a defiant right-hand anthem makes it a benchmark of the left hand."},
   {"id":"cho-noc272","c":"chopin","coll":"Nocturnes","title":"Nocturne in D♭ major","sub":"Op. 27 No. 2","key":"D♭ major","level":7,"year":1835,"dur":6,"story":"A duet without words: two intertwining voices in the right hand float over rolling left-hand harmony. The challenge is colour and rubato rather than raw speed."},
-  {"id":"cho-pre287","c":"chopin","coll":"24 Préludes, Op. 28","title":"Prelude in A major","sub":"Op. 28 No. 7","key":"A major","level":3,"year":1839,"dur":0.8,"story":"At just sixteen bars, the shortest breath in the Op. 28 set — a single mazurka phrase lifted from Chopin's Polish roots and distilled to an aphorism. Its gentle lilt hides one aching chromatic chord that many students meet as their first taste of real Chopin harmony. So beloved that Federico Mompou built an entire set of 'Variations on a Theme of Chopin' upon it."},
-  {"id":"cho-pre2815","c":"chopin","coll":"24 Préludes, Op. 28","title":"Prelude 'Raindrop'","sub":"Op. 28 No. 15","key":"D♭ major","level":6,"year":1839,"dur":3.4,"story":"The longest and most famous of the Op. 28 préludes, nicknamed the 'Raindrop' after George Sand described rain dripping from the roof of their Majorca monastery as Chopin composed. A single repeated note tolls without pause through a serene opening and a dark, storm-heavy middle in C♯ minor. That hypnotic pedal-tone became a model for evoking atmosphere at the keyboard — an idea Debussy and the Impressionists would take much further."},
-  {"id":"cho-pre2820","c":"chopin","coll":"24 Préludes, Op. 28","title":"Prelude in C minor","sub":"Op. 28 No. 20","key":"C minor","level":4,"year":1839,"dur":1,"story":"Barely thirteen bars of solemn block chords — a funeral march compressed to its essence. Its stark, noble harmony proved irresistible to later composers: Rachmaninoff built his Variations on a Theme of Chopin, Op. 22 on it, and Busoni wrote a set of variations too. Proof of how much weight Chopin could pack into a handful of chords."},
-  {"id":"cho-pre286","c":"chopin","coll":"24 Préludes, Op. 28","title":"Prelude in B minor","sub":"Op. 28 No. 6","key":"B minor","level":4,"year":1839,"dur":1.3,"story":"A song for the left hand — the melody sings low in the piano's cello register while the right hand murmurs quiet repeated chords above, inverting the usual roles. Written in the same Majorca winter, its mood of resigned lament is so close to the E-minor prélude that the two were paired on the organ at Chopin's funeral."},
+  {"id":"cho-pre287","c":"chopin","coll":"24 Préludes, Op. 28","title":"Prélude in A major","sub":"Op. 28 No. 7","key":"A major","level":3,"year":1839,"dur":0.8,"story":"At just sixteen bars, the shortest breath in the Op. 28 set — a single mazurka phrase lifted from Chopin's Polish roots and distilled to an aphorism. Its gentle lilt hides one aching chromatic chord that many students meet as their first taste of real Chopin harmony. So beloved that Federico Mompou built an entire set of 'Variations on a Theme of Chopin' upon it."},
+  {"id":"cho-pre2815","c":"chopin","coll":"24 Préludes, Op. 28","title":"Prélude in D♭ major (Raindrop)","sub":"Op. 28 No. 15","key":"D♭ major","level":6,"year":1839,"dur":3.4,"story":"The longest and most famous of the Op. 28 préludes, nicknamed the 'Raindrop' after George Sand described rain dripping from the roof of their Majorca monastery as Chopin composed. A single repeated note tolls without pause through a serene opening and a dark, storm-heavy middle in C♯ minor. That hypnotic pedal-tone became a model for evoking atmosphere at the keyboard — an idea Debussy and the Impressionists would take much further."},
+  {"id":"cho-pre2820","c":"chopin","coll":"24 Préludes, Op. 28","title":"Prélude in C minor","sub":"Op. 28 No. 20","key":"C minor","level":4,"year":1839,"dur":1,"story":"Barely thirteen bars of solemn block chords — a funeral march compressed to its essence. Its stark, noble harmony proved irresistible to later composers: Rachmaninoff built his Variations on a Theme of Chopin, Op. 22 on it, and Busoni wrote a set of variations too. Proof of how much weight Chopin could pack into a handful of chords."},
+  {"id":"cho-pre286","c":"chopin","coll":"24 Préludes, Op. 28","title":"Prélude in B minor","sub":"Op. 28 No. 6","key":"B minor","level":4,"year":1839,"dur":1.3,"story":"A song for the left hand — the melody sings low in the piano's cello register while the right hand murmurs quiet repeated chords above, inverting the usual roles. Written in the same Majorca winter, its mood of resigned lament is so close to the E-minor prélude that the two were paired on the organ at Chopin's funeral."},
   {"id":"cho-007-001","c":"chopin","coll":"Mazurkas","title":"Mazurka in B♭ major","sub":"Op. 7 No. 1","key":"B♭ major","level":4,"year":1831,"dur":3},
   {"id":"cho-009-001","c":"chopin","coll":"Nocturnes","title":"Nocturne in B♭ minor","sub":"Op. 9 No. 1","key":"B♭ minor","level":6,"year":1832,"dur":5},
   {"id":"cho-010-001","c":"chopin","coll":"Études, Op. 10","title":"Étude in C major","sub":"Op. 10 No. 1","key":"C major","level":9,"year":1833,"dur":2.5},
-  {"id":"cho-010-005","c":"chopin","coll":"Études, Op. 10","title":"Étude in G♭ major","sub":"Op. 10 No. 5","key":"G♭ major","level":9,"year":1833,"dur":2.5},
+  {"id":"cho-010-005","c":"chopin","coll":"Études, Op. 10","title":"Étude in G♭ major (Black Keys)","sub":"Op. 10 No. 5","key":"G♭ major","level":9,"year":1833,"dur":2.5},
   {"id":"cho-017-004","c":"chopin","coll":"Mazurkas","title":"Mazurka in A minor","sub":"Op. 17 No. 4","key":"A minor","level":4,"year":1833,"dur":3},
   {"id":"cho-018-001","c":"chopin","coll":"Waltzes","title":"Waltz in E♭ major","sub":"Op. 18","key":"E♭ major","level":5,"year":1833,"dur":3},
-  {"id":"cho-025-001","c":"chopin","coll":"Études, Op. 25","title":"Étude in A♭ major","sub":"Op. 25 No. 1","key":"A♭ major","level":9,"year":1837,"dur":2.5},
-  {"id":"cho-025-011","c":"chopin","coll":"Études, Op. 25","title":"Étude in A minor","sub":"Op. 25 No. 11","key":"A minor","level":9,"year":1837,"dur":2.5},
-  {"id":"cho-025-012","c":"chopin","coll":"Études, Op. 25","title":"Étude in C minor","sub":"Op. 25 No. 12","key":"C minor","level":9,"year":1837,"dur":2.5},
+  {"id":"cho-025-001","c":"chopin","coll":"Études, Op. 25","title":"Étude in A♭ major (Aeolian Harp)","sub":"Op. 25 No. 1","key":"A♭ major","level":9,"year":1837,"dur":2.5},
+  {"id":"cho-025-011","c":"chopin","coll":"Études, Op. 25","title":"Étude in A minor (Winter Wind)","sub":"Op. 25 No. 11","key":"A minor","level":9,"year":1837,"dur":2.5},
+  {"id":"cho-025-012","c":"chopin","coll":"Études, Op. 25","title":"Étude in C minor (Ocean)","sub":"Op. 25 No. 12","key":"C minor","level":9,"year":1837,"dur":2.5},
   {"id":"cho-026-001","c":"chopin","coll":"Polonaises","title":"Polonaise in C♯ minor","sub":"Op. 26 No. 1","key":"C♯ minor","level":7,"year":1835,"dur":6},
   {"id":"cho-027-001","c":"chopin","coll":"Nocturnes","title":"Nocturne in C♯ minor","sub":"Op. 27 No. 1","key":"C♯ minor","level":6,"year":1836,"dur":5},
   {"id":"cho-028-002","c":"chopin","coll":"24 Préludes, Op. 28","title":"Prélude in A minor","sub":"Op. 28 No. 2","key":"A minor","level":4,"year":1839,"dur":1.5},
@@ -792,19 +794,19 @@ const PIECES = [
   {"id":"cho-028-022","c":"chopin","coll":"24 Préludes, Op. 28","title":"Prélude in G minor","sub":"Op. 28 No. 22","key":"G minor","level":4,"year":1839,"dur":1.5},
   {"id":"cho-028-023","c":"chopin","coll":"24 Préludes, Op. 28","title":"Prélude in F major","sub":"Op. 28 No. 23","key":"F major","level":4,"year":1839,"dur":1.5},
   {"id":"cho-028-024","c":"chopin","coll":"24 Préludes, Op. 28","title":"Prélude in D minor","sub":"Op. 28 No. 24","key":"D minor","level":4,"year":1839,"dur":1.5},
-  {"id":"cho-031-001","c":"chopin","coll":"Scherzos","title":"Scherzo in B♭ minor","sub":"Op. 31","key":"B♭ minor","level":10,"year":1837,"dur":9},
+  {"id":"cho-031-001","c":"chopin","coll":"Scherzos","title":"Scherzo No. 2 in B♭ minor","sub":"Op. 31","key":"B♭ minor","level":10,"year":1837,"dur":9},
   {"id":"cho-034-002","c":"chopin","coll":"Waltzes","title":"Waltz in A minor","sub":"Op. 34 No. 2","key":"A minor","level":5,"year":1838,"dur":3},
   {"id":"cho-036-001","c":"chopin","coll":"Impromptus","title":"Impromptu in F♯ major","sub":"Op. 36","key":"F♯ major","level":7,"year":1835,"dur":4.5},
-  {"id":"cho-038-001","c":"chopin","coll":"Ballades","title":"Ballade in F major","sub":"Op. 38","key":"F major","level":9,"year":1839,"dur":9},
-  {"id":"cho-039-001","c":"chopin","coll":"Scherzos","title":"Scherzo in C♯ minor","sub":"Op. 39","key":"C♯ minor","level":10,"year":1839,"dur":9},
-  {"id":"cho-040-001","c":"chopin","coll":"Polonaises","title":"Polonaise in A major","sub":"Op. 40 No. 1","key":"A major","level":7,"year":1838,"dur":6},
+  {"id":"cho-038-001","c":"chopin","coll":"Ballades","title":"Ballade No. 2 in F major","sub":"Op. 38","key":"F major","level":9,"year":1839,"dur":9},
+  {"id":"cho-039-001","c":"chopin","coll":"Scherzos","title":"Scherzo No. 3 in C♯ minor","sub":"Op. 39","key":"C♯ minor","level":10,"year":1839,"dur":9},
+  {"id":"cho-040-001","c":"chopin","coll":"Polonaises","title":"Polonaise in A major (Military)","sub":"Op. 40 No. 1","key":"A major","level":7,"year":1838,"dur":6},
   {"id":"cho-042-001","c":"chopin","coll":"Waltzes","title":"Waltz in A♭ major","sub":"Op. 42","key":"A♭ major","level":5,"year":1840,"dur":3},
   {"id":"cho-045-001","c":"chopin","coll":"Preludes","title":"Prélude in C♯ minor","sub":"Op. 45","key":"C♯ minor","level":4,"year":1841,"dur":1.5},
-  {"id":"cho-047-001","c":"chopin","coll":"Ballades","title":"Ballade in A♭ major","sub":"Op. 47","key":"A♭ major","level":9,"year":1841,"dur":9},
+  {"id":"cho-047-001","c":"chopin","coll":"Ballades","title":"Ballade No. 3 in A♭ major","sub":"Op. 47","key":"A♭ major","level":9,"year":1841,"dur":9},
   {"id":"cho-048-001","c":"chopin","coll":"Nocturnes","title":"Nocturne in C minor","sub":"Op. 48 No. 1","key":"C minor","level":6,"year":1841,"dur":5},
-  {"id":"cho-052-001","c":"chopin","coll":"Ballades","title":"Ballade in F minor","sub":"Op. 52","key":"F minor","level":9,"year":1842,"dur":9},
-  {"id":"cho-053-001","c":"chopin","coll":"Polonaises","title":"Polonaise in A♭ major","sub":"Op. 53","key":"A♭ major","level":7,"year":1842,"dur":6},
-  {"id":"cho-054-001","c":"chopin","coll":"Scherzos","title":"Scherzo in E major","sub":"Op. 54","key":"E major","level":10,"year":1842,"dur":9},
+  {"id":"cho-052-001","c":"chopin","coll":"Ballades","title":"Ballade No. 4 in F minor","sub":"Op. 52","key":"F minor","level":9,"year":1842,"dur":9},
+  {"id":"cho-053-001","c":"chopin","coll":"Polonaises","title":"Polonaise in A♭ major (Heroic)","sub":"Op. 53","key":"A♭ major","level":7,"year":1842,"dur":6},
+  {"id":"cho-054-001","c":"chopin","coll":"Scherzos","title":"Scherzo No. 4 in E major","sub":"Op. 54","key":"E major","level":10,"year":1842,"dur":9},
   {"id":"cho-055-001","c":"chopin","coll":"Nocturnes","title":"Nocturne in F minor","sub":"Op. 55 No. 1","key":"F minor","level":6,"year":1843,"dur":5},
   {"id":"cho-057-001","c":"chopin","coll":"Berceuses","title":"Berceuse in D♭ major","sub":"Op. 57","key":"D♭ major","level":5,"year":1844,"dur":4},
   {"id":"cho-060-001","c":"chopin","coll":"Barcarolles","title":"Barcarolle in F♯ major","sub":"Op. 60","key":"F♯ major","level":8,"year":1846,"dur":8},
@@ -1220,7 +1222,7 @@ function exercisesFor(p){
 async function renderNotation(host, xml){
   if (!window.opensheetmusicdisplay){ host.innerHTML = `<div class="score-note">Notation engine not loaded</div>`; return; }
   // prominent loading state while OSMD parses + lays out (renders into a separate inner div)
-  host.innerHTML = `<div class="score-loading">Loading score<span class="dots"></span></div><div class="osmd-inner"></div>`;
+  host.innerHTML = `<div class="score-loading">Loading score<span class="ld"><i></i><i></i><i></i></span></div><div class="osmd-inner"></div>`;
   const inner = host.querySelector(".osmd-inner");
   const clearLoading = ()=>{ const l = host.querySelector(".score-loading"); if (l) l.remove(); };
   try {
@@ -2062,7 +2064,7 @@ function renderSheetPane(p, toggleMark){
     if (oh) {
       if (PIECE_XML[p.id]) renderNotation(oh, PIECE_XML[p.id]);
       else if (oh.dataset.src) {
-        oh.innerHTML = `<div class="score-loading">Loading score<span class="dots"></span></div>`;
+        oh.innerHTML = `<div class="score-loading">Loading score<span class="ld"><i></i><i></i><i></i></span></div>`;
         fetch(oh.dataset.src).then(r=>{ if(!r.ok) throw 0; return r.text(); })
           .then(xml=>renderNotation(oh, xml))
           .catch(()=>{ oh.innerHTML = `<div class="score-note">Score can't load from a local file — open the published site (https://mujiun.github.io/piano-practice/) to view it.</div>`; });
@@ -2082,25 +2084,10 @@ function renderSheetPane(p, toggleMark){
       pane.querySelector("#pgNext").addEventListener("click", ()=> jumpPage(1));
       pane.querySelector("#pgPrev").addEventListener("click", ()=> jumpPage(-1));
     } else {
-      // OSMD notation = A4 pages. Snap to real page tops if multiple SVGs; else jump one A4-page height.
-      const snapPage = dir => {
-        const host = scroll.querySelector(".osmd-host");
-        const pages = Array.from(scroll.querySelectorAll(".osmd-host svg, .score-svg-page"));
-        if (pages.length > 1) {
-          const base = scroll.getBoundingClientRect().top - scroll.scrollTop;
-          const tops = pages.map(el => Math.round(el.getBoundingClientRect().top - base)).sort((a,b)=>a-b);
-          const cur = scroll.scrollTop;
-          let target = dir > 0 ? tops.find(t => t > cur + 6) : tops.filter(t => t < cur - 6).pop();
-          if (target == null) { scroll.scrollBy({top: dir*scroll.clientHeight*0.85, behavior:"smooth"}); return; }
-          scroll.scrollTo({top: Math.max(0, target - 6), behavior:"smooth"}); return;
-        }
-        const cw = (host || scroll).clientWidth || scroll.clientWidth;   // one tall SVG → jump by A4 page height
-        const ph = cw * 1.414; if (ph <= 0) return;
-        const cur = Math.round(scroll.scrollTop / ph);
-        scroll.scrollTo({top: Math.max(0, (cur + dir) * ph), behavior:"smooth"});
-      };
-      pane.querySelector("#pgNext").addEventListener("click", ()=> snapPage(1));
-      pane.querySelector("#pgPrev").addEventListener("click", ()=> snapPage(-1));
+      // OSMD notation: A4 pages are taller than the screen, so advance by a screenful
+      // (reads the whole page top-to-bottom, then into the next page — never skips content)
+      pane.querySelector("#pgNext").addEventListener("click", ()=> scroll.scrollBy({top: scroll.clientHeight*0.9, behavior:"smooth"}));
+      pane.querySelector("#pgPrev").addEventListener("click", ()=> scroll.scrollBy({top: -scroll.clientHeight*0.9, behavior:"smooth"}));
     }
     pane.querySelector("#zoomIn").addEventListener("click", ()=>{ sheetCtx.zoom=Math.min(3, sheetCtx.zoom+0.25); applyZoom(pane); });
     pane.querySelector("#zoomOut").addEventListener("click", ()=>{ sheetCtx.zoom=Math.max(0.5, sheetCtx.zoom-0.25); applyZoom(pane); });
