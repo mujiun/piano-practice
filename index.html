@@ -64,7 +64,8 @@
   html.is-native .stage { padding: 0; min-height: 100vh; min-height: 100dvh; align-items: stretch; }
   html.is-native .device { width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; border-radius: 0; box-shadow: none; }
   /* native/installed: white behind the status-bar safe area (no grey inset) */
-  html.is-native, html.is-native body, html.is-native .screen { background: var(--mu-white); }
+  html.is-native, html.is-native body, html.is-native .screen { background: #fff; }
+  html[data-theme="dark"].is-native, html[data-theme="dark"].is-native body, html[data-theme="dark"].is-native .screen { background: #0e0e11; }
   @media (max-width: 1024px) {
     .stage { padding: 0; min-height: 100vh; min-height: 100dvh; align-items: stretch; }
     .device { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; }
@@ -80,13 +81,16 @@
   /* ---- app top bar ---- */
   .appbar {
     position: sticky; top: 0; z-index: 40;
-    background: rgba(255,255,255,.86);
+    background: transparent;
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     backdrop-filter: saturate(180%) blur(20px);
     padding: 20px 28px 14px;
     margin: 0 -28px 4px;
     display: flex; align-items: center; gap: 12px;
+    transition: background var(--mu-fast) var(--mu-ease);
   }
+  /* frosted only once the screen is scrolled; blends with bg at rest */
+  #screen.scrolled .appbar { background: rgba(255,255,255,.86); }
   .appbar-title { font-size: 30px; font-weight: 700; letter-spacing: -0.028em; line-height: 1.25em; }
   .appbar-sub { font-size: 13px; color: var(--mu-ink-3); margin-top: 0; }
   .appbar-back {
@@ -319,15 +323,14 @@
     transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease); }
   .sortchips > button[data-sort]:hover { border-color: var(--mu-gray-400); }
   .sortchips > button[data-sort].is-active { background: var(--mu-gray-900); color: #fff; border-color: var(--mu-gray-900); }
-  /* full-width native sort dropdown — shown on mobile only (see media query) */
-  .sort-select { display: none; height: 36px; padding: 0 34px 0 14px; border: 1px solid var(--mu-border);
-    border-radius: var(--mu-radius-full); background: var(--mu-white); color: var(--mu-ink); font: inherit; font-size: 13px; font-weight: 500;
-    cursor: pointer; -webkit-appearance: none; appearance: none;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
-    background-repeat: no-repeat; background-position: right 12px center; }
-  /* compact sort dropdown — mobile only (chips shown on desktop/iPad); mu-system dropdown style */
-  .sortdd { display: none; position: relative; }
-  .sort-trigger { width: auto; height: 36px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 13px; font-weight: 500; border-radius: var(--mu-radius-full); white-space: nowrap; }
+  /* full-width sort dropdown (mu-system .dropdown/.menu) — shown on mobile only (see media query) */
+  .sort-dd { display: none; position: relative; }
+  .sort-dd .sort-trigger { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    width: 100%; height: 36px; padding: 0 14px; border-radius: var(--mu-radius-full);
+    font-size: 13px; font-weight: 500; color: var(--mu-ink); }
+  .sort-dd .lang-caret { flex: none; color: var(--mu-ink-3); transition: transform var(--mu-fast) var(--mu-ease); }
+  .sort-dd.is-open .lang-caret { transform: rotate(180deg); }
+  .sort-dd .menu { left: 0; right: 0; min-width: 0; }
   /* custom sort dropdown (native select panels can't be styled) */
   .sortdd { position: relative; }
   .sortdd-btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px;
@@ -622,7 +625,7 @@
     --mu-gray-900:#ececf2; --mu-border:#3a3a44;
   }
   html[data-theme="dark"] body { background:#0e0e11; }
-  html[data-theme="dark"] .appbar { background: rgba(30,30,36,.86); }
+  html[data-theme="dark"] #screen.scrolled .appbar { background: rgba(30,30,36,.86); }
   html[data-theme="dark"] .tabbar { background: rgba(24,24,28,.8); }
   html[data-theme="dark"] .focus-actions { background: rgba(42,42,50,.85); }
   html[data-theme="dark"] .sortchips > button[data-sort].is-active { color:#17171b; }
@@ -668,8 +671,8 @@
     .sortchips { gap: 6px; flex-wrap: wrap; }
     .sortchips .grow { display: none; }
     .sortchips .filter-count { flex: 1 0 100%; margin-top: 2px; }
-    .sortchips > button[data-sort], .sortchips .sort-by-label, .sortchips .sort-divider { display: none; }
-    .sortchips .sort-select { display: block; flex: 1; min-width: 0; }
+    .sortchips > button[data-sort] { display: none; }
+    .sortchips .sort-dd { display: block; flex: 1; min-width: 0; }
     /* pianist hero: avatar above name */
     .phero { flex-direction: column; }
     /* bottom nav: shorter, icons only */
@@ -1026,7 +1029,19 @@ const CALENDAR = window.MUSIC_CALENDAR || [
    ================================================================ */
 const LS_KEY = "pp_v1";
 const DEFAULT_STATE = { progress:{}, practiceSec:{}, saved:[], recent:["rav-menuet-haydn","cho-pre284"], lang:"en", theme:"light" };
-function applyTheme(){ document.documentElement.dataset.theme = (S.theme==="dark") ? "dark" : "light"; }
+function applyTheme(){
+  const dark = (S.theme==="dark");
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  // native status bar: match the app theme (light icons on dark, dark icons on light)
+  try {
+    const SB = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.StatusBar;
+    if (SB) {
+      SB.setOverlaysWebView && SB.setOverlaysWebView({ overlay: true });
+      SB.setStyle && SB.setStyle({ style: dark ? 'DARK' : 'LIGHT' });
+      SB.setBackgroundColor && SB.setBackgroundColor({ color: dark ? '#0e0e11' : '#ffffff' });
+    }
+  } catch(e){}
+}
 // Language options — Chinese split into Traditional / Simplified
 const LANGS = { "en":"English", "zh-Hant":"繁體中文", "zh-Hans":"简体中文" };
 // UI-chrome translations (keyed by English string; musical titles/bios stay original)
@@ -1115,7 +1130,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260914c";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260914d";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
@@ -1760,7 +1775,10 @@ function sortBarHTML(state, searchId, labels) {
       <span class="sort-divider"></span>
       <span class="sort-by-label">${t("Sort by")}</span>
       ${Object.entries(labels).map(([k,l])=>`<button data-sort="${k}" class="${k===state.sort?'is-active':''}">${t(l)}</button>`).join("")}
-      <select class="sort-select" data-role="sortsel" aria-label="${t("Sort by")}">${Object.entries(labels).map(([k,l])=>`<option value="${k}"${k===state.sort?' selected':''}>${t(l)}</option>`).join("")}</select>`;
+      <div class="dropdown sort-dd">
+        <button type="button" class="input sort-trigger" data-role="sorttrigger" aria-haspopup="menu" aria-expanded="false"><span class="sort-dd-val">${t(labels[state.sort]||state.sort)}</span><svg class="lang-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="menu" role="menu">${Object.entries(labels).map(([k,l])=>`<button type="button" class="menu-item${k===state.sort?' is-selected':''}" role="menuitem" data-sortopt="${k}">${t(l)}</button>`).join("")}</div>
+      </div>`;
 }
 // shared: wire a sort bar's dir button + chips to a state object + rerender callback
 function wireSortBar(container, state, rerender) {
@@ -1772,18 +1790,27 @@ function wireSortBar(container, state, rerender) {
       const txt = dirBtn.querySelector(".sort-lead-txt"); if (txt) txt.textContent = state.dir==="desc" ? t("Desc") : t("Asc");
       rerender(); return;
     }
+    // mobile sort dropdown: trigger toggles menu
+    const trig = e.target.closest('[data-role="sorttrigger"]');
+    if (trig) { e.stopPropagation(); const dd=trig.closest('.sort-dd'); const open=dd.classList.toggle('is-open'); trig.setAttribute('aria-expanded', open); return; }
+    // mobile sort dropdown: menu item selects a sort key
+    const opt = e.target.closest('[data-sortopt]');
+    if (opt) {
+      state.sort = opt.dataset.sortopt;
+      container.querySelectorAll("button[data-sort]").forEach(x=>x.classList.toggle("is-active", x.dataset.sort===state.sort));
+      container.querySelectorAll('[data-sortopt]').forEach(x=>x.classList.toggle('is-selected', x===opt));
+      const val = container.querySelector('.sort-dd-val'); if (val) val.textContent = opt.textContent;
+      const dd = opt.closest('.sort-dd'); if (dd) { dd.classList.remove('is-open'); const tr=dd.querySelector('[data-role="sorttrigger"]'); if(tr) tr.setAttribute('aria-expanded', false); }
+      rerender(); return;
+    }
     const b = e.target.closest("button[data-sort]"); if (!b) return;
     state.sort = b.dataset.sort;
     container.querySelectorAll("button[data-sort]").forEach(x=>x.classList.toggle("is-active", x===b));
-    const sel = container.querySelector('select[data-role="sortsel"]'); if (sel) sel.value = state.sort;
+    const val = container.querySelector('.sort-dd-val'); if (val) val.textContent = b.textContent;
+    container.querySelectorAll('[data-sortopt]').forEach(x=>x.classList.toggle('is-selected', x.dataset.sortopt===state.sort));
     rerender();
   });
-  container.addEventListener("change", e=>{
-    const sel = e.target.closest('select[data-role="sortsel"]'); if (!sel) return;
-    state.sort = sel.value;
-    container.querySelectorAll("button[data-sort]").forEach(x=>x.classList.toggle("is-active", x.dataset.sort===sel.value));
-    rerender();
-  });
+  document.addEventListener("click", e=>{ const dd=container.querySelector('.sort-dd'); if (dd && !dd.contains(e.target)) { dd.classList.remove('is-open'); const tr=dd.querySelector('[data-role="sorttrigger"]'); if(tr) tr.setAttribute('aria-expanded', false); } });
 }
 function renderPieceList() {
   const { id, sort, tonality, q, dir } = pianistState;
@@ -2566,6 +2593,8 @@ function renderProfile() {
 applyTheme();
 document.documentElement.lang = S.lang;
 applyTabLabels();
+// appbar frosts only after the screen scrolls (blends with bg at rest)
+(function(){ const sc=document.getElementById("screen"); if(sc) sc.addEventListener("scroll", ()=>{ sc.classList.toggle("scrolled", sc.scrollTop>4); }, {passive:true}); })();
 routeTo(location.hash);
 </script>
 </body>
