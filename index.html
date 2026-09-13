@@ -252,10 +252,10 @@
   .ccard {
     border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg); padding: 14px 16px;
     cursor: pointer; display: flex; flex-direction: row; align-items: center; gap: 14px;
-    transition: box-shadow var(--mu-slow) var(--mu-ease), transform var(--mu-slow) var(--mu-ease);
+    transition: box-shadow var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease);
     background: var(--mu-white);
   }
-  .ccard:hover { box-shadow: var(--mu-shadow-md); }
+  .ccard:hover { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
   .cav {
     width: 52px; height: 52px; border-radius: 50%;
     display: inline-flex; align-items: center; justify-content: center;
@@ -305,7 +305,7 @@
   .psearch { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; min-width: 160px;
     border: 1px solid var(--mu-border); border-radius: var(--mu-radius-full); background: var(--mu-white); }
   .psearch { transition: border-color var(--mu-fast) var(--mu-ease), box-shadow var(--mu-fast) var(--mu-ease); }
-  .psearch:hover { border-color: var(--mu-gray-300); box-shadow: var(--mu-shadow-md); }
+  .psearch:hover { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
   .psearch:focus-within { background: var(--mu-white); border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
   .psearch-ic { display: inline-flex; color: var(--mu-gray-500); }
   .psearch-ic svg { width: 16px; height: 16px; }
@@ -313,7 +313,7 @@
   .sortchips .filter-count { align-self: center; }
   /* desktop/iPad: pill with border + "Sort" text */
   .sort-lead { display: inline-flex; align-items: center; justify-content: center; gap: 5px; align-self: center; height: 36px; padding: 0 12px; border: 1px solid var(--mu-border); background: var(--mu-white); border-radius: var(--mu-radius-full); cursor: pointer; color: var(--mu-ink-2); font-size: 13px; font-weight: 500; margin-right: 2px; transition: border-color var(--mu-fast) var(--mu-ease), box-shadow var(--mu-fast) var(--mu-ease); }
-  .sort-lead:hover { border-color: var(--mu-gray-300); box-shadow: var(--mu-shadow-md); }
+  .sort-lead:hover { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
   .sort-divider { align-self: center; width: 1px; height: 22px; background: var(--mu-border); margin: 0 6px; flex-shrink: 0; }
   .sort-by-label { align-self: center; font-size: 13px; font-weight: 500; color: var(--mu-ink-3); margin-right: 6px; white-space: nowrap; }
   .sort-lead svg { flex-shrink: 0; }
@@ -323,7 +323,7 @@
   .sortchips > button[data-sort] { height: 36px; padding: 0 14px; border: 1px solid var(--mu-border); background: var(--mu-white);
     border-radius: var(--mu-radius-full); font-size: 13px; font-weight: 500; color: var(--mu-ink-2); cursor: pointer;
     transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease), box-shadow var(--mu-fast) var(--mu-ease); }
-  .sortchips > button[data-sort]:hover { border-color: var(--mu-gray-300); box-shadow: var(--mu-shadow-md); }
+  .sortchips > button[data-sort]:hover { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
   .sortchips > button[data-sort].is-active { background: var(--mu-gray-900); color: #fff; border-color: var(--mu-gray-900); }
   /* full-width sort dropdown (mu-system .dropdown/.menu) — shown on mobile only (see media query) */
   .sort-dd { display: none; position: relative; }
@@ -331,7 +331,7 @@
     width: 100%; height: 36px; padding: 0 14px; border-radius: var(--mu-radius-full);
     font-size: 13px; font-weight: 500; color: var(--mu-ink); }
   .sort-dd .sort-trigger { transition: border-color var(--mu-fast) var(--mu-ease), box-shadow var(--mu-fast) var(--mu-ease); }
-  .sort-dd .sort-trigger:hover { border-color: var(--mu-gray-300); box-shadow: var(--mu-shadow-md); }
+  .sort-dd .sort-trigger:hover { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
   .sort-dd .lang-caret { flex: none; color: var(--mu-ink-3); transition: transform var(--mu-fast) var(--mu-ease); }
   .sort-dd.is-open .lang-caret { transform: rotate(180deg); }
   .sort-dd .menu { left: 0; right: 0; min-width: 0; }
@@ -605,7 +605,9 @@
     -webkit-backdrop-filter: saturate(180%) blur(24px); backdrop-filter: saturate(180%) blur(24px);
     border-top: 1px solid var(--mu-border);
     display: flex; align-items: stretch;
+    view-transition-name: mu-tabbar;   /* stays put during page crossfade (no nav flash) */
   }
+  ::view-transition-group(mu-tabbar) { animation-duration: 0s; }
   .tabbtn {
     flex: 1; border: none; background: transparent; cursor: pointer;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
@@ -878,7 +880,6 @@ const PIECES = [
   {"id":"brahms-g22","c":"brahms","coll":"Intermezzi","title":"Intermezzo in E♭ major","sub":"Op. 117 No. 1","key":"E♭ major","level":6,"year":1892,"dur":5,"story":"The first of the late Op. 117 intermezzi — a lullaby inscribed with a Scottish cradle-song. Brahms called this set 'cradle-songs of my sorrows,' and it sings with autumnal tenderness."},
   {"id":"brahms-g23","c":"brahms","coll":"Intermezzi","title":"Intermezzo in A major","sub":"Op. 118 No. 2","key":"A major","level":6,"year":1893,"dur":6,"story":"The best-loved of all Brahms's late piano pieces — a tender, yearning song whose gentle A-major warmth shades into a darker, hymn-like heart."},
   {"id":"brahms-g24","c":"brahms","title":"Rhapsody in G minor","sub":"Op. 79 No. 2","key":"G minor","level":8,"year":1879,"dur":6,"story":"A stormy, tightly-wound rhapsody — restless and driving, one of Brahms's most exciting concert pieces despite its modest title."},
-  {"id":"brahms-g25","c":"brahms","title":"Hungarian Dance No. 5","sub":"WoO 1","key":"F♯ minor","level":6,"year":1869,"dur":3,"story":"The most famous of the Hungarian Dances — a fiery csárdás of sudden stops and headlong rushes. Brahms based it on a tune he believed was folk music (it was actually by Kéler Béla)."},
   {"id":"brahms-g26","c":"brahms","title":"Waltz in A♭ major","sub":"Op. 39 No. 15","key":"A♭ major","level":4,"year":1865,"dur":2,"story":"The tenderest of Brahms's sixteen waltzes — a gentle, beloved little dance in A-flat, gemütlich and glowing, that has become a recital and encore favorite."},
   {"id":"brahms-g27","c":"brahms","title":"Ballade 'Edward'","sub":"Op. 10 No. 1","key":"D minor","level":7,"year":1854,"dur":4,"story":"A dark ballade after the grim Scottish ballad 'Edward,' in which a son confesses to murdering his father — its brooding opening and violent climax make it the most dramatic of Brahms's early pieces."},
   {"id":"brahms-g28","c":"brahms","title":"Variations on a Theme by Paganini","sub":"Op. 35","key":"A minor","level":10,"year":1863,"dur":25,"story":"Two books of dazzling variations on Paganini's famous Caprice No. 24 — a fearsome compendium of piano technique that Clara Schumann dubbed the 'Witch Variations.'"},
@@ -1133,7 +1134,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260914i";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260914j";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
@@ -1876,7 +1877,6 @@ const SPOTIFY = {
   "schubert-g13": "track/4IBEb3DMY7cbgZP0N5NDNZ",
   "schubert-g14": "track/7c6glFZQt5Ybew8KPBvmHj",
   "schubert-g15": "track/7AXYdzRmcWp4ks9LDTgCet",
-  "brahms-g25": "track/3mGz3l6eB3r0yGYWfMzUPp",
   "brahms-g26": "track/6rxtu6HnasusnrnIvECU2I",
   "brahms-g27": "track/3dy8SWNmQEAYYPp2Ht2Ckk",
   "brahms-g28": "track/7qAjjbDSZ3Tt0a7sSTzzhQ",
