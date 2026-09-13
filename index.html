@@ -31,6 +31,7 @@
 <script src="library/grieg/img/manifest.js"></script>
 <script src="library/brahms/img/manifest.js"></script>
 <script src="library/bach/img/manifest.js"></script>
+<script src="library/clementi/img/manifest.js"></script>
 <script src="library/score-pages.js"></script>
 <script>try{ if (window.Capacitor || window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) document.documentElement.classList.add('is-native'); }catch(e){}</script>
 <script src="library/piano-samples.js"></script>
@@ -146,7 +147,8 @@
   .home-block-title { font-size: 19px; font-weight: 650; letter-spacing: -0.015em; margin-bottom: 12px; flex-shrink: 0; }
   .home-card { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg); background: var(--mu-white); padding: 6px 16px; }
   /* left: recent play — fixed height (~8 rows), scrolls if more */
-  .home-grid > .home-col:first-child .home-card { height: 216px; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  /* 2-col layout: playlist fits ~8 rows */
+  .home-grid > .home-col:first-child .home-card { height: 531px; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
   /* right: practice + calendar split 3:2 */
   .home-grid > .home-col:last-child .home-card { min-height: 0; display: flex; flex-direction: column; justify-content: center; }
   .home-grid > .home-col:last-child .practice-card { flex: 3; }
@@ -1114,7 +1116,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260914a";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260914b";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
