@@ -872,6 +872,7 @@ const PIECES = [
   {"id":"deb-reverie","c":"debussy","title":"Rêverie","sub":"L. 68","key":"F major","level":5,"year":1890,"dur":4.5,"story":"Debussy later dismissed this dreamy miniature as a youthful work of 'no consequence', but the public disagreed — it remains one of his most-played pieces."},
   {"id":"deb-bruyeres","c":"debussy","coll":"Préludes, Book II","title":"Bruyères","key":"A♭ major","level":5,"year":1913,"dur":3,"story":"'Heather' — the fifth prelude of Book 2 (1913). A serene pastoral in A♭ major, its gentle pentatonic melody drifting over rolling moorland; one of the calmest, most consonant pages Debussy ever wrote, a cousin to 'The Girl with the Flaxen Hair.'"},
   {"id":"deb-ballade","c":"debussy","title":"Ballade","sub":"L. 70","key":"F major","level":6,"year":1890,"dur":6,"story":"An early salon piece from 1890 (lightly revised in 1903), first published as 'Ballade slave.' Flowing and songful, it catches the young Debussy midway between Massenet's charm and the harmonic colour that would soon become his own."},
+  {"id":"deb-danse","c":"debussy","title":"Danse","sub":"L. 69","key":"A major","level":6,"year":1890,"dur":5,"story":"Also known as 'Tarantelle styrienne' (1890) — an exuberant early dance that whirls along in a tarantella rhythm, bright with youthful high spirits and the modal colour Debussy would later make his signature. Ravel liked it enough to orchestrate it in 1922."},
   {"id":"deb-flaxen","c":"debussy","title":"The Girl with the Flaxen Hair","sub":"Préludes I","key":"G♭ major","level":4,"year":1910,"dur":2.5,"story":"A prelude of pure serenity built on pentatonic melody. Its quietness is deceptive: balancing the chords so the tune floats on top is the whole art of it."},
   {"id":"deb-gradus","c":"debussy","title":"Doctor Gradus ad Parnassum","sub":"Children's Corner","key":"C major","level":6,"year":1908,"dur":2,"story":"A gentle parody of dry Czerny exercises, written for his daughter 'Chouchou'. Behind the joke is a genuine study in even, glassy finger-work."},
   {"id":"lis-liebe3","c":"liszt","title":"Liebestraum No. 3","sub":"S. 541","key":"A♭ major","level":8,"year":1850,"dur":4.5,"story":"'Dream of Love' — originally a song about love that endures beyond death. The melody is passed between the hands and crowned by two famous cadenzas."},
@@ -1150,7 +1151,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260914l";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260914m";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
@@ -1892,6 +1893,7 @@ const SCORE_SVG = {
 // Add by pasting a Spotify share link's id here.
 const SPOTIFY = {
   "deb-bruyeres": "track/0IpezTZzNrZzpfmc1uE2B8",
+  "deb-danse": "track/0dkAOgy5VWHhVohSCexfVX",
   "deb-ballade": "track/7GVVgXlRwGAO8dsOKFmrEx",
   "grieg-cradle": "track/2m4DjHpOXzpGVo1hhdYEIo",
   "sat-berceuse": "track/0eOEv7udtB1ve84TVbPgGJ",
