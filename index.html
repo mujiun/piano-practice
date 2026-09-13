@@ -317,6 +317,12 @@
     transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease); }
   .sortchips > button[data-sort]:hover { border-color: var(--mu-gray-400); }
   .sortchips > button[data-sort].is-active { background: var(--mu-gray-900); color: #fff; border-color: var(--mu-gray-900); }
+  /* full-width native sort dropdown — shown on mobile only (see media query) */
+  .sort-select { display: none; height: 36px; padding: 0 34px 0 14px; border: 1px solid var(--mu-border);
+    border-radius: var(--mu-radius-full); background: var(--mu-white); color: var(--mu-ink); font: inherit; font-size: 13px; font-weight: 500;
+    cursor: pointer; -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat; background-position: right 12px center; }
   /* compact sort dropdown — mobile only (chips shown on desktop/iPad); mu-system dropdown style */
   .sortdd { display: none; position: relative; }
   .sort-trigger { width: auto; height: 36px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 13px; font-weight: 500; border-radius: var(--mu-radius-full); white-space: nowrap; }
@@ -586,7 +592,7 @@
   .tabbar {
     position: absolute; left: 0; right: 0; bottom: 0; z-index: 60;
     height: auto; min-height: 68px; padding: 8px 12px calc(env(safe-area-inset-bottom) + 18px);
-    background: var(--mu-white);
+    background: rgba(255,255,255,.8);
     -webkit-backdrop-filter: saturate(180%) blur(24px); backdrop-filter: saturate(180%) blur(24px);
     border-top: 1px solid var(--mu-border);
     display: flex; align-items: stretch;
@@ -615,7 +621,7 @@
   }
   html[data-theme="dark"] body { background:#0e0e11; }
   html[data-theme="dark"] .appbar { background: rgba(30,30,36,.86); }
-  html[data-theme="dark"] .tabbar { background: var(--mu-white); }
+  html[data-theme="dark"] .tabbar { background: rgba(24,24,28,.8); }
   html[data-theme="dark"] .focus-actions { background: rgba(42,42,50,.85); }
   html[data-theme="dark"] .sortchips > button[data-sort].is-active { color:#17171b; }
   html[data-theme="dark"] .focus-actions button.is-on,
@@ -656,16 +662,18 @@
     /* declutter toolbar on mobile: hide zoom % and the whole metronome group */
     .focus-actions #zoomVal { display: none; }
     .metro-group { display: none; }
-    /* sort: same chip row as desktop (chips wrap), no dropdown */
+    /* sort: chips collapse into a full-width dropdown */
     .sortchips { gap: 6px; flex-wrap: wrap; }
     .sortchips .grow { display: none; }
     .sortchips .filter-count { flex: 1 0 100%; margin-top: 2px; }
+    .sortchips > button[data-sort], .sortchips .sort-by-label, .sortchips .sort-divider { display: none; }
+    .sortchips .sort-select { display: block; flex: 1; min-width: 0; }
     /* pianist hero: avatar above name */
     .phero { flex-direction: column; }
     /* bottom nav: shorter, icons only */
-    .tabbar { height: auto; min-height: 52px; padding: 8px 10px calc(env(safe-area-inset-bottom) + 24px); }
-    .tabbtn { font-size: 0; gap: 0; }
-    .tabbtn svg { width: 25px; height: 25px; }
+    .tabbar { height: auto; min-height: 50px; padding: 7px 10px calc(env(safe-area-inset-bottom) + 10px); }
+    .tabbtn { font-size: 10px; gap: 3px; }
+    .tabbtn svg { width: 23px; height: 23px; }
   }
 
   /* Touch devices (iPad / phone): all interactive controls meet the 44×44px tap-target minimum */
@@ -1750,7 +1758,8 @@ function sortBarHTML(state, searchId, labels) {
   return `<button class="sort-lead" data-role="dir" data-dir="${state.dir}" title="Ascending / descending" aria-label="Sort direction"><svg width="22" height="18" viewBox="0 0 20 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path class="sd-up" d="M5 12V2M2.5 4.5L5 2l2.5 2.5"/><path class="sd-dn" d="M13 4v10M10.5 11.5L13 14l2.5-2.5"/></svg><span class="sort-lead-txt">${state.dir==="desc"?t("Desc"):t("Asc")}</span></button>
       <span class="sort-divider"></span>
       <span class="sort-by-label">${t("Sort by")}</span>
-      ${Object.entries(labels).map(([k,l])=>`<button data-sort="${k}" class="${k===state.sort?'is-active':''}">${t(l)}</button>`).join("")}`;
+      ${Object.entries(labels).map(([k,l])=>`<button data-sort="${k}" class="${k===state.sort?'is-active':''}">${t(l)}</button>`).join("")}
+      <select class="sort-select" data-role="sortsel" aria-label="${t("Sort by")}">${Object.entries(labels).map(([k,l])=>`<option value="${k}"${k===state.sort?' selected':''}>${t(l)}</option>`).join("")}</select>`;
 }
 // shared: wire a sort bar's dir button + chips to a state object + rerender callback
 function wireSortBar(container, state, rerender) {
@@ -1765,6 +1774,13 @@ function wireSortBar(container, state, rerender) {
     const b = e.target.closest("button[data-sort]"); if (!b) return;
     state.sort = b.dataset.sort;
     container.querySelectorAll("button[data-sort]").forEach(x=>x.classList.toggle("is-active", x===b));
+    const sel = container.querySelector('select[data-role="sortsel"]'); if (sel) sel.value = state.sort;
+    rerender();
+  });
+  container.addEventListener("change", e=>{
+    const sel = e.target.closest('select[data-role="sortsel"]'); if (!sel) return;
+    state.sort = sel.value;
+    container.querySelectorAll("button[data-sort]").forEach(x=>x.classList.toggle("is-active", x.dataset.sort===sel.value));
     rerender();
   });
 }
