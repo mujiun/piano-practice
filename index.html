@@ -495,6 +495,11 @@
   .focus-view.pdf-book.fake-fs .pdf-page { overflow: hidden; display: flex; align-items: center; justify-content: center; padding-bottom: 0; }
   .focus-view.pdf-book.fake-fs .pdf-img { width: 100%; height: 100%; object-fit: contain; object-position: center;
     padding: 0 6px; background: transparent; }
+  /* iPad+ landscape in enlarge → open-book two-page spread; arrows flip a whole spread */
+  @media (orientation: landscape) and (min-width: 1000px) {
+    .focus-view.pdf-book.fake-fs .pdf-page { flex: 0 0 50%; }
+    .focus-view.pdf-book.fake-fs .pdf-page:nth-child(even) { scroll-snap-align: none; }
+  }
   /* book mode: fit-to-page, so hide zoom controls (paginator stays) */
   .focus-view.pdf-book .focus-actions #zoomOut,
   .focus-view.pdf-book .focus-actions #zoomIn,
@@ -2317,21 +2322,32 @@ function renderSheetPane(p, toggleMark){
       setTimeout(()=>{ if(!se.classList.contains("sp-loaded")){ se.classList.add("sp-timeout"); const tx=se.querySelector(".sp-fallback-txt"); if(tx) tx.textContent = t("Preview didn't load"); } }, 9000);
     });
     const scroll = pane.querySelector("#focusScroll"), fv = pane.querySelector("#focusView");
-    let updPageInfo = ()=>{}, currentPage = ()=>0;
+    let updPageInfo = ()=>{}, currentPage = ()=>0, goToPage = ()=>{};
     if (isBook) {
-      // book pager: exactly one page per view, flipped horizontally with the arrows or a swipe
-      // (default sheet view and enlarge behave the same)
+      // book pager: horizontal flip with arrows / swipe. One page per view normally; in enlarge on a
+      // wide landscape screen (iPad+) the CSS lays pages out 2-up, so a "view" = a two-page spread.
       const pageInfo = pane.querySelector("#pgInfo");
-      currentPage = () => Math.round(scroll.scrollLeft / Math.max(1, scroll.clientWidth));
+      const nPages = () => scroll.querySelectorAll(".pdf-page").length || 1;
+      const perView = () => { const pg = scroll.querySelector(".pdf-page"); return pg ? Math.max(1, Math.round(scroll.clientWidth / pg.offsetWidth)) : 1; };
+      let curPage = 0;   // 0-based index of the leftmost visible page
+      currentPage = () => curPage;
+      goToPage = p => { const pv = perView(); scroll.scrollLeft = Math.floor(Math.max(0, p) / pv) * scroll.clientWidth; };
       updPageInfo = () => {
         if (!pageInfo) return;
-        const n = scroll.querySelectorAll(".pdf-img").length || 1;
-        pageInfo.textContent = `${Math.min(currentPage()+1, n)}/${n}`;
+        const n = nPages(), pv = perView(), first = Math.min(Math.max(0, curPage), n - 1);
+        const last = Math.min(first + pv - 1, n - 1);
+        pageInfo.textContent = (last > first) ? `${first+1}–${last+1}/${n}` : `${first+1}/${n}`;
       };
+      const syncFromScroll = () => { curPage = Math.round(scroll.scrollLeft / Math.max(1, scroll.clientWidth)) * perView(); updPageInfo(); };
       const jumpPage = dir => scroll.scrollBy({ left: dir * scroll.clientWidth, behavior:"smooth" });
       pane.querySelector("#pgNext").addEventListener("click", ()=> jumpPage(1));
       pane.querySelector("#pgPrev").addEventListener("click", ()=> jumpPage(-1));
-      scroll.addEventListener("scroll", updPageInfo, { passive:true });
+      scroll.addEventListener("scroll", syncFromScroll, { passive:true });
+      // rotation / enlarge toggle changes the view width (and 1-up ↔ 2-up) — keep the leftmost page put
+      if (window.ResizeObserver) {
+        let lastW = 0;
+        new ResizeObserver(()=>{ const w = Math.round(scroll.clientWidth); if (w === lastW) return; lastW = w; goToPage(curPage); updPageInfo(); }).observe(scroll);
+      }
       updPageInfo();
     } else if (isPdf) {
       // legacy tall combined strip: up/down flips one strip's worth, anchored to the actual image tops
@@ -2395,7 +2411,7 @@ function renderSheetPane(p, toggleMark){
       const pg = currentPage();
       fv.classList.add("fake-fs"); document.body.classList.add("fs-active");
       fullBtn.innerHTML = shrink; fullBtn.title = "Exit full screen";
-      if (isBook) requestAnimationFrame(()=>{ scroll.scrollLeft = pg * scroll.clientWidth; updPageInfo(); });   // keep the same page
+      if (isBook) requestAnimationFrame(()=>{ goToPage(pg); updPageInfo(); });   // keep the same page (1-up ↔ 2-up spread)
       else scroll.scrollTop = 0;
       pokePanel();
     }
@@ -2404,7 +2420,7 @@ function renderSheetPane(p, toggleMark){
       fv.classList.remove("fake-fs", "panel-hidden"); document.body.classList.remove("fs-active");
       clearTimeout(panelTimer);
       fullBtn.innerHTML = full; fullBtn.title = "Full screen";
-      if (isBook) requestAnimationFrame(()=>{ scroll.scrollLeft = pg * scroll.clientWidth; updPageInfo(); });   // keep the same page
+      if (isBook) requestAnimationFrame(()=>{ goToPage(pg); updPageInfo(); });   // keep the same page
       pokePanel();
     }
     fullBtn.addEventListener("click", ()=>{ fv.classList.contains("fake-fs") ? exitFs() : enterFs(); });
