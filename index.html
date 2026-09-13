@@ -1099,7 +1099,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260913f";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260913g";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
