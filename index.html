@@ -952,7 +952,6 @@ const PIECES = [
   {"id":"bee-bag126-1","c":"beethoven","coll":"6 Bagatelles, Op. 126","title":"No. 1 in G major","sub":"Op. 126 No. 1","key":"G major","level":6,"year":1824,"dur":3,"story":"From his last set of bagatelles — a miniature of late-period depth."},
   {"id":"bee-ecossaises","c":"beethoven","title":"6 Ecossaises","sub":"WoO 83","key":"E♭ major","level":3,"year":1806,"dur":1.5,"story":"Bright little country dances, a light student favourite."},
   {"id":"bee-minuet-g","c":"beethoven","title":"Minuet in G","sub":"WoO 10 No. 2","key":"G major","level":3,"year":1796,"dur":2,"story":"A graceful minuet nearly every beginner learns."},
-  {"id":"bee-turkish","c":"beethoven","title":"Turkish March (from The Ruins of Athens)","sub":"Op. 113","key":"B♭ major","level":5,"year":1811,"dur":2,"story":"A jaunty march, hugely popular in piano arrangement."},
   {"id":"moz-k545-1","c":"mozart","coll":"Piano Sonata No. 16 'Facile', K. 545","title":"Allegro","sub":"I","key":"C major","level":5,"year":1788,"dur":4,"story":"The 'sonata for beginners' every pianist knows."},
   {"id":"moz-k545-2","c":"mozart","coll":"Piano Sonata No. 16 'Facile', K. 545","title":"Andante","sub":"II","key":"G major","level":5,"year":1788,"dur":4,"story":"A serene singing andante."},
   {"id":"moz-k545-3","c":"mozart","coll":"Piano Sonata No. 16 'Facile', K. 545","title":"Rondo: Allegretto","sub":"III","key":"C major","level":5,"year":1788,"dur":2,"story":"A bubbling little rondo finale."},
@@ -1116,7 +1115,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260914b";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260914c";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
@@ -1859,7 +1858,6 @@ const SPOTIFY = {
   "clementi-gradus": "track/4GuW7l87QragJ8jBv9Amqp",
   "bee-rage": "track/1SvNuhGCFB8C1tpggxEAaj",
   "bee-minuet-g": "track/2VkcXmHNwoNrpGdF97pUb2",
-  "bee-turkish": "track/04tDK8kF160GqxqkjVfZBd",
   "moz-twinkle": "track/7LlIRWVvqc83I43BLKFsxX",
   "moz-minuet-f": "track/4K4ZOrtmV3PQVSckBWWvkt",
   "bach-minuet-g": "track/77k89iqwuBOliXcvXcPENX",
