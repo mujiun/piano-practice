@@ -428,8 +428,16 @@
   .spotify-embed, .focus-pdf-link { flex-shrink: 0; }
 
   /* focus tab — floating action toolbar overlaid on the score */
-  .spotify-embed { margin-top: 14px; line-height: 0; }
-  .spotify-embed iframe { display: block; width: 100%; height: 80px; border-radius: 12px; }
+  .spotify-embed { position: relative; margin-top: 14px; line-height: 0; min-height: 80px; }
+  .spotify-embed iframe { position: relative; z-index: 1; display: block; width: 100%; height: 80px; border-radius: 12px; }
+  .sp-fallback { position: absolute; inset: 0; z-index: 0; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px;
+    background: var(--mu-gray-100); border: 1px solid var(--mu-border); border-radius: 12px; line-height: 1.3; padding: 0 14px; }
+  .sp-fallback svg { width: 18px; height: 18px; color: var(--mu-gray-500); flex-shrink: 0; }
+  .sp-fallback-txt { font-size: 12.5px; color: var(--mu-ink-3); }
+  .sp-open { font-size: 12.5px; font-weight: 600; color: var(--mu-ink-2); text-decoration: none; white-space: nowrap; }
+  .sp-open:hover { color: var(--mu-ink); text-decoration: underline; }
+  .spotify-embed.sp-loaded .sp-fallback { display: none; }
+  .spotify-embed.sp-timeout .sp-fallback { background: var(--mu-gray-100); }
   .focus-view { position: relative; margin-top: 14px; }
   .focus-actions { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 20;
     display: flex; align-items: center; gap: 2px; padding: 5px; border-radius: var(--mu-radius-full);
@@ -577,6 +585,10 @@
   .empty svg { color: var(--mu-gray-300); margin-bottom: 14px; }
   .empty-title { font-size: 17px; font-weight: 600; color: var(--mu-ink-2); }
   .empty-sub { font-size: 14px; margin-top: 4px; }
+  .home-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 5px; padding: 40px 20px; color: var(--mu-ink-3); }
+  .home-empty svg { width: 30px; height: 30px; color: var(--mu-gray-400); margin-bottom: 4px; }
+  .home-empty-title { font-size: 15px; font-weight: 600; color: var(--mu-ink-2); }
+  .home-empty-sub { font-size: 13px; color: var(--mu-ink-3); max-width: 240px; line-height: 1.45; }
 
   /* profile */
   .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 6px; }
@@ -1134,7 +1146,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260914j";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260914k";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
@@ -1413,6 +1425,7 @@ document.getElementById("tabbar").addEventListener("click", e => {
    ================================================================ */
 const IC = {
   search: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>`,
+  music: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
   back: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`,
   play: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M8 5.5v13a1 1 0 0 0 1.5.87l11-6.5a1 1 0 0 0 0-1.74l-11-6.5A1 1 0 0 0 8 5.5Z"/></svg>`,
   pause: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>`,
@@ -1563,7 +1576,7 @@ function renderHomeBody(q) {
                 <div class="rrow-body"><div class="rrow-title">${pieceNameHTML(p)}</div><div class="rrow-sub">${cName(p.c)}</div></div>
                 ${pct>0?`<span class="rrow-pct">${pct}%</span>`:""}
               </div>`;
-            }).join("") : `<div class="empty-sub" style="padding:8px 2px">${t("No saved pieces yet")}</div>`}
+            }).join("") : `<div class="home-empty">${IC.bookmark}<div class="home-empty-title">${t("No saved pieces yet")}</div><div class="home-empty-sub">${t("Tap the bookmark on any piece to keep it here.")}</div></div>`}
           </div>
         </div>
       </div>
@@ -2243,7 +2256,7 @@ function renderSheetPane(p, toggleMark){
           <button id="fullBtn" title="Full screen">${full}</button>
         </div>
       </div>
-      ${SPOTIFY[p.id] ? `<div class="spotify-embed"><iframe style="border-radius:12px" src="https://open.spotify.com/embed/${SPOTIFY[p.id]}?utm_source=generator&theme=0" width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>` : ""}`;
+      ${SPOTIFY[p.id] ? `<div class="spotify-embed"><div class="sp-fallback">${IC.music||''}<span class="sp-fallback-txt">${t("Spotify preview")}</span><a class="sp-open" href="https://open.spotify.com/${SPOTIFY[p.id]}" target="_blank" rel="noopener">${t("Open in Spotify")} ↗</a></div><iframe style="border-radius:12px" src="https://open.spotify.com/embed/${SPOTIFY[p.id]}?utm_source=generator&theme=0" width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" onload="this.closest('.spotify-embed').classList.add('sp-loaded')"></iframe></div>` : ""}`;
     const oh = pane.querySelector("#pieceOsmd");
     if (oh) {
       if (PIECE_XML[p.id]) renderNotation(oh, PIECE_XML[p.id]);
@@ -2255,6 +2268,10 @@ function renderSheetPane(p, toggleMark){
       }
     }
     applyZoom(pane);
+    // Spotify: if the embed hasn't loaded within ~9s (offline/timeout), keep the grey fallback + note it
+    pane.querySelectorAll(".spotify-embed").forEach(se=>{
+      setTimeout(()=>{ if(!se.classList.contains("sp-loaded")){ se.classList.add("sp-timeout"); const tx=se.querySelector(".sp-fallback-txt"); if(tx) tx.textContent = t("Preview didn't load"); } }, 9000);
+    });
     const scroll = pane.querySelector("#focusScroll"), fv = pane.querySelector("#focusView");
     if (isPdf) {
       // page-strip images: up/down flips one strip, anchored to the actual image tops
