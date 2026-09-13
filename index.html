@@ -850,7 +850,7 @@ const PIECES = [
   {"id":"cho-063-003","c":"chopin","coll":"Mazurkas","title":"Mazurka in C♯ minor","sub":"Op. 63 No. 3","key":"C♯ minor","level":4,"year":1846,"dur":3,"story":"One of the last mazurkas Chopin published — elegant and waltz-like, it closes with a graceful canon, the melody chasing itself in a final, tender farewell to the dance he loved most."},
   {"id":"cho-064-002","c":"chopin","coll":"Waltzes","title":"Waltz in C♯ minor","sub":"Op. 64 No. 2","key":"C♯ minor","level":5,"year":1847,"dur":3,"story":"The wistful, restless companion to the 'Minute' Waltz — its melancholy main theme keeps yielding to a faster, whirling section, a bittersweet push-and-pull that has made it one of his best-loved waltzes."},
   {"id":"deb-clair","c":"debussy","title":"Clair de Lune","sub":"Suite bergamasque","key":"D♭ major","level":7,"year":1905,"dur":5,"story":"'Moonlight', the third movement of the Suite bergamasque, named after a Verlaine poem. Its washes of sound demand the subtlest half-pedalling in the repertoire."},
-  {"id":"deb-arab1","c":"debussy","title":"Arabesque No. 1","sub":"L. 66","key":"E major","level":5,"year":1891,"dur":4,"story":"An early work already full of Debussy's fingerprints — flowing triplets, gently oscillating harmony, and cross-rhythms that must sound effortless."},
+  {"id":"deb-arab1","c":"debussy","coll":"Deux Arabesques","title":"Arabesque No. 1","sub":"L. 66","key":"E major","level":5,"year":1891,"dur":4,"story":"An early work already full of Debussy's fingerprints — flowing triplets, gently oscillating harmony, and cross-rhythms that must sound effortless."},
   {"id":"deb-reverie","c":"debussy","title":"Rêverie","sub":"L. 68","key":"F major","level":5,"year":1890,"dur":4.5,"story":"Debussy later dismissed this dreamy miniature as a youthful work of 'no consequence', but the public disagreed — it remains one of his most-played pieces."},
   {"id":"deb-flaxen","c":"debussy","title":"The Girl with the Flaxen Hair","sub":"Préludes I","key":"G♭ major","level":4,"year":1910,"dur":2.5,"story":"A prelude of pure serenity built on pentatonic melody. Its quietness is deceptive: balancing the chords so the tune floats on top is the whole art of it."},
   {"id":"deb-gradus","c":"debussy","title":"Doctor Gradus ad Parnassum","sub":"Children's Corner","key":"C major","level":6,"year":1908,"dur":2,"story":"A gentle parody of dry Czerny exercises, written for his daughter 'Chouchou'. Behind the joke is a genuine study in even, glassy finger-work."},
@@ -1130,7 +1130,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260914d";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260914e";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
