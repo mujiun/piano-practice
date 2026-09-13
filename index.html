@@ -992,7 +992,6 @@ const PIECES = [
   {"id":"bach-french5-gigue","c":"bach","coll":"French Suite No. 5","title":"Gigue","sub":"BWV 816","key":"G major","level":7,"year":1722,"dur":3,"story":"A joyous fugal gigue to close the suite."},
   {"id":"bach-bwv999","c":"bach","title":"Little Prelude in C minor","sub":"BWV 999","key":"C minor","level":4,"year":1720,"dur":1.5,"story":"A lute prelude in flowing, hypnotic arpeggios."},
   {"id":"bach-bwv939","c":"bach","coll":"Six Little Preludes","title":"Prelude in C major","sub":"BWV 939","key":"C major","level":3,"year":1720,"dur":1,"story":"A tiny teaching prelude for small hands."},
-  {"id":"bach-jesu-joy","c":"bach","title":"Jesu, Joy of Man's Desiring","sub":"BWV 147","key":"G major","level":5,"year":1723,"dur":3,"story":"The chorale in its famous flowing-triplet piano arrangement."},
   {"id":"bach-partita1-prel","c":"bach","coll":"Partita No. 1","title":"Praeludium","sub":"BWV 825","key":"B♭ major","level":7,"year":1726,"dur":2,"story":"The graceful opening of the first keyboard partita."},
   {"id":"deb-cc-jimbo","c":"debussy","coll":"Children's Corner","title":"Jimbo's Lullaby","key":"B♭ major","level":4,"year":1908,"dur":3,"story":"The toy elephant lumbers through a sleepy, tender lullaby."},
   {"id":"deb-cc-serenade","c":"debussy","coll":"Children's Corner","title":"Serenade for the Doll","key":"E major","level":5,"year":1908,"dur":2.5,"story":"A delicate, muted serenade for a china doll, all soft staccato."},
@@ -1134,7 +1133,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260914g";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260914h";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
@@ -1893,7 +1892,6 @@ const SPOTIFY = {
   "moz-minuet-f": "track/4K4ZOrtmV3PQVSckBWWvkt",
   "bach-minuet-g": "track/77k89iqwuBOliXcvXcPENX",
   "bach-bwv999": "track/1dZyH3hjPNwdQ36Gunx29L",
-  "bach-jesu-joy": "track/51s5hpCNAyMS6BTJmXBhxX",
   "bach-partita1-prel": "track/5NyZAGgWfau49QS8l8MVLA",
   "scar-k113": "track/5fMBAwc6SJESd2TMYQxSPa",
   "cho-018-001": "track/1wEb1luJ5J75yhTMDRuFHn",
