@@ -304,14 +304,16 @@
   .sortchips .grow { flex: 1; }
   .psearch { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; min-width: 160px;
     border: 1px solid var(--mu-border); border-radius: var(--mu-radius-full); background: var(--mu-white); }
+  .psearch { transition: border-color var(--mu-fast) var(--mu-ease), box-shadow var(--mu-fast) var(--mu-ease); }
+  .psearch:hover { border-color: var(--mu-gray-300); box-shadow: var(--mu-shadow-md); }
   .psearch:focus-within { background: var(--mu-white); border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
   .psearch-ic { display: inline-flex; color: var(--mu-gray-500); }
   .psearch-ic svg { width: 16px; height: 16px; }
   .psearch input { border: none; background: transparent; outline: none; font-size: 13px; color: var(--mu-ink); width: 130px; }
   .sortchips .filter-count { align-self: center; }
   /* desktop/iPad: pill with border + "Sort" text */
-  .sort-lead { display: inline-flex; align-items: center; justify-content: center; gap: 5px; align-self: center; height: 36px; padding: 0 12px; border: 1px solid var(--mu-border); background: var(--mu-white); border-radius: var(--mu-radius-full); cursor: pointer; color: var(--mu-ink-2); font-size: 13px; font-weight: 500; margin-right: 2px; }
-  .sort-lead:hover { border-color: var(--mu-gray-400); }
+  .sort-lead { display: inline-flex; align-items: center; justify-content: center; gap: 5px; align-self: center; height: 36px; padding: 0 12px; border: 1px solid var(--mu-border); background: var(--mu-white); border-radius: var(--mu-radius-full); cursor: pointer; color: var(--mu-ink-2); font-size: 13px; font-weight: 500; margin-right: 2px; transition: border-color var(--mu-fast) var(--mu-ease), box-shadow var(--mu-fast) var(--mu-ease); }
+  .sort-lead:hover { border-color: var(--mu-gray-300); box-shadow: var(--mu-shadow-md); }
   .sort-divider { align-self: center; width: 1px; height: 22px; background: var(--mu-border); margin: 0 6px; flex-shrink: 0; }
   .sort-by-label { align-self: center; font-size: 13px; font-weight: 500; color: var(--mu-ink-3); margin-right: 6px; white-space: nowrap; }
   .sort-lead svg { flex-shrink: 0; }
@@ -320,14 +322,16 @@
   .sort-lead[data-dir="desc"] .sd-dn { stroke: var(--mu-ink); }
   .sortchips > button[data-sort] { height: 36px; padding: 0 14px; border: 1px solid var(--mu-border); background: var(--mu-white);
     border-radius: var(--mu-radius-full); font-size: 13px; font-weight: 500; color: var(--mu-ink-2); cursor: pointer;
-    transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease); }
-  .sortchips > button[data-sort]:hover { border-color: var(--mu-gray-400); }
+    transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease), box-shadow var(--mu-fast) var(--mu-ease); }
+  .sortchips > button[data-sort]:hover { border-color: var(--mu-gray-300); box-shadow: var(--mu-shadow-md); }
   .sortchips > button[data-sort].is-active { background: var(--mu-gray-900); color: #fff; border-color: var(--mu-gray-900); }
   /* full-width sort dropdown (mu-system .dropdown/.menu) — shown on mobile only (see media query) */
   .sort-dd { display: none; position: relative; }
   .sort-dd .sort-trigger { display: flex; align-items: center; justify-content: space-between; gap: 8px;
     width: 100%; height: 36px; padding: 0 14px; border-radius: var(--mu-radius-full);
     font-size: 13px; font-weight: 500; color: var(--mu-ink); }
+  .sort-dd .sort-trigger { transition: border-color var(--mu-fast) var(--mu-ease), box-shadow var(--mu-fast) var(--mu-ease); }
+  .sort-dd .sort-trigger:hover { border-color: var(--mu-gray-300); box-shadow: var(--mu-shadow-md); }
   .sort-dd .lang-caret { flex: none; color: var(--mu-ink-3); transition: transform var(--mu-fast) var(--mu-ease); }
   .sort-dd.is-open .lang-caret { transform: rotate(180deg); }
   .sort-dd .menu { left: 0; right: 0; min-width: 0; }
@@ -926,7 +930,7 @@ const PIECES = [
   {"id":"satie-g119","c":"satie","coll":"Gymnopédies","title":"Gymnopédie No. 3","sub":"","key":"A minor","level":3,"year":1888,"dur":3,"story":"The wistful, hymn-like third Gymnopédie — spare and unhurried, radical in 1888 for doing so little, so beautifully."},
   {"id":"satie-g120","c":"satie","coll":"Gnossiennes","title":"Gnossienne No. 2","sub":"","key":"—","level":6,"year":1890,"dur":2,"story":"A hypnotic Gnossienne — barless and modal, it circles a snake-charming melody over a steady vamp, sprinkled with Satie's cryptic performance jokes ('with astonishment,' 'very shiny')."},
   {"id":"satie-g121","c":"satie","coll":"Gnossiennes","title":"Gnossienne No. 3","sub":"","key":"—","level":6,"year":1890,"dur":2.5,"story":"The most famous Gnossienne — an exotic, faintly Eastern melody winds endlessly over a hushed, unchanging accompaniment, timeless and mysterious."},
-  {"id":"satie-g122","c":"satie","title":"Je te veux","sub":"","key":"—","level":6,"year":1897,"dur":5,"story":"'I want you' — Satie's sweet, swaying café-concert waltz-song, a genuine popular hit written for the singer Paulette Darty."},
+  {"id":"satie-g122","c":"satie","title":"Je te veux","sub":"","key":"C major","level":6,"year":1897,"dur":5,"story":"'I want you' — Satie's sweet, swaying café-concert waltz-song, a genuine popular hit written for the singer Paulette Darty."},
   {"id":"satie-g123","c":"satie","title":"Embryons desséchés","sub":"","key":"—","level":6,"year":1913,"dur":4,"story":"'Dried Embryos' — an absurdist musical zoology of imaginary sea creatures, complete with deadpan spoken directions and a quotation of Chopin's funeral march labelled 'a famous mazurka by Schubert.'"},
   {"id":"satie-g124","c":"satie","title":"Sonatine bureaucratique","sub":"","key":"C major","level":5,"year":1917,"dur":4,"story":"A cheeky parody of Clementi's sonatinas — Satie sets it to the tiny drama of a bureaucrat's dull day, humming, taking coffee, and dreaming of promotion."},
   {"id":"satie-g125","c":"satie","title":"Le Piccadilly","sub":"","key":"—","level":6,"year":1904,"dur":2,"story":"A jaunty English-flavored ragtime march — one of Satie's tongue-in-cheek music-hall miniatures, all bounce and swagger."},
@@ -1130,7 +1134,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260914f";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260914g";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
