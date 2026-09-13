@@ -450,6 +450,7 @@
   .focus-actions #metroToggle svg, .focus-actions #fMark svg { width: 17px; height: 17px; }
   .focus-actions #zoomVal { font-family: var(--mu-mono); font-size: 13.5px; color: var(--mu-ink-2); min-width: 42px; text-align: center; }
   .fa-sep { width: 1px; height: 20px; background: var(--mu-border); margin: 0 3px; }
+  .focus-actions .fa-page { font-family: var(--mu-mono); font-size: 13px; color: var(--mu-ink-2); min-width: 44px; text-align: center; padding: 0 2px; }
   .metro-group { display: contents; }
   .focus-scroll { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg);
     background: var(--mu-white); overflow-x: hidden; overflow-y: auto; max-height: 72vh; min-height: 320px; padding-bottom: 76px; }
@@ -478,22 +479,27 @@
     padding: max(14px, env(safe-area-inset-top)) 12px calc(env(safe-area-inset-bottom) + 12px); }
   .focus-view.fake-fs .focus-scroll { max-height: none; height: 100%; }
   .focus-view.fake-fs .focus-actions { bottom: calc(env(safe-area-inset-bottom) + 26px); }
-  /* ---- enlarge = book pager: exactly one page, fit fully (contain), centered on white, swipe/arrows left-right ---- */
-  .focus-view.pdf-book.fake-fs { background: #fff; }
-  .focus-view.pdf-book.fake-fs .focus-scroll { border: none; border-radius: 0; padding: 0;
+  /* ---- book pager (PDF scores): exactly one page, fit fully (contain), centered on white, swipe/arrows left-right.
+     Applies in the DEFAULT sheet view and in enlarge alike ---- */
+  .focus-view.pdf-book .focus-scroll { padding-bottom: 0;
     overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
-  .focus-view.pdf-book.fake-fs .focus-zoom { height: 100%; transform: none !important; }
-  .focus-view.pdf-book.fake-fs .pdf-imgwrap { display: flex; flex-direction: row; height: 100%; align-items: stretch; }
-  .focus-view.pdf-book.fake-fs .pdf-img { flex: 0 0 100%; width: 100%; height: 100%; margin: 0; padding: 0 6px;
+  .focus-view.pdf-book .focus-zoom { height: 100%; transform: none !important; }
+  .focus-view.pdf-book .pdf-imgwrap { display: flex; flex-direction: row; height: 100%; align-items: stretch; }
+  .focus-view.pdf-book .pdf-img { flex: 0 0 100%; width: 100%; height: 100%; margin: 0; padding: 8px 6px;
     box-sizing: border-box; object-fit: contain; object-position: center; background: transparent; scroll-snap-align: center; }
-  /* book mode: fit-to-page, so hide zoom controls */
-  .focus-view.pdf-book.fake-fs .focus-actions #zoomOut,
-  .focus-view.pdf-book.fake-fs .focus-actions #zoomIn,
-  .focus-view.pdf-book.fake-fs .focus-actions #zoomVal,
-  .focus-view.pdf-book.fake-fs .focus-actions .fa-sep { display: none; }
+  /* enlarge: edge-to-edge white, no box border */
+  .focus-view.pdf-book.fake-fs { background: #fff; }
+  .focus-view.pdf-book.fake-fs .focus-scroll { border: none; border-radius: 0; padding: 0; }
+  .focus-view.pdf-book.fake-fs .pdf-img { padding: 0 6px; }
+  /* book mode: fit-to-page, so hide zoom controls (paginator stays) */
+  .focus-view.pdf-book .focus-actions #zoomOut,
+  .focus-view.pdf-book .focus-actions #zoomIn,
+  .focus-view.pdf-book .focus-actions #zoomVal,
+  .focus-view.pdf-book .focus-actions .fa-sep { display: none; }
   /* floating panel auto-hides after inactivity; tap the page to bring it back */
   .focus-actions { transition: opacity .3s var(--mu-ease); }
-  .focus-view.fake-fs.panel-hidden .focus-actions { opacity: 0; pointer-events: none; }
+  .focus-view.fake-fs.panel-hidden .focus-actions,
+  .focus-view.pdf-book.panel-hidden .focus-actions { opacity: 0; pointer-events: none; }
   .fs-close { display: none; }
   /* enlarge view: exit via the shrink icon in the toolbar (no separate go-back button) */
   .focus-view.fake-fs .fs-close { display: none; }
@@ -1169,7 +1175,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260914p";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260913b";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
@@ -2272,13 +2278,16 @@ function renderSheetPane(p, toggleMark){
     const minusIc = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
     const plusIc = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
     const isPdf = !SCORE_SVG[p.id] && !!(window.SCORE_IMG && window.SCORE_IMG[p.id]);   // page-strips render as PDF
+    // book pager only for true per-page scores; legacy tall combined strips stay vertical (contain-fit would shrink them)
+    const isBook = isPdf && ((window.SCORE_PAGE_AR && window.SCORE_PAGE_AR[p.id] || 1.4) < 2.2);
     pane.innerHTML = `
-      <div class="focus-view${isPdf?' pdf-book':''}" id="focusView">
+      <div class="focus-view${isBook?' pdf-book':''}" id="focusView">
         <button class="fs-close" id="fsClose" title="Exit full screen" aria-label="Exit full screen">${IC.back}</button>
         <div class="focus-scroll${isPdf?' is-pdf':''}" id="focusScroll"><div class="focus-zoom" id="focusZoom">${scoreEl(p,"focus")}</div></div>
         <div class="focus-actions">
-          <button id="pgPrev" title="Previous">${cUp}</button>
-          <button id="pgNext" title="Next">${cDn}</button>
+          <button id="pgPrev" title="Previous">${isBook?cLeft:cUp}</button>
+          ${isBook?`<span id="pgInfo" class="fa-page">1/${(window.SCORE_IMG&&window.SCORE_IMG[p.id])||1}</span>`:``}
+          <button id="pgNext" title="Next">${isBook?cRight:cDn}</button>
           <span class="fa-sep"></span>
           <button id="zoomOut" title="Zoom out">${minusIc}</button>
           <span id="zoomVal">${Math.round(sheetCtx.zoom*100)}%</span>
@@ -2304,21 +2313,31 @@ function renderSheetPane(p, toggleMark){
       setTimeout(()=>{ if(!se.classList.contains("sp-loaded")){ se.classList.add("sp-timeout"); const tx=se.querySelector(".sp-fallback-txt"); if(tx) tx.textContent = t("Preview didn't load"); } }, 9000);
     });
     const scroll = pane.querySelector("#focusScroll"), fv = pane.querySelector("#focusView");
-    if (isPdf) {
-      // page-strip images: up/down flips one strip, anchored to the actual image tops
-      // (page 1 = the very top, so the on-sheet title shows before the first page)
+    let updPageInfo = ()=>{}, currentPage = ()=>0;
+    if (isBook) {
+      // book pager: exactly one page per view, flipped horizontally with the arrows or a swipe
+      // (default sheet view and enlarge behave the same)
+      const pageInfo = pane.querySelector("#pgInfo");
+      currentPage = () => Math.round(scroll.scrollLeft / Math.max(1, scroll.clientWidth));
+      updPageInfo = () => {
+        if (!pageInfo) return;
+        const n = scroll.querySelectorAll(".pdf-img").length || 1;
+        pageInfo.textContent = `${Math.min(currentPage()+1, n)}/${n}`;
+      };
+      const jumpPage = dir => scroll.scrollBy({ left: dir * scroll.clientWidth, behavior:"smooth" });
+      pane.querySelector("#pgNext").addEventListener("click", ()=> jumpPage(1));
+      pane.querySelector("#pgPrev").addEventListener("click", ()=> jumpPage(-1));
+      scroll.addEventListener("scroll", updPageInfo, { passive:true });
+      updPageInfo();
+    } else if (isPdf) {
+      // legacy tall combined strip: up/down flips one strip's worth, anchored to the actual image tops
       const jumpPage = dir => {
-        // enlarge = book pager: flip exactly one page horizontally
-        if (fv.classList.contains("fake-fs")) { scroll.scrollBy({ left: dir * scroll.clientWidth, behavior: "smooth" }); return; }
         const imgs = [...scroll.querySelectorAll(".pdf-img")];
         const step = scroll.clientHeight * 0.9;
         if (imgs.length < 2) { scroll.scrollBy({top: dir*step, behavior:"smooth"}); return; }
-        // stable layout offset of each strip (unaffected by an in-flight smooth scroll)
         const topIn = el => { let y = 0; while (el && el !== scroll) { y += el.offsetTop; el = el.offsetParent; } return y; };
-        const tops = imgs.map(topIn); tops[0] = 0;   // page 1 = top (title + first strip)
+        const tops = imgs.map(topIn); tops[0] = 0;
         const cur = scroll.scrollTop;
-        // snap to the next/prev page top if it's within a screenful; otherwise scroll a screenful
-        // (so a full page taller than the viewport is revealed in parts, never skipped)
         let target;
         if (dir > 0) { const np = tops.find(t => t > cur + 8); target = (np != null && np <= cur + step) ? np : cur + step; }
         else         { const pp = tops.filter(t => t < cur - 8).pop(); target = (pp != null && pp >= cur - step) ? pp : cur - step; }
@@ -2357,28 +2376,32 @@ function renderSheetPane(p, toggleMark){
     pane.querySelector("#zoomOut").addEventListener("click", ()=>{ sheetCtx.zoom=Math.max(0.5, sheetCtx.zoom-0.25); applyZoom(pane); });
     const fullBtn = pane.querySelector("#fullBtn");
     const pgPrev = pane.querySelector("#pgPrev"), pgNext = pane.querySelector("#pgNext");
-    // floating panel: auto-hide after 10s of no interaction in enlarge; any tap/scroll brings it back
+    // floating panel: auto-hide after 10s of no interaction (book pager, default + enlarge); any tap/scroll brings it back
     let panelTimer = null;
     function pokePanel(){
-      if (!fv.classList.contains("fake-fs")) return;
+      if (!fv.classList.contains("fake-fs") && !fv.classList.contains("pdf-book")) return;
       fv.classList.remove("panel-hidden");
       clearTimeout(panelTimer);
       panelTimer = setTimeout(()=> fv.classList.add("panel-hidden"), 10000);
     }
     fv.addEventListener("pointerdown", pokePanel);
     scroll.addEventListener("scroll", pokePanel, { passive:true });
+    pokePanel();   // start the auto-hide timer for the default book view too
     function enterFs(){
+      const pg = currentPage();
       fv.classList.add("fake-fs"); document.body.classList.add("fs-active");
       fullBtn.innerHTML = shrink; fullBtn.title = "Exit full screen";
-      if (isPdf) { pgPrev.innerHTML = cLeft; pgNext.innerHTML = cRight; scroll.scrollLeft = 0; }   // book: left/right
+      if (isBook) requestAnimationFrame(()=>{ scroll.scrollLeft = pg * scroll.clientWidth; updPageInfo(); });   // keep the same page
       else scroll.scrollTop = 0;
       pokePanel();
     }
     function exitFs(){
+      const pg = currentPage();
       fv.classList.remove("fake-fs", "panel-hidden"); document.body.classList.remove("fs-active");
       clearTimeout(panelTimer);
       fullBtn.innerHTML = full; fullBtn.title = "Full screen";
-      if (isPdf) { pgPrev.innerHTML = cUp; pgNext.innerHTML = cDn; }
+      if (isBook) requestAnimationFrame(()=>{ scroll.scrollLeft = pg * scroll.clientWidth; updPageInfo(); });   // keep the same page
+      pokePanel();
     }
     fullBtn.addEventListener("click", ()=>{ fv.classList.contains("fake-fs") ? exitFs() : enterFs(); });
     pane.querySelector("#fsClose").addEventListener("click", exitFs);
