@@ -119,14 +119,6 @@
   .sec-title .sec-title-count { font-size: 13px; font-weight: 500; color: var(--mu-ink-3); letter-spacing: 0; margin-left: 6px; }
   .sec-link { font-size: 13px; font-weight: 500; color: var(--mu-ink-3); cursor: pointer; }
   .sec-link:hover { color: var(--mu-ink); }
-  /* Playlist edit mode */
-  .saved-toolbar { display: flex; align-items: center; gap: 12px; margin: 28px 0 6px; }
-  .saved-toolbar .sortchips { flex: 1; min-width: 0; margin: 0; }
-  .saved-edit { flex-shrink: 0; white-space: nowrap; background: none; border: none; padding: 4px 2px; font-family: inherit; }
-  .se-list { display: flex; flex-direction: column; }
-  .se-row { display: flex; align-items: center; gap: 10px; padding: 10px 4px; border-bottom: 1px solid var(--mu-gray-100); background: var(--mu-white); }
-  .se-body { flex: 1; min-width: 0; }
-  .se-unsave { flex-shrink: 0; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--mu-gray-900); background: var(--mu-gray-900); color: #fff; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
   /* ---- horizontal scroller ---- */
   .hscroll { display: flex; gap: 14px; overflow-x: auto; margin: 0 -28px; padding: 2px 28px 8px; -webkit-overflow-scrolling: touch; }
@@ -536,7 +528,8 @@
   .prog-range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--mu-gray-900); cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
 
   /* story / warmup */
-  .story-p { font-size: 15px; line-height: 1.62; color: var(--mu-ink); }
+  .story-p { font-size: 15px; line-height: 1.62; color: var(--mu-ink); margin-bottom: 14px; }
+  .story-p:last-child { margin-bottom: 0; }
   .warmup-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
   .warmup-item { display: flex; align-items: flex-start; gap: 12px; padding: 13px 14px; border: 1px solid var(--mu-border);
     border-radius: var(--mu-radius-md); background: var(--mu-white); }
@@ -761,7 +754,7 @@ const PIECES = [
   {"id":"rav-gaspard-1","c":"ravel","coll":"Gaspard de la nuit, M.55","title":"Ondine","sub":"Gaspard · No. 1","key":"C♯ major","level":10,"year":1908,"dur":6.5,"story":"The water-nymph sings to lure a mortal beneath the lake — a shimmering wash of rapid tremolando."},
   {"id":"rav-gaspard-2","c":"ravel","coll":"Gaspard de la nuit, M.55","title":"Le Gibet","sub":"Gaspard · No. 2","key":"E♭ minor","level":8,"year":1908,"dur":6,"story":"'The gallows' — a corpse sways against a blood-red sunset while a bell tolls an obsessive B♭ throughout."},
   {"id":"rav-gaspard-3","c":"ravel","coll":"Gaspard de la nuit, M.55","title":"Scarbo","sub":"Gaspard · No. 3","key":"G♯ minor","level":10,"year":1908,"dur":9,"story":"A malicious goblin flickers and vanishes in the night — one of the most fiendish pieces ever written."},
-  {"id":"rav-menuet-haydn","c":"ravel","title":"Menuet sur le nom d'Haydn","sub":"M.58","key":"G major","level":5,"year":1909,"dur":2,"story":"Written in 1909 for a special issue of the Revue musicale S.I.M. marking the centenary of Haydn's death.","about":{"series":"Part of the 1909 Haydn-centenary set commissioned by the Revue musicale S.I.M. — six French composers each wrote a short tribute on the same theme: Ravel, Debussy, Dukas, Reynaldo Hahn, Vincent d'Indy and Charles-Marie Widor.","background":"The five-note motif B–A–D–D–G spells H-A-Y-D-N through a German note-name cipher. Ravel threads it through the melody forwards, inverted and in retrograde, cast as a poised, slightly wistful minuet in G major.","influence":"Its cool, classicising bow to the 18th-century dance looks straight ahead to Ravel's wartime suite Le tombeau de Couperin (1917), and sits in the long 'name-cipher' tradition running from Bach's B-A-C-H to Schumann and Brahms."}},
+  {"id":"rav-menuet-haydn","c":"ravel","title":"Menuet sur le nom d'Haydn","sub":"M.58","key":"G major","level":5,"year":1909,"dur":2,"story":"Written in 1909 for a special issue of the Revue musicale S.I.M. marking the centenary of Haydn's death — one of a set in which six French composers (Ravel, Debussy, Dukas, Reynaldo Hahn, Vincent d'Indy and Widor) each wrote a short tribute on the same theme. The five-note motif B–A–D–D–G spells H-A-Y-D-N through a German note-name cipher, and Ravel threads it through the melody forwards, inverted and in retrograde, as a poised, slightly wistful minuet in G major.\n\nIts cool, classicising bow to the 18th-century dance looks straight ahead to Ravel's wartime suite Le tombeau de Couperin (1917), and belongs to the long 'name-cipher' tradition of musical signatures running from Bach's B-A-C-H to Schumann and Brahms."},
   {"id":"rav-tombeau-1","c":"ravel","coll":"Le tombeau de Couperin, M.68","title":"Prélude","sub":"Tombeau · No. 1","key":"E minor","level":8,"year":1917,"dur":3,"story":"Perpetual-motion triplets in Baroque prelude style; dedicated to a friend killed in the war."},
   {"id":"rav-tombeau-2","c":"ravel","coll":"Le tombeau de Couperin, M.68","title":"Fugue","sub":"Tombeau · No. 2","key":"E minor","level":7,"year":1917,"dur":3,"story":"A gentle three-voice fugue, spare and searching."},
   {"id":"rav-tombeau-3","c":"ravel","coll":"Le tombeau de Couperin, M.68","title":"Forlane","sub":"Tombeau · No. 3","key":"E minor","level":8,"year":1917,"dur":6,"story":"A stylised Italian dance with piquant, bittersweet harmonies."},
@@ -1025,7 +1018,7 @@ const TL = {
     "Name":"名稱","Level":"程度","Year":"年份","Length":"長度","Key":"調性","Work":"作品",
     "Music":"樂譜","Warm-Up":"暖身","Explore":"探索",
     "Intermediate":"中階","Advanced":"進階","Early-virtuoso":"準演奏級","Virtuoso":"演奏級",
-    "marked":"已收藏","saved":"已收藏","Practice":"練習","Edit":"編輯","Done":"完成","Remove":"移除","Find your next piece to master":"尋找你想精通的下一首樂曲",
+    "marked":"已收藏","saved":"已收藏","Practice":"練習","Date added":"加入日期","Find your next piece to master":"尋找你想精通的下一首樂曲",
     "composers":"位作曲家","Your account and settings":"你的帳戶與設定","Sort by":"排序方式","Asc":"升序","Desc":"降序",
     "Search composers or pieces":"搜尋作曲家或樂曲"
   },
@@ -1039,7 +1032,7 @@ const TL = {
     "Name":"名称","Level":"难度","Year":"年份","Length":"时长","Key":"调性","Work":"作品",
     "Music":"乐谱","Warm-Up":"热身","Explore":"探索",
     "Intermediate":"中阶","Advanced":"进阶","Early-virtuoso":"准演奏级","Virtuoso":"演奏级",
-    "marked":"已收藏","saved":"已收藏","Practice":"练习","Edit":"编辑","Done":"完成","Remove":"移除","Find your next piece to master":"寻找你想精通的下一首乐曲",
+    "marked":"已收藏","saved":"已收藏","Practice":"练习","Date added":"加入日期","Find your next piece to master":"寻找你想精通的下一首乐曲",
     "composers":"位作曲家","Your account and settings":"你的账户与设置","Sort by":"排序方式","Asc":"升序","Desc":"降序",
     "Search composers or pieces":"搜索作曲家或乐曲"
   }
@@ -1667,7 +1660,7 @@ function renderLibraryBody(q) {
    PIANIST detail — with filter/sort
    ================================================================ */
 const SORT_LABELS = { name:"Name", level:"Level", year:"Year", length:"Length", key:"Key", coll:"Work" };
-const SORT_LABELS_SAVED = { name:"Name", level:"Level", year:"Year", length:"Length", key:"Key", composer:"Composer" };
+const SORT_LABELS_SAVED = { dateAdded:"Date added", name:"Name", level:"Level", year:"Year", length:"Length", key:"Key", composer:"Composer" };
 let pianistState = { id:null, sort:"name", tonality:"all", q:"", dir:"asc" };
 function openPianist(id) {
   pianistState = { id, sort:"name", tonality:"all", q:"", dir:"asc" };
@@ -1703,6 +1696,7 @@ function renderPianist() {
 }
 // shared: sort a piece list into labelled groups by sort key
 function groupPieces(list, sort) {
+  if (sort === "dateAdded") return [["", list]];   // list is already in saved order (newest first)
   if (sort === "key") {
     list.sort((a,b)=>a.key.localeCompare(b.key));
     const maj = list.filter(p=>modeOf(p)==="major"), min = list.filter(p=>modeOf(p)==="minor");
@@ -1999,7 +1993,6 @@ function renderSheet() {
     <div class="appbar">
       <button class="appbar-back" id="sBack">${IC.back}</button>
       <div style="flex:1"></div>
-      ${isPlayable(p.id) ? `<button class="appbar-back hdr-play" id="hdrPlay" title="Play">${IC.play}</button>` : ""}
       <button class="appbar-back mark-btn ${isMarked?'is-marked':''}" id="markBtn" title="Save">${IC.bookmark}</button>
     </div>
 
@@ -2076,9 +2069,7 @@ function renderSheetPane(p, toggleMark){
            <div class="rowlist">${collList.map((x,i)=>pieceRow(x,i)).join("")}</div>
          </div>`
       : "";
-    const aboutHTML = p.about
-      ? [p.story, p.about.series, p.about.background, p.about.influence].filter(Boolean).map(x=>`<p class="story-p">${x}</p>`).join("")
-      : `<p class="story-p">${p.story}</p>`;
+    const aboutHTML = (p.story||"").split(/\n\n+/).map(x=>`<p class="story-p">${x}</p>`).join("");
     pane.innerHTML = `
       <div class="sec"><div class="sec-head"><div class="sec-title">The story</div></div>${aboutHTML}</div>
       ${workSec}
@@ -2353,21 +2344,17 @@ function togglePlay(id){
 /* ================================================================
    SAVED
    ================================================================ */
-let savedState = { sort:"name", q:"", dir:"asc", editing:false };
+let savedState = { sort:"dateAdded", q:"", dir:"asc" };
 function renderSaved() {
   const v = document.getElementById("view-saved");
   const total = S.saved.length;
-  if (!total) savedState.editing = false;
   v.innerHTML = `
     <div class="appbar" style="flex-direction:column;align-items:stretch;gap:2px">
       <div class="appbar-title">${t("Playlist")}</div>
       <div class="appbar-sub">${S.lang==='en' ? `${total} saved ${total===1?"piece":"pieces"}` : `已收藏 ${total} 首`}</div>
     </div>
     ${total ? `
-      <div class="saved-toolbar">
-        <div class="sortchips" id="savedSort" ${savedState.editing?'style="visibility:hidden;pointer-events:none"':''}>${sortBarHTML(savedState, "savedSearch", SORT_LABELS_SAVED)}</div>
-        <button class="sec-link saved-edit" id="savedEdit">${savedState.editing?t("Done"):t("Edit")}</button>
-      </div>
+      <div class="sortchips" id="savedSort">${sortBarHTML(savedState, "savedSearch", SORT_LABELS_SAVED)}</div>
       <div id="savedListWrap"></div>` :
       `<div class="empty">
         <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg>
@@ -2379,31 +2366,11 @@ function renderSaved() {
     const savedSearchEl = v.querySelector("#savedSearch");
     if (savedSearchEl) savedSearchEl.addEventListener("input", e=>{ savedState.q = e.target.value.trim(); renderSavedList(); });
     wireSortBar(v.querySelector("#savedSort"), savedState, renderSavedList);
-    const editBtn = v.querySelector("#savedEdit");
-    if (editBtn) editBtn.addEventListener("click", ()=>{ savedState.editing = !savedState.editing; renderSaved(); });
     renderSavedList();
   }
 }
-// Edit mode: list with an unsave button per row (tap to remove from the playlist)
-function renderSavedEditList(wrap) {
-  const list = S.saved.map(pieceById).filter(Boolean);
-  wrap.innerHTML = `<div class="se-list">` + list.map(p=>`
-    <div class="se-row" data-piece="${p.id}">
-      <div class="se-body">
-        <div class="prow-title">${pieceNameHTML(p)}</div>
-        <div class="prow-meta"><span>${cNameShort(p.c)}</span><span class="dot-sep">${p.key}</span></div>
-      </div>
-      <button class="se-unsave" title="${t('Remove')}">${IC.bookmark}</button>
-    </div>`).join("") + `</div>`;
-  wrap.querySelectorAll(".se-unsave").forEach(b=>{
-    b.addEventListener("click", e=>{ e.stopPropagation();
-      const id = b.closest(".se-row").dataset.piece, i = S.saved.indexOf(id);
-      if (i>=0) S.saved.splice(i,1); save(); renderSaved(); });
-  });
-}
 function renderSavedList() {
   const wrap = document.getElementById("savedListWrap"); if (!wrap) return;
-  if (savedState.editing) { renderSavedEditList(wrap); return; }
   let list = S.saved.map(pieceById).filter(Boolean);
   const q = savedState.q;
   if (q) { const ql = q.toLowerCase();
