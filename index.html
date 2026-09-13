@@ -119,6 +119,17 @@
   .sec-title .sec-title-count { font-size: 13px; font-weight: 500; color: var(--mu-ink-3); letter-spacing: 0; margin-left: 6px; }
   .sec-link { font-size: 13px; font-weight: 500; color: var(--mu-ink-3); cursor: pointer; }
   .sec-link:hover { color: var(--mu-ink); }
+  /* Playlist edit mode */
+  .saved-toolbar { display: flex; align-items: center; gap: 12px; margin: 28px 0 6px; }
+  .saved-toolbar .sortchips { flex: 1; min-width: 0; margin: 0; }
+  .saved-edit { flex-shrink: 0; white-space: nowrap; background: none; border: none; padding: 4px 2px; font-family: inherit; }
+  .se-list { display: flex; flex-direction: column; }
+  .se-row { display: flex; align-items: center; gap: 10px; padding: 10px 4px; border-bottom: 1px solid var(--mu-gray-100); background: var(--mu-white); }
+  .se-row.dragging { opacity: .6; background: var(--mu-gray-50); border-radius: 10px; border-bottom-color: transparent; }
+  .se-drag { flex-shrink: 0; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: var(--mu-gray-500); cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent; }
+  .se-drag:active { cursor: grabbing; }
+  .se-body { flex: 1; min-width: 0; }
+  .se-unsave { flex-shrink: 0; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--mu-gray-900); background: var(--mu-gray-900); color: #fff; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
   /* ---- horizontal scroller ---- */
   .hscroll { display: flex; gap: 14px; overflow-x: auto; margin: 0 -28px; padding: 2px 28px 8px; -webkit-overflow-scrolling: touch; }
@@ -1017,7 +1028,7 @@ const TL = {
     "Name":"名稱","Level":"程度","Year":"年份","Length":"長度","Key":"調性","Work":"作品",
     "Music":"樂譜","Warm-Up":"暖身","Explore":"探索",
     "Intermediate":"中階","Advanced":"進階","Early-virtuoso":"準演奏級","Virtuoso":"演奏級",
-    "marked":"已收藏","saved":"已收藏","Practice":"練習","Find your next piece to master":"尋找你想精通的下一首樂曲",
+    "marked":"已收藏","saved":"已收藏","Practice":"練習","Edit":"編輯","Done":"完成","Remove":"移除","Find your next piece to master":"尋找你想精通的下一首樂曲",
     "composers":"位作曲家","Your account and settings":"你的帳戶與設定","Sort by":"排序方式","Asc":"升序","Desc":"降序",
     "Search composers or pieces":"搜尋作曲家或樂曲"
   },
@@ -1031,7 +1042,7 @@ const TL = {
     "Name":"名称","Level":"难度","Year":"年份","Length":"时长","Key":"调性","Work":"作品",
     "Music":"乐谱","Warm-Up":"热身","Explore":"探索",
     "Intermediate":"中阶","Advanced":"进阶","Early-virtuoso":"准演奏级","Virtuoso":"演奏级",
-    "marked":"已收藏","saved":"已收藏","Practice":"练习","Find your next piece to master":"寻找你想精通的下一首乐曲",
+    "marked":"已收藏","saved":"已收藏","Practice":"练习","Edit":"编辑","Done":"完成","Remove":"移除","Find your next piece to master":"寻找你想精通的下一首乐曲",
     "composers":"位作曲家","Your account and settings":"你的账户与设置","Sort by":"排序方式","Asc":"升序","Desc":"降序",
     "Search composers or pieces":"搜索作曲家或乐曲"
   }
@@ -2069,10 +2080,7 @@ function renderSheetPane(p, toggleMark){
          </div>`
       : "";
     const aboutHTML = p.about
-      ? `<p class="story-p">${p.story}</p>
-         <div class="about-block"><div class="about-label">Series</div><p>${p.about.series}</p></div>
-         <div class="about-block"><div class="about-label">Background</div><p>${p.about.background}</p></div>
-         <div class="about-block"><div class="about-label">Influence</div><p>${p.about.influence}</p></div>`
+      ? [p.story, p.about.series, p.about.background, p.about.influence].filter(Boolean).map(x=>`<p class="story-p">${x}</p>`).join("")
       : `<p class="story-p">${p.story}</p>`;
     pane.innerHTML = `
       <div class="sec"><div class="sec-head"><div class="sec-title">The story</div></div>${aboutHTML}</div>
@@ -2348,17 +2356,21 @@ function togglePlay(id){
 /* ================================================================
    SAVED
    ================================================================ */
-let savedState = { sort:"name", q:"", dir:"asc" };
+let savedState = { sort:"name", q:"", dir:"asc", editing:false };
 function renderSaved() {
   const v = document.getElementById("view-saved");
   const total = S.saved.length;
+  if (!total) savedState.editing = false;
   v.innerHTML = `
     <div class="appbar" style="flex-direction:column;align-items:stretch;gap:2px">
       <div class="appbar-title">${t("Playlist")}</div>
       <div class="appbar-sub">${S.lang==='en' ? `${total} saved ${total===1?"piece":"pieces"}` : `已收藏 ${total} 首`}</div>
     </div>
     ${total ? `
-      <div class="sortchips" id="savedSort">${sortBarHTML(savedState, "savedSearch", SORT_LABELS_SAVED)}</div>
+      <div class="saved-toolbar">
+        <div class="sortchips" id="savedSort" ${savedState.editing?'style="visibility:hidden;pointer-events:none"':''}>${sortBarHTML(savedState, "savedSearch", SORT_LABELS_SAVED)}</div>
+        <button class="sec-link saved-edit" id="savedEdit">${savedState.editing?t("Done"):t("Edit")}</button>
+      </div>
       <div id="savedListWrap"></div>` :
       `<div class="empty">
         <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg>
@@ -2370,11 +2382,52 @@ function renderSaved() {
     const savedSearchEl = v.querySelector("#savedSearch");
     if (savedSearchEl) savedSearchEl.addEventListener("input", e=>{ savedState.q = e.target.value.trim(); renderSavedList(); });
     wireSortBar(v.querySelector("#savedSort"), savedState, renderSavedList);
+    const editBtn = v.querySelector("#savedEdit");
+    if (editBtn) editBtn.addEventListener("click", ()=>{ savedState.editing = !savedState.editing; renderSaved(); });
     renderSavedList();
   }
 }
+// Edit mode: flat, drag-reorderable list in saved order with an unsave button per row
+function renderSavedEditList(wrap) {
+  const list = S.saved.map(pieceById).filter(Boolean);
+  const grip = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="16" x2="20" y2="16"/></svg>`;
+  wrap.innerHTML = `<div class="se-list">` + list.map(p=>`
+    <div class="se-row" data-piece="${p.id}">
+      <div class="se-drag" title="Drag to reorder">${grip}</div>
+      <div class="se-body">
+        <div class="prow-title">${pieceNameHTML(p)}</div>
+        <div class="prow-meta"><span>${cNameShort(p.c)}</span><span class="dot-sep">${p.key}</span></div>
+      </div>
+      <button class="se-unsave" title="${t('Remove')}">${IC.bookmark}</button>
+    </div>`).join("") + `</div>`;
+  // drag to reorder (pointer-based → works on touch + mouse)
+  let dragEl = null;
+  wrap.querySelectorAll(".se-drag").forEach(h=>{
+    h.addEventListener("pointerdown", e=>{
+      e.preventDefault(); dragEl = h.closest(".se-row");
+      dragEl.classList.add("dragging"); h.setPointerCapture(e.pointerId);
+    });
+    h.addEventListener("pointermove", e=>{
+      if (!dragEl) return;
+      const y = e.clientY, sibs = [...wrap.querySelectorAll(".se-row:not(.dragging)")];
+      let placed = false;
+      for (const s of sibs){ const r = s.getBoundingClientRect(); if (y < r.top + r.height/2){ wrap.querySelector(".se-list").insertBefore(dragEl, s); placed = true; break; } }
+      if (!placed) wrap.querySelector(".se-list").appendChild(dragEl);
+    });
+    const end = ()=>{ if (!dragEl) return; dragEl.classList.remove("dragging"); dragEl = null;
+      S.saved = [...wrap.querySelectorAll(".se-row")].map(r=>r.dataset.piece); save(); };
+    h.addEventListener("pointerup", end); h.addEventListener("pointercancel", end);
+  });
+  // unsave
+  wrap.querySelectorAll(".se-unsave").forEach(b=>{
+    b.addEventListener("click", e=>{ e.stopPropagation();
+      const id = b.closest(".se-row").dataset.piece, i = S.saved.indexOf(id);
+      if (i>=0) S.saved.splice(i,1); save(); renderSaved(); });
+  });
+}
 function renderSavedList() {
   const wrap = document.getElementById("savedListWrap"); if (!wrap) return;
+  if (savedState.editing) { renderSavedEditList(wrap); return; }
   let list = S.saved.map(pieceById).filter(Boolean);
   const q = savedState.q;
   if (q) { const ql = q.toLowerCase();
