@@ -583,7 +583,7 @@
   /* ---- bottom tab bar ---- */
   .tabbar {
     position: absolute; left: 0; right: 0; bottom: 0; z-index: 60;
-    height: 84px; padding: 8px 12px calc(env(safe-area-inset-bottom) + 14px);
+    height: auto; min-height: 68px; padding: 8px 12px calc(env(safe-area-inset-bottom) + 18px);
     background: var(--mu-white);
     -webkit-backdrop-filter: saturate(180%) blur(24px); backdrop-filter: saturate(180%) blur(24px);
     border-top: 1px solid var(--mu-border);
@@ -661,7 +661,7 @@
     /* pianist hero: avatar above name */
     .phero { flex-direction: column; }
     /* bottom nav: shorter, icons only */
-    .tabbar { height: 60px; padding: 6px 10px calc(env(safe-area-inset-bottom) + 18px); }
+    .tabbar { height: auto; min-height: 52px; padding: 8px 10px calc(env(safe-area-inset-bottom) + 24px); }
     .tabbtn { font-size: 0; gap: 0; }
     .tabbtn svg { width: 25px; height: 25px; }
   }
