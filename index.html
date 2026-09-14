@@ -1365,14 +1365,19 @@ const WARMUP_READY = new Set(["debussy-g77"]);
 const WARMUP_SCALE  = { "G major":"warmup-scale-g" };
 const WARMUP_ARP    = { "G major":"warmup-arp-g" };
 const WARMUP_CZERNY = { "G major":{ sub:"Czerny · School of Velocity, Op. 299 No. 16", imgs:["warmup-czerny-g"] } };
-// up to 4 warm-ups per piece, all in the piece's key. title = "<key> <technique>" (big), sub = "<source> · <detail>" (grey)
+// Warm-up model: Scale (piece's key) always; + one technique matched to the piece, only for
+// non-easy pieces (level > WARMUP_EASY_MAX). Easy pieces get Scale only. Max 2 per piece.
+const WARMUP_EASY_MAX = 4;
+const WARMUP_TECH = { "debussy-g77": "arpeggio" };   // per-piece 2nd technique
 function warmupItems(p){
   const it = [];
   if (WARMUP_SCALE[p.key]) it.push({ id:"scale", label:"Scale", title:`${p.key} scale`, sub:"Hanon · Two octaves, hands together", imgs:[WARMUP_SCALE[p.key]] });
-  if (WARMUP_ARP[p.key])   it.push({ id:"arp",   label:"Arpeggio", title:`${p.key} arpeggio`, sub:"Hanon · 1·3·5·8, smooth thumb-under", imgs:[WARMUP_ARP[p.key]] });
-  const cz = WARMUP_CZERNY[p.key];
-  if (cz) it.push({ id:"vel", label:"Velocity", title:`${p.key} velocity`, sub:cz.sub, imgs:cz.imgs });
-  return it.slice(0, 4);
+  if (p.level > WARMUP_EASY_MAX) {
+    const tech = WARMUP_TECH[p.id];
+    if (tech === "arpeggio" && WARMUP_ARP[p.key]) it.push({ id:"arp", label:"Arpeggio", title:`${p.key} arpeggio`, sub:"Hanon · 1·3·5·8, smooth thumb-under", imgs:[WARMUP_ARP[p.key]] });
+    else if (tech === "velocity" && WARMUP_CZERNY[p.key]) it.push({ id:"vel", label:"Velocity", title:`${p.key} velocity`, sub:WARMUP_CZERNY[p.key].sub, imgs:WARMUP_CZERNY[p.key].imgs });
+  }
+  return it.slice(0, 2);
 }
 // Warm-Up tab: score fills the screen like Music, with a floating segmented switcher + enlarge over it
 function renderWarmup(pane, p){
