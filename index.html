@@ -262,7 +262,7 @@
     transition: box-shadow var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease);
     background: var(--mu-white);
   }
-  .ccard:hover { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
+  .ccard:hover, .ccard:active, .ccard:focus-visible { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); outline: none; }
   .cav {
     width: 52px; height: 52px; border-radius: 50%;
     display: inline-flex; align-items: center; justify-content: center;
@@ -312,7 +312,7 @@
   .psearch { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; min-width: 160px;
     border: 1px solid var(--mu-border); border-radius: var(--mu-radius-full); background: var(--mu-white); }
   .psearch { transition: border-color var(--mu-fast) var(--mu-ease), box-shadow var(--mu-fast) var(--mu-ease); }
-  .psearch:hover { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
+  .psearch:hover, .psearch:active { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
   .psearch:focus-within { background: var(--mu-white); border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
   .psearch-ic { display: inline-flex; color: var(--mu-gray-500); }
   .psearch-ic svg { width: 16px; height: 16px; }
@@ -320,7 +320,7 @@
   .sortchips .filter-count { align-self: center; }
   /* desktop/iPad: pill with border + "Sort" text */
   .sort-lead { display: inline-flex; align-items: center; justify-content: center; gap: 5px; align-self: center; height: 36px; padding: 0 12px; border: 1px solid var(--mu-border); background: var(--mu-white); border-radius: var(--mu-radius-full); cursor: pointer; color: var(--mu-ink-2); font-size: 13px; font-weight: 500; margin-right: 2px; transition: border-color var(--mu-fast) var(--mu-ease), box-shadow var(--mu-fast) var(--mu-ease); }
-  .sort-lead:hover { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
+  .sort-lead:hover, .sort-lead:active, .sort-lead:focus-visible { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); outline: none; }
   .sort-divider { align-self: center; width: 1px; height: 22px; background: var(--mu-border); margin: 0 6px; flex-shrink: 0; }
   .sort-by-label { align-self: center; font-size: 13px; font-weight: 500; color: var(--mu-ink-3); margin-right: 6px; white-space: nowrap; }
   .sort-lead svg { flex-shrink: 0; }
@@ -330,7 +330,7 @@
   .sortchips > button[data-sort] { height: 36px; padding: 0 14px; border: 1px solid var(--mu-border); background: var(--mu-white);
     border-radius: var(--mu-radius-full); font-size: 13px; font-weight: 500; color: var(--mu-ink-2); cursor: pointer;
     transition: background var(--mu-fast) var(--mu-ease), color var(--mu-fast) var(--mu-ease), border-color var(--mu-fast) var(--mu-ease), box-shadow var(--mu-fast) var(--mu-ease); }
-  .sortchips > button[data-sort]:hover { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
+  .sortchips > button[data-sort]:hover, .sortchips > button[data-sort]:active, .sortchips > button[data-sort]:focus-visible { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); outline: none; }
   .sortchips > button[data-sort].is-active { background: var(--mu-gray-900); color: #fff; border-color: var(--mu-gray-900); }
   /* full-width sort dropdown (mu-system .dropdown/.menu) — shown on mobile only (see media query) */
   .sort-dd { display: none; position: relative; }
@@ -338,7 +338,7 @@
     width: 100%; height: 36px; padding: 0 14px; border-radius: var(--mu-radius-full);
     font-size: 13px; font-weight: 500; color: var(--mu-ink); }
   .sort-dd .sort-trigger { transition: border-color var(--mu-fast) var(--mu-ease), box-shadow var(--mu-fast) var(--mu-ease); }
-  .sort-dd .sort-trigger:hover { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
+  .sort-dd .sort-trigger:hover, .sort-dd .sort-trigger:active, .sort-dd .sort-trigger:focus-visible { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); outline: none; }
   .sort-dd .lang-caret { flex: none; color: var(--mu-ink-3); transition: transform var(--mu-fast) var(--mu-ease); }
   .sort-dd.is-open .lang-caret { transform: rotate(180deg); }
   .sort-dd .menu { left: 0; right: 0; min-width: 0; }
@@ -438,8 +438,9 @@
   .warmup-actions .wu-tab + .wu-tab { border-left: 1px solid var(--mu-border); }
   .warmup-actions .wu-tab:hover { background: transparent; color: var(--mu-ink); }
   .warmup-actions .wu-tab.is-on { background: transparent; color: var(--mu-ink); font-weight: 600; }
-  /* divider before the enlarge button — flex:none so it never collapses */
-  .warmup-actions .fa-sep { flex: none; width: 1px; height: 16px; background: var(--mu-border); margin: 0 6px; }
+  /* divider before the enlarge button — flex:none so it never collapses; no left margin so the
+     gap after VELOCITY matches the 12px between the other segments */
+  .warmup-actions .fa-sep { flex: none; width: 1px; height: 16px; background: var(--mu-border); margin: 0 4px 0 0; }
   .exercise { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg); padding: 14px; margin-top: 12px; background: var(--mu-white); }
   .ex-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 3px; }
   .ex-title { font-size: 15px; font-weight: 650; letter-spacing: -0.01em; }
