@@ -2307,7 +2307,9 @@ function renderSheet() {
   const c = COMPOSERS[p.c];
   const isMarked = S.saved.includes(p.id);
   const v = document.getElementById("view-sheet");
-  const TABS = [["focus",t("Music")],["practice",t("Warm-Up")],["explore",t("Explore")]];
+  const hasWarmup = warmupItems(p).length > 0;   // keyless pieces (whole-tone/no key) have none → hide the tab
+  if (sheetCtx.tab === "practice" && !hasWarmup) sheetCtx.tab = "focus";
+  const TABS = [["focus",t("Music")], ...(hasWarmup ? [["practice",t("Warm-Up")]] : []), ["explore",t("Explore")]];
   v.innerHTML = `
     <div class="appbar">
       <button class="appbar-back" id="sBack">${IC.back}</button>
@@ -2397,18 +2399,7 @@ function renderSheetPane(p, toggleMark){
     pane.querySelector("#composerBtn").addEventListener("click", ()=>{ stopAllPractice(); openPianist(p.c); });
 
   } else if (sheetCtx.tab === "practice") {
-    if (warmupItems(p).length) {
-      renderWarmup(pane, p);
-    } else {
-      const exs = exercisesFor(p);
-      pane.innerHTML = `
-        <div class="prac-intro"><b>Suggestion</b> — warm up in <b>${p.key}</b> first. Play each exercise slowly ~3× (hands separately, then together) with the metronome before you start the piece.</div>
-        ${exs.map((ex,i)=>`
-          <div class="exercise">
-            <div class="ex-head"><div class="ex-title">${i+1}. ${ex.label}</div><div class="ex-hint">${ex.hint}</div></div>
-            <div class="ex-placeholder">Add later</div>
-          </div>`).join("")}`;
-    }
+    renderWarmup(pane, p);   // the Warm-Up tab only exists when this piece has warm-ups (see TABS)
 
   } else { // focus (default) — score with a floating action toolbar overlaid on top
     const cUp = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`;
