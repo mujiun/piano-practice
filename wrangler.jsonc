@@ -1,0 +1,7 @@
+{
+  // Cloudflare — deploy Piano Practice as a static site (assets only, no Worker script).
+  // The `www` folder is produced by `npm run sync-web` (the build command in the CF dashboard).
+  "name": "piano-practice",
+  "compatibility_date": "2026-09-14",
+  "assets": { "directory": "www" }
+}
