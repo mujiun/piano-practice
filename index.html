@@ -1135,7 +1135,7 @@ const TL = {
     "On this day":"歷史上的今天","View composer":"查看作曲家","Sort":"排序","Composer":"作曲家","Jump into the library":"進入曲庫","See all":"查看全部","Nothing played yet.":"尚無彈奏紀錄",
     "Search":"搜尋","Composers":"作曲家","Pieces":"樂曲","pieces":"首","piece":"首",
     "Saved":"已收藏","No saved pieces yet":"尚未收藏樂曲","Tap the bookmark on any piece to keep it here.":"點擊任一樂曲的書籤即可收藏。",
-    "In progress":"進行中","Settings":"設定","Dark mode":"深色模式","Language":"語言","Keep screen awake":"螢幕保持喚醒","While app is open":"開啟期間一直","5 minutes":"5 分鐘","10 minutes":"10 分鐘","15 minutes":"15 分鐘","30 minutes":"30 分鐘","1 hour":"1 小時","Advanced pianist":"進階鋼琴家",
+    "In progress":"進行中","Settings":"設定","Privacy Policy":"隱私政策","Dark mode":"深色模式","Language":"語言","Keep screen awake":"螢幕保持喚醒","While app is open":"開啟期間一直","5 minutes":"5 分鐘","10 minutes":"10 分鐘","15 minutes":"15 分鐘","30 minutes":"30 分鐘","1 hour":"1 小時","Advanced pianist":"進階鋼琴家",
     "Name":"名稱","Level":"程度","Year":"年份","Length":"長度","Key":"調性","Work":"作品",
     "Music":"樂譜","Warm-Up":"暖身","Explore":"探索","The story":"樂曲故事",
     "Intermediate":"中階","Advanced":"進階","Early-virtuoso":"準演奏級","Virtuoso":"演奏級",
@@ -1149,7 +1149,7 @@ const TL = {
     "On this day":"历史上的今天","View composer":"查看作曲家","Sort":"排序","Composer":"作曲家","Jump into the library":"进入曲库","See all":"查看全部","Nothing played yet.":"尚无弹奏记录",
     "Search":"搜索","Composers":"作曲家","Pieces":"乐曲","pieces":"首","piece":"首",
     "Saved":"已收藏","No saved pieces yet":"尚未收藏乐曲","Tap the bookmark on any piece to keep it here.":"点击任一乐曲的书签即可收藏。",
-    "In progress":"进行中","Settings":"设置","Dark mode":"深色模式","Language":"语言","Keep screen awake":"屏幕保持唤醒","While app is open":"开启期间一直","5 minutes":"5 分钟","10 minutes":"10 分钟","15 minutes":"15 分钟","30 minutes":"30 分钟","1 hour":"1 小时","Advanced pianist":"进阶钢琴家",
+    "In progress":"进行中","Settings":"设置","Privacy Policy":"隐私政策","Dark mode":"深色模式","Language":"语言","Keep screen awake":"屏幕保持唤醒","While app is open":"开启期间一直","5 minutes":"5 分钟","10 minutes":"10 分钟","15 minutes":"15 分钟","30 minutes":"30 分钟","1 hour":"1 小时","Advanced pianist":"进阶钢琴家",
     "Name":"名称","Level":"难度","Year":"年份","Length":"时长","Key":"调性","Work":"作品",
     "Music":"乐谱","Warm-Up":"热身","Explore":"探索","The story":"乐曲故事",
     "Intermediate":"中阶","Advanced":"进阶","Early-virtuoso":"准演奏级","Virtuoso":"演奏级",
@@ -2807,6 +2807,11 @@ function renderProfile() {
           </div>
         </div>
       </div>
+      <a class="settrow" href="privacy.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
+        <div class="settrow-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div class="settrow-txt">${t("Privacy Policy")}</div>
+        <div class="settrow-val" style="margin-left:auto" aria-hidden="true">↗</div>
+      </a>
     </div>`;
   wirePieceRows(v);
   v.querySelector("#themeSwitch").addEventListener("click", e=>{

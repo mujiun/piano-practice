@@ -4,7 +4,7 @@
   "private": true,
   "description": "Piano practice — sheet library + player (iPad/iPhone)",
   "scripts": {
-    "sync-web": "rm -rf www && mkdir -p www && cp index.html www/ && cp -R library mu-system images vendor www/",
+    "sync-web": "rm -rf www && mkdir -p www && cp index.html privacy.html www/ && cp -R library mu-system images vendor www/",
     "ios:copy": "npm run sync-web && npx cap copy ios",
     "ios:open": "npx cap open ios"
   },
