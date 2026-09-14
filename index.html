@@ -10,7 +10,6 @@
 <script src="library/scores-notes-chopin.js"></script>
 <script src="library/scores-notes-beethoven.js"></script>
 <script src="library/scores-notes-mozart.js"></script>
-<script src="library/scores-notes-scarlatti.js"></script>
 <script src="library/scores-notes-bach.js"></script>
 <script src="library/scores-notes-clementi.js"></script>
 <script src="library/scores-notes-grieg.js"></script>
@@ -852,7 +851,6 @@ const COMPOSERS = {
   mendelssohn: { name:"Felix Mendelssohn", era:"Romantic · 1809–1847", init:"FM", bio:"Elegant early-Romantic craftsman; his Songs Without Words made the lyric piano piece a household art." },
   grieg: { name:"Edvard Grieg", era:"Romantic · 1843–1907", init:"EG", bio:"Norway's voice — the Lyric Pieces are a musical diary of folk colour, nature and Nordic light." },
   tchaikovsky: { name:"Pyotr Ilyich Tchaikovsky", era:"Romantic · 1840–1893", init:"PT", bio:"Russia's great melodist; his piano miniatures glow with the same warmth as his ballets and symphonies." },
-  scarlatti: { name:"Domenico Scarlatti", era:"Baroque · 1685–1757", init:"DS", bio:"Composer of 555 keyboard sonatas — dazzling, guitar-flecked one-movement gems written in Spain." },
 };
 
 /* level: 1–10 difficulty. dur: minutes. mode derived from key text. */
@@ -1088,13 +1086,6 @@ const PIECES = [
   {"id":"deb-reflets","c":"debussy","coll":"Images, Book I","title":"Reflets dans l'eau","key":"D♭ major","level":8,"year":1905,"dur":5,"story":"The opening piece of Images, Book 1 (1905) — water reflections rendered in sound, ripples spreading outward from a single dropped chord. Debussy boasted to his publisher Durand that it used 'the newest discoveries in harmonic chemistry,' floating pentatonic and whole-tone washes free of traditional harmony to capture, as he put it, the very movement of water. A descendant of Liszt's fountains at the Villa d'Este, it stands as one of the founding masterpieces of musical Impressionism."},
   {"id":"deb-poissons","c":"debussy","coll":"Images, Book II","title":"Poissons d'or","key":"F♯ major","level":9,"year":1907,"dur":4,"story":"'Goldfish' darting in glittering figuration, inspired by a Japanese lacquer panel."},
   {"id":"deb-feux","c":"debussy","coll":"Préludes, Book II","title":"Feux d'artifice","key":"D♭ major","level":10,"year":1913,"dur":5,"story":"Bastille-Day fireworks over Paris, closing Book II with a distant Marseillaise."},
-  {"id":"scar-k1","c":"scarlatti","title":"Sonata in D minor","sub":"K. 1 (L. 366)","key":"D minor","level":5,"year":1738,"dur":3,"story":"The very first of Scarlatti's 555 sonatas — restless, with hand-crossings and a driving Iberian pulse."},
-  {"id":"scar-k113","c":"scarlatti","title":"Sonata in A major","sub":"K. 113 (L. 345)","key":"A major","level":7,"year":1738,"dur":4,"story":"Guitar-like repeated notes and dazzling leaps, full of Spanish colour."},
-  {"id":"scar-k492","c":"scarlatti","title":"Sonata in D major","sub":"K. 492 (L. 14)","key":"D major","level":7,"year":1756,"dur":4,"story":"A brilliant, festive sonata bristling with fanfares and rapid runs."},
-  {"id":"scar-k158","c":"scarlatti","title":"Sonata in C minor","sub":"K. 158 (L. 4)","key":"C minor","level":5,"year":1750,"dur":3.5,"story":"A darker, contrapuntal sonata of quiet intensity."},
-  {"id":"scar-k238","c":"scarlatti","title":"Sonata in F minor","sub":"K. 238 (L. 27)","key":"F minor","level":6,"year":1750,"dur":4,"story":"Songful and melancholy — one of his most expressive slow sonatas."},
-  {"id":"scar-k25","c":"scarlatti","title":"Sonata in F♯ minor","sub":"K. 25 (L. 481)","key":"F♯ minor","level":7,"year":1738,"dur":4,"story":"A striking early sonata in a rare key, with bold harmonic turns."},
-  {"id":"scar-k146","c":"scarlatti","title":"Sonata in G major","sub":"K. 146 (L. 349)","key":"G major","level":6,"year":1750,"dur":3,"story":"Bright and dancing, sparkling with ornaments."}
 ];
 
 /* ================================================================
@@ -1190,7 +1181,6 @@ const COMPOSER_NAME_LOCAL = {
   tchaikovsky:{"zh-Hant":"彼得·伊里奇·柴可夫斯基","zh-Hans":"彼得·伊里奇·柴可夫斯基"},
   scriabin:{"zh-Hant":"亞歷山大·斯克里亞賓","zh-Hans":"亚历山大·斯克里亚宾"},
   prokofiev:{"zh-Hant":"謝爾蓋·普羅高菲夫","zh-Hans":"谢尔盖·普罗科菲耶夫"},
-  scarlatti:{"zh-Hant":"多梅尼科·史卡拉第","zh-Hans":"多梅尼科·斯卡拉蒂"},
   faure:{"zh-Hant":"加布里埃·佛瑞","zh-Hans":"加布里埃尔·福雷"},
   granados:{"zh-Hant":"恩里克·格拉納多斯","zh-Hans":"恩里克·格拉纳多斯"}
 };
@@ -2063,7 +2053,6 @@ const SPOTIFY = {
   "bach-minuet-g": "track/77k89iqwuBOliXcvXcPENX",
   "bach-bwv999": "track/1dZyH3hjPNwdQ36Gunx29L",
   "bach-partita1-prel": "track/5NyZAGgWfau49QS8l8MVLA",
-  "scar-k113": "track/5fMBAwc6SJESd2TMYQxSPa",
   "cho-018-001": "track/1wEb1luJ5J75yhTMDRuFHn",
   "cho-034-002": "track/2PEjFvnNNvBgq0yybJjrjm",
   "cho-042-001": "track/69zqjeYkClqDELvekEdTVC",
@@ -2095,10 +2084,6 @@ const SPOTIFY = {
   "liszt-g94": "track/3OXn1zJuMVGo6RjC8W4bLC",
   "liszt-g96": "track/4mTOMsKvam23094tYAD0PB",
   "liszt-g99": "track/7EgO9VcB65UJ3MKeSKbMos",
-  "scar-k1": "track/31ZCCQP4clnWeJbAo8NAJ4",
-  "scar-k238": "track/2PsCBtb6XeJOtnIDGbVmCt",
-  "scar-k492": "track/2F1ZPVOjwthGipzAq45vp1",
-  "scar-k158": "track/6j6JPzqx9gpD9f72DC9rOD",
   "bach-french5-sarabande": "track/2Cm9QvKBeBfrc9p0JkCvU3",
   "bach-french5-gigue": "track/7xArE0rJ7ERVfUK6mckVA4",
   "bach-italian-1": "track/4nHpMpsjFXZ0zFpCnzjSfE",
@@ -2193,8 +2178,6 @@ const SPOTIFY = {
   "cho-rev": "track/4AmKwTnUVSZqKHuGKouVZc",
 
   // — pianist-specific (Scarlatti/Horowitz, Grieg/Andsnes, Debussy/Cho, Mozart/Uchida, Bach/Schiff, Beethoven/Barenboim)
-  "scar-k146": "track/2PH3uKFyLAA2ppvY1B9U4a",
-  "scar-k25": "track/4emFjGXW8FztVkizWhduUN",
   "grieg-g34": "track/0TGanqK43LjBsOkQKH2vdO",
   "grieg-g37": "track/3hobtuiroCFcOH0Oa9R4JN",
   "grieg-g38": "track/5lF09Xpw08revSYkpwRpVM",
