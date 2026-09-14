@@ -417,11 +417,36 @@
   .prac-intro { font-size: 13.5px; line-height: 1.5; color: var(--mu-ink-2); background: var(--mu-gray-50);
     border: 1px solid var(--mu-border); border-radius: var(--mu-radius-md); padding: 12px 14px; margin: 12px 0; }
   .prac-intro b { color: var(--mu-ink); font-weight: 650; }
+  /* Warm-Up tab: score fills the screen like Music, with a title header inside + floating switcher */
+  .warmup-fv .warmup-scroll { display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+  .wu-title { flex-shrink: 0; padding: 20px 18px 16px; text-align: center; }
+  .wu-title-main { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; color: var(--mu-ink); text-transform: capitalize; }
+  .wu-title-sub { font-size: 13px; color: var(--mu-ink-3); margin-top: 4px; }
+  .wu-figure { padding: 0 14px 16px; }
+  .wu-img { width: 100%; display: block; }
+  /* enlarge: title on top, exercise fit to the remaining height, centered on white */
+  .focus-view.warmup-fv.fake-fs { background: #fff; }
+  .focus-view.warmup-fv.fake-fs .warmup-scroll { border: none; border-radius: 0; }
+  .focus-view.warmup-fv.fake-fs .wu-figure { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 14px 12px; }
+  .focus-view.warmup-fv.fake-fs .wu-img { width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  .warmup-actions { gap: 2px; }
+  .warmup-actions .wu-seg { display: contents; }
+  /* text segments (not the round icon buttons) — hug their text, uppercase mono */
+  .warmup-actions .wu-tab { width: auto; height: auto; border: none; border-radius: 0; background: transparent;
+    padding: 4px 12px; font-family: var(--mu-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--mu-ink-3); cursor: pointer; white-space: nowrap; transition: color var(--mu-fast) var(--mu-ease); }
+  .warmup-actions .wu-tab:hover { background: transparent; color: var(--mu-ink); }
+  .warmup-actions .wu-tab.is-on { background: transparent; color: var(--mu-ink); font-weight: 600; }
+  .warmup-actions .fa-sep { height: 15px; margin: 0 1px; }
   .exercise { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg); padding: 14px; margin-top: 12px; background: var(--mu-white); }
-  .ex-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .ex-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 3px; }
   .ex-title { font-size: 15px; font-weight: 650; letter-spacing: -0.01em; }
   .ex-hint { font-size: 12px; color: var(--mu-ink-3); text-align: right; }
-  .ex-score { background: var(--mu-white); border-radius: 6px; overflow-x: auto; min-height: 90px; }
+  .ex-tag { flex: none; font-family: var(--mu-mono); font-size: 10.5px; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--mu-ink-3); border: 1px solid var(--mu-border); border-radius: 6px; padding: 2px 7px; white-space: nowrap; }
+  .ex-sub { font-size: 12.5px; color: var(--mu-ink-3); line-height: 1.4; margin: 0 0 11px; }
+  .ex-score { background: var(--mu-white); border: 1px solid var(--mu-border); border-radius: 8px; overflow: hidden; }
+  .ex-score img { width: 100%; display: block; }
   .ex-placeholder { background: var(--mu-gray-100); border-radius: 6px; color: var(--mu-gray-400);
     font-size: 13px; display: flex; align-items: center; justify-content: center; height: 64px; }
   .ex-score svg, .osmd-host svg { max-width: none; }
@@ -429,7 +454,7 @@
   /* sheet page fills the frame; Music score flexes so score + Spotify both fit */
   #view-sheet.is-active { display: flex; flex-direction: column; height: 100%; padding-bottom: 0; }
   #view-sheet .appbar, #view-sheet .sheet-hero, #view-sheet .sheet-tabs { flex-shrink: 0; }
-  #sheetPane { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; padding-bottom: 16px; }
+  #sheetPane { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; padding-bottom: calc(env(safe-area-inset-bottom) + 20px); }
   #sheetPane > .focus-view { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   #sheetPane > .focus-view > .focus-scroll { flex: 1; min-height: 0; max-height: none; }
   .spotify-embed, .focus-pdf-link { flex-shrink: 0; }
@@ -506,12 +531,16 @@
   @media (orientation: landscape) and (min-width: 1000px) {
     .focus-view.pdf-book.fake-fs .pdf-page { flex: 0 0 50%; }
     .focus-view.pdf-book.fake-fs .pdf-page:nth-child(even) { scroll-snap-align: none; }
+    /* warm-up exercises are single-page — keep them full-width (no 2-up spread) */
+    .focus-view.warmup-fv.fake-fs .pdf-page { flex: 0 0 100%; }
   }
   /* book mode: fit-to-page, so hide zoom controls (paginator stays) */
   .focus-view.pdf-book .focus-actions #zoomOut,
   .focus-view.pdf-book .focus-actions #zoomIn,
   .focus-view.pdf-book .focus-actions #zoomVal,
   .focus-view.pdf-book .focus-actions .fa-sep { display: none; }
+  /* keep the divider between the page controls and the enlarge button */
+  .focus-view.pdf-book .focus-actions .fa-sep:last-of-type { display: block; }
   /* floating panel auto-hides after inactivity; tap the page to bring it back */
   .focus-actions { transition: opacity .3s var(--mu-ease); }
   .focus-view.fake-fs.panel-hidden .focus-actions,
@@ -1191,7 +1220,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260913d";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260913h";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
@@ -1325,6 +1354,61 @@ function exercisesFor(p){
     { label:`${tonic} ${mode} arpeggio`, hint:"1-3-5-8 up & down, smooth thumb-under", xml:exerciseXML(arpeggioNotes(tonic,fifths),fifths) },
     { label:`Chromatic from ${tonic}`, hint:"light fingers, steady pulse", xml:exerciseXML(chromaticNotes(tonic),0) },
   ];
+}
+// ---- Warm-up: real public-domain exercise scores, matched to the piece's key + level ----
+// Hanon (universal C-major finger drill) + key-matched scale/arpeggio (Hanon) + level-matched Czerny étude.
+// pieces wired to the new image-based warm-up (rest keep the old placeholder view for now)
+const WARMUP_READY = new Set(["debussy-g77"]);
+const WARMUP_SCALE  = { "G major":"warmup-scale-g" };
+const WARMUP_ARP    = { "G major":"warmup-arp-g" };
+const WARMUP_CZERNY = { "G major":{ sub:"Czerny · School of Velocity, Op. 299 No. 16", imgs:["warmup-czerny-g"] } };
+// up to 4 warm-ups per piece, all in the piece's key. title = "<key> <technique>" (big), sub = "<source> · <detail>" (grey)
+function warmupItems(p){
+  const it = [];
+  if (WARMUP_SCALE[p.key]) it.push({ id:"scale", label:"Scale", title:`${p.key} scale`, sub:"Hanon · Two octaves, hands together", imgs:[WARMUP_SCALE[p.key]] });
+  if (WARMUP_ARP[p.key])   it.push({ id:"arp",   label:"Arpeggio", title:`${p.key} arpeggio`, sub:"Hanon · 1·3·5·8, smooth thumb-under", imgs:[WARMUP_ARP[p.key]] });
+  const cz = WARMUP_CZERNY[p.key];
+  if (cz) it.push({ id:"vel", label:"Velocity", title:`${p.key} velocity`, sub:cz.sub, imgs:cz.imgs });
+  return it.slice(0, 4);
+}
+// Warm-Up tab: score fills the screen like Music, with a floating segmented switcher + enlarge over it
+function renderWarmup(pane, p){
+  const items = warmupItems(p);
+  const full = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>`;
+  const shrink = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/></svg>`;
+  pane.innerHTML = `
+    <div class="focus-view warmup-fv" id="focusView">
+      <div class="focus-scroll warmup-scroll" id="focusScroll">
+        <div class="wu-title"><div class="wu-title-main" id="wuMain"></div><div class="wu-title-sub" id="wuSub"></div></div>
+        <div class="wu-figure" id="wuFig"></div>
+      </div>
+      <div class="focus-actions warmup-actions">
+        <div class="wu-seg" id="wuSeg">${items.map((it,i)=>`<button class="wu-tab" data-wu="${i}">${it.label}</button>`).join('<span class="fa-sep"></span>')}</div>
+        <span class="fa-sep"></span>
+        <button id="fullBtn" title="Full screen">${full}</button>
+      </div>
+    </div>`;
+  const fv = pane.querySelector("#focusView"), scroll = pane.querySelector("#focusScroll"),
+        fig = pane.querySelector("#wuFig"), main = pane.querySelector("#wuMain"), sub = pane.querySelector("#wuSub"),
+        seg = pane.querySelector("#wuSeg"), fullBtn = pane.querySelector("#fullBtn");
+  let cur = Math.min(sheetCtx.warmup||0, items.length-1);
+  function show(i){
+    cur = i; sheetCtx.warmup = i; const it = items[i];
+    fig.innerHTML = it.imgs.map(n=>`<img class="wu-img" src="library/warmup/img/${n}.webp?v=${SCORE_VER}" alt="${it.title}" draggable="false">`).join("");
+    main.textContent = it.title; sub.textContent = it.sub;
+    seg.querySelectorAll(".wu-tab").forEach((b,j)=> b.classList.toggle("is-on", j===i));
+    scroll.scrollTop = 0;
+  }
+  seg.addEventListener("click", e=>{ const b = e.target.closest("[data-wu]"); if (b) show(+b.dataset.wu); });
+  // enlarge = same fit-to-page overlay as Music (single page, so no paging); panel auto-hides
+  let panelTimer = null;
+  function pokePanel(){ if (!fv.classList.contains("fake-fs")) return; fv.classList.remove("panel-hidden"); clearTimeout(panelTimer); panelTimer = setTimeout(()=> fv.classList.add("panel-hidden"), 10000); }
+  fv.addEventListener("pointerdown", pokePanel); scroll.addEventListener("scroll", pokePanel, { passive:true });
+  fullBtn.addEventListener("click", ()=>{
+    if (fv.classList.contains("fake-fs")){ fv.classList.remove("fake-fs","panel-hidden"); document.body.classList.remove("fs-active"); clearTimeout(panelTimer); fullBtn.innerHTML = full; }
+    else { fv.classList.add("fake-fs"); document.body.classList.add("fs-active"); fullBtn.innerHTML = shrink; pokePanel(); }
+  });
+  show(cur);
 }
 // render a MusicXML string into host via OSMD (consistent staff/notes)
 async function renderNotation(host, xml){
@@ -2275,14 +2359,18 @@ function renderSheetPane(p, toggleMark){
     pane.querySelector("#composerBtn").addEventListener("click", ()=>{ stopAllPractice(); openPianist(p.c); });
 
   } else if (sheetCtx.tab === "practice") {
-    const exs = exercisesFor(p);
-    pane.innerHTML = `
-      <div class="prac-intro"><b>Suggestion</b> — warm up in <b>${p.key}</b> first. Play each exercise slowly ~3× (hands separately, then together) with the metronome before you start the piece.</div>
-      ${exs.map((ex,i)=>`
-        <div class="exercise">
-          <div class="ex-head"><div class="ex-title">${i+1}. ${ex.label}</div><div class="ex-hint">${ex.hint}</div></div>
-          <div class="ex-placeholder">Add later</div>
-        </div>`).join("")}`;
+    if (WARMUP_READY.has(p.id)) {
+      renderWarmup(pane, p);
+    } else {
+      const exs = exercisesFor(p);
+      pane.innerHTML = `
+        <div class="prac-intro"><b>Suggestion</b> — warm up in <b>${p.key}</b> first. Play each exercise slowly ~3× (hands separately, then together) with the metronome before you start the piece.</div>
+        ${exs.map((ex,i)=>`
+          <div class="exercise">
+            <div class="ex-head"><div class="ex-title">${i+1}. ${ex.label}</div><div class="ex-hint">${ex.hint}</div></div>
+            <div class="ex-placeholder">Add later</div>
+          </div>`).join("")}`;
+    }
 
   } else { // focus (default) — score with a floating action toolbar overlaid on top
     const cUp = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`;
