@@ -19,8 +19,7 @@
               box-shadow var(--mu-fast) var(--mu-ease);
 }
 .input::placeholder { color: var(--mu-gray-500); } /* 4.6:1 — placeholders must meet AA too */
-.input:hover  { border-color: var(--mu-gray-300); }
-.input:focus  { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
+.input:hover, .input:active, .input:focus { border-color: var(--mu-gray-900); box-shadow: var(--mu-focus-ring); }
 .input[disabled] { background: var(--mu-gray-50); color: var(--mu-ink-3); pointer-events: none; }
 
 textarea.input { height: auto; min-height: 96px; padding: 12px 14px; resize: vertical; line-height: 1.5; }
