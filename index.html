@@ -1109,7 +1109,7 @@ const CALENDAR = window.MUSIC_CALENDAR || [
    Persistent state (localStorage)
    ================================================================ */
 const LS_KEY = "pp_v1";
-const DEFAULT_STATE = { progress:{}, practiceSec:{}, saved:[], recent:["rav-menuet-haydn","cho-pre284"], lang:"en", theme:"light", keepAwake:10 };
+const DEFAULT_STATE = { progress:{}, practiceSec:{}, saved:[], recent:["rav-menuet-haydn","cho-pre284"], lang:"en", theme:"light", keepAwake:10, entitlement:"free", installedAt:null };
 function applyTheme(){
   const dark = (S.theme==="dark");
   document.documentElement.dataset.theme = dark ? "dark" : "light";
@@ -1241,6 +1241,41 @@ function load() {
   catch { return JSON.parse(JSON.stringify(DEFAULT_STATE)); }
 }
 function save() { localStorage.setItem(LS_KEY, JSON.stringify(S)); }
+
+/* ============================================================
+   Monetization / entitlements (scaffolding — everything FREE at launch)
+   To introduce a paid tier later:
+     1) set PRO.enforce = true
+     2) set PRO.grandfatherBefore to the launch date (early users stay free)
+     3) integrate the store in the Store.* methods below (RevenueCat recommended:
+        it wraps StoreKit, gives an "isPro" entitlement, and auto-handles Restore;
+        iOS subscriptions ride the user's Apple ID — no custom login needed).
+     4) gate premium content/features with isPro() / isProContent(piece)
+   Nothing is gated today; isPro() returns true for everyone.
+   ============================================================ */
+const PRO = {
+  enforce: false,           // false → full access for everyone (free launch)
+  grandfatherBefore: null,  // e.g. "2027-01-01": users who installed before keep full access
+  productId: "pro_yearly",  // App Store Connect product id (set when you create it)
+};
+const PRO_CONTENT = new Set();   // future: piece ids / composer keys that require Pro (empty = all free)
+function isPro(){
+  if (!PRO.enforce) return true;                                   // free launch
+  if (S.entitlement === "pro") return true;                        // active purchase/subscription (set by Store.refresh)
+  if (PRO.grandfatherBefore && S.installedAt && S.installedAt < PRO.grandfatherBefore) return true; // early adopters
+  return false;
+}
+function isProContent(id){ return PRO.enforce && !isPro() && PRO_CONTENT.has(id); } // true = locked
+// Purchase layer — stubs today; drop RevenueCat/StoreKit calls in here later. One place to change.
+const Store = {
+  async init(){ /* e.g. Purchases.configure({apiKey}) */ },
+  async refresh(){ /* read entitlement → S.entitlement = active ? "pro" : "free"; save(); renderAll(); */ },
+  async purchase(){ /* Purchases.purchase(PRO.productId) → on success S.entitlement="pro"; save(); */ },
+  async restore(){ /* Purchases.restorePurchases() → update S.entitlement */ },
+};
+function showPaywall(){ /* future: render an "Upgrade to Piano Practice Pro" screen */ }
+// stamp first-launch date so early adopters can be grandfathered when Pro arrives
+if (!S.installedAt) { S.installedAt = new Date().toISOString().slice(0,10); save(); }
 
 const pieceById = id => PIECES.find(p => p.id === id);
 const piecesOf = cId => PIECES.filter(p => p.c === cId);
