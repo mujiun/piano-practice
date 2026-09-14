@@ -1,2 +1,2 @@
 // Mozart page-strip counts (public-domain PDF — Breitkopf Serie 22 / Peters)
-window.SCORE_IMG = Object.assign(window.SCORE_IMG||{}, {"moz-twinkle":7,"moz-minuet-f":1,"moz-fantasy-dm":4,"moz-rondo-am":8,"moz-adagio-bm":4,"moz-rondo-d":6});
+window.SCORE_IMG = Object.assign(window.SCORE_IMG||{}, {"moz-twinkle":7,"moz-minuet-f":1,"moz-fantasy-dm":4,"moz-rondo-am":8,"moz-adagio-bm":4,"moz-rondo-d":6,"moz-k545-1":4,"moz-k545-2":5,"moz-k545-3":2,"moz-k331-1":8,"moz-k331-2":4,"moz-k331-3":4,"moz-k310-1":8,"moz-k330-1":6,"moz-k332-1":6,"moz-k457-1":5,"moz-k333-1":8,"moz-k576-1":6});

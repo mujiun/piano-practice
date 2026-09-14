@@ -1083,7 +1083,7 @@ const PIECES = [
   {"id":"deb-cc-shepherd","c":"debussy","coll":"Children's Corner","title":"The Little Shepherd","key":"A major","level":4,"year":1908,"dur":2,"story":"A wistful pastoral tune answering its own playful dance."},
   {"id":"deb-reflets","c":"debussy","coll":"Images, Book I","title":"Reflets dans l'eau","key":"D♭ major","level":8,"year":1905,"dur":5,"story":"The opening piece of Images, Book 1 (1905) — water reflections rendered in sound, ripples spreading outward from a single dropped chord. Debussy boasted to his publisher Durand that it used 'the newest discoveries in harmonic chemistry,' floating pentatonic and whole-tone washes free of traditional harmony to capture, as he put it, the very movement of water. A descendant of Liszt's fountains at the Villa d'Este, it stands as one of the founding masterpieces of musical Impressionism."},
   {"id":"deb-poissons","c":"debussy","coll":"Images, Book II","title":"Poissons d'or","key":"F♯ major","level":9,"year":1907,"dur":4,"story":"'Goldfish' darting in glittering figuration, inspired by a Japanese lacquer panel."},
-  {"id":"deb-feux","c":"debussy","coll":"Préludes, Book II","title":"Feux d'artifice","key":"D♭ major","level":10,"year":1913,"dur":5,"story":"Bastille-Day fireworks over Paris, closing Book II with a distant Marseillaise."},
+  {"id":"deb-feux","c":"debussy","coll":"Préludes, Book II","title":"Feux d'artifice","key":"D♭ major","level":10,"year":1913,"dur":5,"story":"Bastille-Day fireworks over Paris, closing Book II with a distant Marseillaise."}
 ];
 
 /* ================================================================
@@ -1219,7 +1219,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260913l";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260913m";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
