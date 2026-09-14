@@ -36,6 +36,7 @@
 <script>try{ if (window.Capacitor || window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) document.documentElement.classList.add('is-native'); }catch(e){}</script>
 <script src="library/piano-samples.js"></script>
 <script src="library/calendar-data.js"></script>
+<script src="library/i18n-content.js"></script>
 <style>
   /* ===============================================================
      Piano Practice · iPad app · mu-system greyscale
@@ -1147,7 +1148,7 @@ const TL = {
     "Saved":"已收藏","No saved pieces yet":"尚未收藏樂曲","Tap the bookmark on any piece to keep it here.":"點擊任一樂曲的書籤即可收藏。",
     "In progress":"進行中","Settings":"設定","Dark mode":"深色模式","Language":"語言","Keep screen awake":"螢幕保持喚醒","While app is open":"開啟期間一直","5 minutes":"5 分鐘","10 minutes":"10 分鐘","15 minutes":"15 分鐘","30 minutes":"30 分鐘","1 hour":"1 小時","Advanced pianist":"進階鋼琴家",
     "Name":"名稱","Level":"程度","Year":"年份","Length":"長度","Key":"調性","Work":"作品",
-    "Music":"樂譜","Warm-Up":"暖身","Explore":"探索",
+    "Music":"樂譜","Warm-Up":"暖身","Explore":"探索","The story":"樂曲故事",
     "Intermediate":"中階","Advanced":"進階","Early-virtuoso":"準演奏級","Virtuoso":"演奏級",
     "marked":"已收藏","saved":"已收藏","Practice":"練習","Date added":"加入日期","Find your next piece to master":"尋找你想精通的下一首樂曲",
     "composers":"位作曲家","Your account and settings":"你的帳戶與設定","Sort by":"排序方式","Asc":"升序","Desc":"降序",
@@ -1161,7 +1162,7 @@ const TL = {
     "Saved":"已收藏","No saved pieces yet":"尚未收藏乐曲","Tap the bookmark on any piece to keep it here.":"点击任一乐曲的书签即可收藏。",
     "In progress":"进行中","Settings":"设置","Dark mode":"深色模式","Language":"语言","Keep screen awake":"屏幕保持唤醒","While app is open":"开启期间一直","5 minutes":"5 分钟","10 minutes":"10 分钟","15 minutes":"15 分钟","30 minutes":"30 分钟","1 hour":"1 小时","Advanced pianist":"进阶钢琴家",
     "Name":"名称","Level":"难度","Year":"年份","Length":"时长","Key":"调性","Work":"作品",
-    "Music":"乐谱","Warm-Up":"热身","Explore":"探索",
+    "Music":"乐谱","Warm-Up":"热身","Explore":"探索","The story":"乐曲故事",
     "Intermediate":"中阶","Advanced":"进阶","Early-virtuoso":"准演奏级","Virtuoso":"演奏级",
     "marked":"已收藏","saved":"已收藏","Practice":"练习","Date added":"加入日期","Find your next piece to master":"寻找你想精通的下一首乐曲",
     "composers":"位作曲家","Your account and settings":"你的账户与设置","Sort by":"排序方式","Asc":"升序","Desc":"降序",
@@ -1194,6 +1195,13 @@ const COMPOSER_NAME_LOCAL = {
   granados:{"zh-Hant":"恩里克·格拉納多斯","zh-Hans":"恩里克·格拉纳多斯"}
 };
 function cName(id){ const m = COMPOSER_NAME_LOCAL[id]; return (m && m[S.lang]) || (COMPOSERS[id] && COMPOSERS[id].name) || id; }
+// ---- content i18n: composer era/bio, piece coll/title/story, calendar title/text (fall back to English) ----
+function _i18n(kind, key){ return (window.I18N && I18N[kind] && I18N[kind][key] && I18N[kind][key][S.lang]) || null; }
+function cEra(id){ const t = _i18n("composers", id); return (t && t.era) || (COMPOSERS[id] && COMPOSERS[id].era) || ""; }
+function cBio(id){ const t = _i18n("composers", id); return (t && t.bio) || (COMPOSERS[id] && COMPOSERS[id].bio) || ""; }
+// localized piece: overrides coll/title/story with translation; keeps sub (catalogue) for structure parsing
+function locPiece(p){ const t = _i18n("pieces", p.id); return t ? Object.assign({}, p, t) : p; }
+function locEvent(ev){ const t = _i18n("calendar", ev.md); return t ? Object.assign({}, ev, t) : ev; }
 function cNameShort(id){ if(S.lang==='en'){ const n = COMPOSERS[id]?COMPOSERS[id].name:id; return n.split(" ").slice(-1)[0]; } return cName(id); }
 
 // Real score PDFs (public domain, from IMSLP mirrors / Internet Archive)
@@ -1618,9 +1626,9 @@ function catFix(s){return s.replace(/\b([A-Za-z]{1,3})\.(?=\d)/g,"$1. ");} // M.
 function movNo(p){const m=(p.sub||"").match(/No\.\s*(\d+)|\/(\d+)/);return m?+(m[1]||m[2]):0;}
 function isMovement(p){return !!p.coll && movNo(p)>0;}
 // short form for rows already grouped under their work header, e.g. "I. Prélude"
-function movementLabel(p){return isMovement(p)?`${romanize(movNo(p))}. ${p.title}`:p.title;}
+function movementLabel(p){p=locPiece(p);return isMovement(p)?`${romanize(movNo(p))}. ${p.title}`:p.title;}
 // full concert form, e.g. "Le tombeau de Couperin, M. 68: I. Prélude"
-function pieceFullName(p){
+function pieceFullName(p){p=locPiece(p);
   if(isMovement(p)) return `${catFix(p.coll)}: ${romanize(movNo(p))}. ${p.title}`;
   if(p.coll && p.coll!==p.title) return `${catFix(p.coll)}: ${p.title}`;
   if(p.sub && /^[A-Za-z]{1,4}\.?\s*\d/.test(p.sub) && !/·|No\./.test(p.sub)) return `${p.title}, ${catFix(p.sub)}`;
@@ -1630,20 +1638,23 @@ function pieceFullName(p){
 function splitColl(coll){const m=coll.match(/^(.*?),\s*([A-Za-z]{0,4}\.?\s*\d.*)$/);return m?[m[1],catFix(m[2])]:[coll,""];}
 function _dim(s){return `<span class="pn-dim">${s}</span>`;}
 function pieceNameHTML(p){
+  p=locPiece(p);
   if(isMovement(p)){const[w,cat]=splitColl(p.coll);return `${w}${cat?`, ${cat}`:""} • ${_dim(`${romanize(movNo(p))}. ${p.title}`)}`;}
   if(p.coll && p.coll!==p.title){const[w,cat]=splitColl(p.coll);return `${w}${cat?`, ${cat}`:""} • ${_dim(p.title)}`;}
   if(p.sub && /^[A-Za-z]{1,4}\.?\s*\d/.test(p.sub) && !/·|No\./.test(p.sub)) return `${p.title}, ${catFix(p.sub)}`;
   return p.title;
 }
-function movementLabelHTML(p){return isMovement(p)?`${_dim(`${romanize(movNo(p))}.`)} ${p.title}`:p.title;}
+function movementLabelHTML(p){p=locPiece(p);return isMovement(p)?`${_dim(`${romanize(movNo(p))}.`)} ${p.title}`:p.title;}
 // plain work + catalogue, e.g. "Le tombeau de Couperin, M. 68" ("" if standalone with no catalogue)
 function pieceWorkLine(p){
+  p=locPiece(p);
   if(p.coll){const[w,cat]=splitColl(p.coll);return `${w}${cat?`, ${cat}`:""}`;}
   if(p.sub && /^[A-Za-z]{1,4}\.?\s*\d/.test(p.sub) && !/·|No\./.test(p.sub)) return catFix(p.sub);
   return "";
 }
 // concert form with weight (not colour) distinction: work 400, movement 600
 function pieceNameWeightHTML(p){
+  p=locPiece(p);
   if(isMovement(p)){const[w,cat]=splitColl(p.coll);return `<span class="pn-work">${w}${cat?`, ${cat}`:""}: </span><span class="pn-mov">${romanize(movNo(p))}. ${p.title}</span>`;}
   if(p.coll && p.coll!==p.title){const[w,cat]=splitColl(p.coll);return `<span class="pn-work">${w}${cat?`, ${cat}`:""}: </span><span class="pn-mov">${p.title}</span>`;}
   if(p.sub && /^[A-Za-z]{1,4}\.?\s*\d/.test(p.sub) && !/·|No\./.test(p.sub)) return `<span class="pn-mov">${p.title}</span><span class="pn-work">, ${catFix(p.sub)}</span>`;
@@ -1651,9 +1662,9 @@ function pieceNameWeightHTML(p){
 }
 // row form: movement number + short title first, full work name greyed after it
 function pieceRowNameHTML(p){
-  const w=pieceWorkLine(p);
+  const w=pieceWorkLine(p); const lp=locPiece(p);
   if(isMovement(p)) return `${movementLabelHTML(p)}${w?_dim(` • ${w}`):""}`;
-  return w && w!==p.title ? `${p.title}${_dim(` • ${w}`)}` : p.title;
+  return w && w!==lp.title ? `${lp.title}${_dim(` • ${w}`)}` : lp.title;
 }
 
 /* piece row markup */
@@ -1731,8 +1742,9 @@ function renderHomeBody(q) {
         <div class="home-card home-cal">
           <div class="cal-date-big">${today.dateLabel}</div>
           <div class="cal-events">
-            ${today.events.map(ev=>{
-              const by = ev.composer ? cName(ev.composer) : "On this day";
+            ${today.events.map(ev0=>{
+              const ev = locEvent(ev0);
+              const by = ev.composer ? cName(ev.composer) : t("On this day");
               return `<div class="cal-event">
                 ${ev.composer?`<img class="cal-avatar" src="images/composers/${ev.composer}.jpg" alt="">`:`<div class="cal-avatar cal-avatar-ph">${IC.music}</div>`}
                 <div class="cal-event-text">
@@ -1795,7 +1807,7 @@ function composerCard(id) {
     <div class="cav cav-photo"><img src="images/composers/${id}.jpg" alt="${c.name}"></div>
     <div class="ccard-text">
       <div class="ccard-name">${cName(id)}</div>
-      <div class="ccard-era">${c.era}</div>
+      <div class="ccard-era">${cEra(id)}</div>
     </div>
     <div class="ccard-count">${piecesOf(id).length}<span>${t("pieces")}</span></div>
   </div>`;
@@ -1873,8 +1885,8 @@ function renderPianist() {
     <div class="phero">
       <div class="cav cav-photo"><img src="images/composers/${id}.jpg" alt="${c.name}"></div>
       <div class="phero-txt">
-        <div class="phero-head"><span class="phero-name">${cName(id)}</span><span class="phero-era">${c.era}</span></div>
-        <div class="phero-bio">${c.bio}</div>
+        <div class="phero-head"><span class="phero-name">${cName(id)}</span><span class="phero-era">${cEra(id)}</span></div>
+        <div class="phero-bio">${cBio(id)}</div>
       </div>
     </div>
 
@@ -2360,9 +2372,9 @@ function renderSheetPane(p, toggleMark){
            <div class="rowlist">${collList.map((x,i)=>pieceRow(x,i)).join("")}</div>
          </div>`
       : "";
-    const aboutHTML = (p.story||"").split(/\n\n+/).map(x=>`<p class="story-p">${x}</p>`).join("");
+    const aboutHTML = ((locPiece(p).story)||"").split(/\n\n+/).map(x=>`<p class="story-p">${x}</p>`).join("");
     pane.innerHTML = `
-      <div class="sec"><div class="sec-head"><div class="sec-title">The story</div></div>${aboutHTML}</div>
+      <div class="sec"><div class="sec-head"><div class="sec-title">${t("The story")}</div></div>${aboutHTML}</div>
       ${workSec}
       <div class="actionbtn-row"><button class="btn btn-secondary" id="composerBtn">More by ${lastName}</button></div>`;
     wirePieceRows(pane);
