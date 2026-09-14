@@ -429,15 +429,17 @@
   .focus-view.warmup-fv.fake-fs .warmup-scroll { border: none; border-radius: 0; }
   .focus-view.warmup-fv.fake-fs .wu-figure { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 14px 12px; }
   .focus-view.warmup-fv.fake-fs .wu-img { width: auto; height: auto; max-width: 100%; max-height: 100%; }
-  .warmup-actions { gap: 2px; }
-  .warmup-actions .wu-seg { display: contents; }
-  /* text segments (not the round icon buttons) — hug their text, uppercase mono */
+  .warmup-actions { gap: 0; }
+  .warmup-actions .wu-seg { display: flex; align-items: center; gap: 0; }
+  /* text segments (not the round icon buttons) — hug their text, uppercase mono, divider between each */
   .warmup-actions .wu-tab { width: auto; height: auto; border: none; border-radius: 0; background: transparent;
-    padding: 4px 12px; font-family: var(--mu-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
+    padding: 5px 12px; font-family: var(--mu-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
     color: var(--mu-ink-3); cursor: pointer; white-space: nowrap; transition: color var(--mu-fast) var(--mu-ease); }
+  .warmup-actions .wu-tab + .wu-tab { border-left: 1px solid var(--mu-border); }
   .warmup-actions .wu-tab:hover { background: transparent; color: var(--mu-ink); }
   .warmup-actions .wu-tab.is-on { background: transparent; color: var(--mu-ink); font-weight: 600; }
-  .warmup-actions .fa-sep { height: 15px; margin: 0 1px; }
+  /* divider before the enlarge button — flex:none so it never collapses */
+  .warmup-actions .fa-sep { flex: none; width: 1px; height: 16px; background: var(--mu-border); margin: 0 6px; }
   .exercise { border: 1px solid var(--mu-border); border-radius: var(--mu-radius-lg); padding: 14px; margin-top: 12px; background: var(--mu-white); }
   .ex-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 3px; }
   .ex-title { font-size: 15px; font-weight: 650; letter-spacing: -0.01em; }
@@ -1383,7 +1385,7 @@ function renderWarmup(pane, p){
         <div class="wu-figure" id="wuFig"></div>
       </div>
       <div class="focus-actions warmup-actions">
-        <div class="wu-seg" id="wuSeg">${items.map((it,i)=>`<button class="wu-tab" data-wu="${i}">${it.label}</button>`).join('<span class="fa-sep"></span>')}</div>
+        <div class="wu-seg" id="wuSeg">${items.map((it,i)=>`<button class="wu-tab" data-wu="${i}">${it.label}</button>`).join("")}</div>
         <span class="fa-sep"></span>
         <button id="fullBtn" title="Full screen">${full}</button>
       </div>
