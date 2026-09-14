@@ -1223,7 +1223,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260913i";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260913j";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
@@ -1364,18 +1364,19 @@ const WARMUP_SCALE_KEYS = new Set(["C major","G major","D major","A major","E ma
 const WARMUP_ENHARM = { "F♯ major":"G♭ major", "C♯ major":"D♭ major" };   // no own Hanon page — reuse the twin
 const wslug = k => k.toLowerCase().replace(/♭/g,"b").replace(/♯/g,"s").replace(/ /g,"-");
 function scaleImg(key){ return WARMUP_SCALE_KEYS.has(key) ? "warmup-scale-"+wslug(WARMUP_ENHARM[key]||key) : null; }
-// 2nd technique — per-piece (only a few sourced so far; the rest are Scale-only for now)
-const WARMUP_ARP    = { "G major":"warmup-arp-g-major" };
+function arpImg(key){ return WARMUP_SCALE_KEYS.has(key) ? "warmup-arp-"+wslug(WARMUP_ENHARM[key]||key) : null; }
+// 2nd technique: default = arpeggio (Hanon, all keys); override per piece to "velocity"/"none".
 const WARMUP_CZERNY = { "G major":{ sub:"Czerny · School of Velocity, Op. 299 No. 16", imgs:["warmup-czerny-g"] } };
 const WARMUP_EASY_MAX = 5;   // level <= this => Scale only
-const WARMUP_TECH = { "debussy-g77": "arpeggio" };   // per-piece 2nd technique
+const WARMUP_TECH = {};      // per-piece override, e.g. {"liszt-x":"velocity","bach-y":"none"}
 function warmupItems(p){
   const it = [];
   const sc = scaleImg(p.key);
   if (sc) it.push({ id:"scale", label:"Scale", title:`${p.key} scale`, sub:"Hanon · Two octaves, hands together", imgs:[sc] });
   if (p.level > WARMUP_EASY_MAX) {
-    const tech = WARMUP_TECH[p.id];
-    if (tech === "arpeggio" && WARMUP_ARP[p.key]) it.push({ id:"arp", label:"Arpeggio", title:`${p.key} arpeggio`, sub:"Hanon · 1·3·5·8, smooth thumb-under", imgs:[WARMUP_ARP[p.key]] });
+    const tech = WARMUP_TECH[p.id] || "arpeggio";
+    const a = arpImg(p.key);
+    if (tech === "arpeggio" && a) it.push({ id:"arp", label:"Arpeggio", title:`${p.key} arpeggio`, sub:"Hanon · 1·3·5·8, smooth thumb-under", imgs:[a] });
     else if (tech === "velocity" && WARMUP_CZERNY[p.key]) it.push({ id:"vel", label:"Velocity", title:`${p.key} velocity`, sub:WARMUP_CZERNY[p.key].sub, imgs:WARMUP_CZERNY[p.key].imgs });
   }
   return it.slice(0, 2);
