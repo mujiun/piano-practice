@@ -1223,7 +1223,7 @@ const SCORES = {
 const SCORE_PAGE = {};  // per-movement PDFs now start at page 1 — no anchors needed
 // Pieces that should show the PDF score even if MusicXML/notes exist (user preference)
 const FORCE_PDF = new Set(["rav-menuet-haydn"]);
-const SCORE_VER = "20260913h";  // bump whenever a PDF is replaced in-place, to bust browser cache
+const SCORE_VER = "20260913i";  // bump whenever a PDF is replaced in-place, to bust browser cache
 function pdfSrc(id, params){
   const pg = SCORE_PAGE[id] ? "page=" + SCORE_PAGE[id] : "";
   const q = [pg, params].filter(Boolean).join("&");
@@ -1359,19 +1359,20 @@ function exercisesFor(p){
   ];
 }
 // ---- Warm-up: real public-domain exercise scores, matched to the piece's key + level ----
-// Hanon (universal C-major finger drill) + key-matched scale/arpeggio (Hanon) + level-matched Czerny étude.
-// pieces wired to the new image-based warm-up (rest keep the old placeholder view for now)
-const WARMUP_READY = new Set(["debussy-g77"]);
-const WARMUP_SCALE  = { "G major":"warmup-scale-g" };
-const WARMUP_ARP    = { "G major":"warmup-arp-g" };
+// Scale (Hanon, all 24 keys) always; + one technique matched to the piece (only for level > WARMUP_EASY_MAX).
+const WARMUP_SCALE_KEYS = new Set(["C major","G major","D major","A major","E major","B major","F♯ major","G♭ major","D♭ major","C♯ major","A♭ major","E♭ major","B♭ major","F major","A minor","E minor","B minor","F♯ minor","C♯ minor","G♯ minor","E♭ minor","B♭ minor","F minor","C minor","G minor","D minor"]);
+const WARMUP_ENHARM = { "F♯ major":"G♭ major", "C♯ major":"D♭ major" };   // no own Hanon page — reuse the twin
+const wslug = k => k.toLowerCase().replace(/♭/g,"b").replace(/♯/g,"s").replace(/ /g,"-");
+function scaleImg(key){ return WARMUP_SCALE_KEYS.has(key) ? "warmup-scale-"+wslug(WARMUP_ENHARM[key]||key) : null; }
+// 2nd technique — per-piece (only a few sourced so far; the rest are Scale-only for now)
+const WARMUP_ARP    = { "G major":"warmup-arp-g-major" };
 const WARMUP_CZERNY = { "G major":{ sub:"Czerny · School of Velocity, Op. 299 No. 16", imgs:["warmup-czerny-g"] } };
-// Warm-up model: Scale (piece's key) always; + one technique matched to the piece, only for
-// non-easy pieces (level > WARMUP_EASY_MAX). Easy pieces get Scale only. Max 2 per piece.
-const WARMUP_EASY_MAX = 4;
+const WARMUP_EASY_MAX = 5;   // level <= this => Scale only
 const WARMUP_TECH = { "debussy-g77": "arpeggio" };   // per-piece 2nd technique
 function warmupItems(p){
   const it = [];
-  if (WARMUP_SCALE[p.key]) it.push({ id:"scale", label:"Scale", title:`${p.key} scale`, sub:"Hanon · Two octaves, hands together", imgs:[WARMUP_SCALE[p.key]] });
+  const sc = scaleImg(p.key);
+  if (sc) it.push({ id:"scale", label:"Scale", title:`${p.key} scale`, sub:"Hanon · Two octaves, hands together", imgs:[sc] });
   if (p.level > WARMUP_EASY_MAX) {
     const tech = WARMUP_TECH[p.id];
     if (tech === "arpeggio" && WARMUP_ARP[p.key]) it.push({ id:"arp", label:"Arpeggio", title:`${p.key} arpeggio`, sub:"Hanon · 1·3·5·8, smooth thumb-under", imgs:[WARMUP_ARP[p.key]] });
@@ -2367,7 +2368,7 @@ function renderSheetPane(p, toggleMark){
     pane.querySelector("#composerBtn").addEventListener("click", ()=>{ stopAllPractice(); openPianist(p.c); });
 
   } else if (sheetCtx.tab === "practice") {
-    if (WARMUP_READY.has(p.id)) {
+    if (warmupItems(p).length) {
       renderWarmup(pane, p);
     } else {
       const exs = exercisesFor(p);
